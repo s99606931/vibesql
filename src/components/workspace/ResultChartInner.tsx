@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useId } from "react";
+import { useState, useEffect, useId } from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -83,6 +83,8 @@ export default function ResultChartInner({ rows, columns }: ResultChartInnerProp
 
   const defaultKind = detectDefaultKind(dateCols, stringCols, numericCols);
   const [kind, setKind] = useState<ChartKind>(defaultKind);
+  // Reset chart type when the data schema changes (different query result loaded)
+  useEffect(() => { setKind(defaultKind); }, [defaultKind]);
 
   if (numericCols.length === 0) {
     return (

@@ -1,7 +1,7 @@
 import { create } from "zustand";
+import type { WorkspaceStatus } from "@/types";
 
 type Row = Record<string, unknown>;
-type WorkspaceStatus = "idle" | "generating" | "ready" | "running" | "success" | "error";
 
 interface WorkspaceState {
   status: WorkspaceStatus;

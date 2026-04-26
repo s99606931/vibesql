@@ -1,6 +1,7 @@
 "use client";
 
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import { useConnections } from "@/hooks/useConnections";
 import { TopBar } from "@/components/shell/TopBar";
 import { AICallout } from "@/components/ui-vs/AICallout";
@@ -18,7 +19,8 @@ import {
   Check,
   Save,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect, Suspense, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ResultTable } from "@/components/workspace/ResultTable";
 import ResultChart from "@/components/workspace/ResultChart";
@@ -52,6 +54,20 @@ function exportToCsv(rows: Record<string, unknown>[], columns: string[]): void {
   URL.revokeObjectURL(url);
 }
 
+function SqlParamLoader() {
+  const searchParams = useSearchParams();
+  const { setSql, setStatus, sql } = useWorkspaceStore();
+  useEffect(() => {
+    const sqlParam = searchParams.get("sql");
+    if (sqlParam && !sql) {
+      setSql(decodeURIComponent(sqlParam));
+      setStatus("ready");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+}
+
 export default function WorkspacePage() {
   const {
     status,
@@ -71,6 +87,7 @@ export default function WorkspacePage() {
     setActiveConnection,
   } = useWorkspaceStore();
 
+  const { dialect } = useSettingsStore();
   const { data: connections } = useConnections();
   const queryClient = useQueryClient();
 
@@ -78,13 +95,28 @@ export default function WorkspacePage() {
   const [isEdited, setIsEdited] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [savedOk, setSavedOk] = useState(false);
+  const savedOkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (savedOkTimer.current) clearTimeout(savedOkTimer.current);
+    };
+  }, []);
+
+  const activeConnection = (connections ?? []).find((c) => c.id === activeConnectionId);
 
   const saveQueryMutation = useMutation({
     mutationFn: async (payload: { name: string; query: string; folder: string }) => {
       const res = await fetch("/api/saved", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          name: payload.name,
+          sql: payload.query,
+          folder: payload.folder,
+          dialect,
+          ...(activeConnectionId ? { connectionId: activeConnectionId } : {}),
+        }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "저장 실패");
@@ -93,7 +125,8 @@ export default function WorkspacePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["saved"] });
       setSavedOk(true);
-      setTimeout(() => setSavedOk(false), 1500);
+      if (savedOkTimer.current) clearTimeout(savedOkTimer.current);
+      savedOkTimer.current = setTimeout(() => setSavedOk(false), 1500);
     },
   });
 
@@ -102,15 +135,47 @@ export default function WorkspacePage() {
     setStatus("generating");
     setIsEdited(false);
     try {
+      // Fetch schema + glossary in parallel for richer NL→SQL context
+      let schemaContext = "No schema provided — generate generic SQL";
+      let glossaryContext: string | undefined;
+      await Promise.allSettled([
+        (async () => {
+          const url = activeConnectionId
+            ? `/api/schema?connectionId=${encodeURIComponent(activeConnectionId)}`
+            : "/api/schema";
+          const sr = await fetch(url);
+          const sj = (await sr.json()) as { data?: Array<{ name: string; cols: string[] }> };
+          if (sj.data && sj.data.length > 0) {
+            schemaContext = sj.data
+              .map((t) => `${t.name}(${t.cols.join(", ")})`)
+              .join("; ");
+          }
+        })(),
+        (async () => {
+          const gr = await fetch("/api/glossary");
+          const gj = (await gr.json()) as { data?: Array<{ term: string; definition: string; sql?: string }> };
+          if (gj.data && gj.data.length > 0) {
+            glossaryContext = gj.data
+              .map((t) => `${t.term}: ${t.definition}${t.sql ? ` [SQL hint: ${t.sql}]` : ""}`)
+              .join("\n");
+          }
+        })(),
+      ]);
+
       const res = await fetch("/api/queries/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nl: nlQuery,
-          dialect: "postgresql",
-          schemaContext: "orders(id,user_id,status,amount,created_at), customers(id,email,name,country), products(id,name,category,price)",
+          dialect,
+          schemaContext,
+          glossary: glossaryContext,
         }),
       });
+      if (res.status === 429) {
+        const retryAfter = res.headers.get("Retry-After") ?? "60";
+        throw new Error(`요청이 너무 많습니다. ${retryAfter}초 후 다시 시도하세요.`);
+      }
       const json = await res.json();
       if (!res.ok || json.error) throw new Error(json.error ?? "SQL generation failed");
       setSql(json.data.sql);
@@ -135,48 +200,63 @@ export default function WorkspacePage() {
           limit: 1000,
         }),
       });
+      if (res.status === 429) {
+        const retryAfter = res.headers.get("Retry-After") ?? "60";
+        throw new Error(`요청이 너무 많습니다. ${retryAfter}초 후 다시 시도하세요.`);
+      }
+      const isBlocked = res.status === 403;
       const json = await res.json();
-      if (!res.ok || json.error) throw new Error(json.error ?? "Query execution failed");
+      if (!res.ok || json.error) {
+        const histStatus = isBlocked ? "BLOCKED" : "ERROR";
+        fetch("/api/history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nlQuery: nlQuery || undefined,
+            sql,
+            dialect,
+            status: histStatus,
+            errorMsg: json.error ?? "실행에 실패했습니다",
+            ...(activeConnection ? { connectionName: activeConnection.name } : {}),
+          }),
+        }).then(() => queryClient.invalidateQueries({ queryKey: ["history"] })).catch(() => undefined);
+        throw new Error(json.error ?? "Query execution failed");
+      }
       const { rows, rowCount: rc, durationMs } = json.data;
       setResults(rows, rc, durationMs);
       setStatus("success");
-      // Save to history (non-blocking, failure is acceptable)
+      // Save to history + invalidate cache (non-blocking)
       fetch("/api/history", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nlQuery: nlQuery || undefined,
           sql,
-          dialect: "postgresql",
+          dialect,
           status: "SUCCESS",
           rowCount: rc,
           durationMs,
+          ...(activeConnection ? { connectionName: activeConnection.name } : {}),
         }),
-      }).catch(() => undefined); // non-critical
+      }).then(async (r) => {
+        if (r.ok) queryClient.invalidateQueries({ queryKey: ["history"] });
+      }).catch(() => undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : "실행에 실패했습니다");
       setStatus("error");
-      // Save failed execution to history (non-blocking)
-      fetch("/api/history", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nlQuery: nlQuery || undefined,
-          sql,
-          dialect: "postgresql",
-          status: "ERROR",
-          errorMsg: err instanceof Error ? err.message : "실행에 실패했습니다",
-        }),
-      }).catch(() => undefined); // non-critical
     }
   }
 
   const showSQL = ["ready", "running", "success", "error"].includes(status);
   const showResults = status === "success" && results !== null;
-  const columns = results && results.length > 0 ? Object.keys(results[0]) : [];
+  const columns = useMemo(
+    () => (results && results.length > 0 ? Object.keys(results[0]) : []),
+    [results]
+  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+      <Suspense fallback={null}><SqlParamLoader /></Suspense>
       <TopBar
         title={nlQuery || "새 쿼리"}
         breadcrumbs={[{ label: "vibeSQL", href: "/" }, { label: "워크스페이스" }]}
@@ -223,7 +303,15 @@ export default function WorkspacePage() {
                 >
                   저장
                 </Button>
-                <Button variant="ghost" size="sm" icon={<Share2 size={13} />}>공유</Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<Share2 size={13} />}
+                  onClick={() => {
+                    const url = `${window.location.origin}/workspace?sql=${encodeURIComponent(sql)}`;
+                    navigator.clipboard.writeText(url).then(() => alert("공유 링크가 클립보드에 복사되었습니다."));
+                  }}
+                >공유</Button>
               </>
             )}
             {status !== "idle" && (
@@ -449,18 +537,18 @@ export default function WorkspacePage() {
                 variant="ghost"
                 size="sm"
                 icon={<Save size={12} />}
-                onClick={() => exportToCsv(results!, columns)}
+                onClick={() => results && exportToCsv(results, columns)}
               >
                 CSV
               </Button>
             </div>
 
-            {activeTab === "table" && (
-              <ResultTable rows={results!} columns={columns} />
+            {activeTab === "table" && results && (
+              <ResultTable rows={results} columns={columns} />
             )}
 
-            {activeTab === "chart" && (
-              <ResultChart rows={results!} columns={columns} />
+            {activeTab === "chart" && results && (
+              <ResultChart rows={results} columns={columns} />
             )}
 
             {activeTab === "explain" && (
