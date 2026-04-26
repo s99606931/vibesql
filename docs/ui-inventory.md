@@ -1,523 +1,265 @@
-# vibeSQL UI 인벤토리 — 전체 메뉴 · 버튼 목록 및 검사 결과
+# vibeSQL UI 인벤토리 (전체 메뉴 · 버튼 · API)
 
-> **검사 일시**: 2026-04-26 22:59  
-> **검사 방법**: 소스 코드 정적 분석 + HTTP 라우트 응답 검사  
-> **서버**: http://localhost:3000 (Next.js dev)
+> **최초 작성**: 2026-04-26  
+> **최종 업데이트**: 2026-04-26 (인터랙티브 전수 검사 반영)  
+> **기준**: 소스코드 정적 분석 + Playwright 인터랙티브 전수 검사  
+> **총 페이지**: 13개 (라우트 기준) | **총 API 엔드포인트**: 40개
 
 ---
 
-## 검사 요약
+## 사이드바 메뉴 구조
 
-| 항목 | 결과 |
+| 그룹 | 메뉴 | 경로 | 아이콘 |
+|------|------|------|--------|
+| 워크스페이스 | 워크스페이스 | `/workspace` | SquareTerminal |
+| 워크스페이스 | 히스토리 | `/history` | History |
+| 워크스페이스 | 저장됨 | `/saved` | Star |
+| 인사이트 | 대시보드 | `/dashboards` | LayoutDashboard |
+| 인사이트 | 차트 | `/charts` | BarChart2 |
+| 지식베이스 | 스키마 | `/schema` | Table2 |
+| 지식베이스 | 용어 사전 | `/glossary` | BookOpen |
+| 데이터 소스 | 연결 | `/connections` | Plug |
+| 데이터 소스 | 상태 · 에러 | `/errors` | AlertTriangle |
+| 계정 | 프로필 | `/profile` | User |
+| 계정 | 설정 | `/settings` | Settings |
+| (로고 클릭) | vibeSQL 홈 | `/` → `/home` | Zap |
+
+---
+
+## 페이지별 버튼 목록
+
+### `/home` — 홈 (버튼 20개)
+
+| 버튼 | 역할 | 연결 경로 |
+|------|------|-----------|
+| 워크스페이스 (그룹 토글) | 사이드바 그룹 접기/펼치기 | — |
+| 인사이트 (그룹 토글) | 사이드바 그룹 접기/펼치기 | — |
+| 지식베이스 (그룹 토글) | 사이드바 그룹 접기/펼치기 | — |
+| 데이터 소스 (그룹 토글) | 사이드바 그룹 접기/펼치기 | — |
+| 계정 (그룹 토글) | 사이드바 그룹 접기/펼치기 | — |
+| ⌘K 명령 팔레트 | 명령 팔레트 열기 | — |
+| AI 프로바이더 설정하기 | 상태 카드 → 설정으로 이동 | `/settings` |
+| 관리 | 연결 관리로 이동 | `/connections` |
+| 설정하기 | AI 설정으로 이동 | `/settings` |
+| 열기 | 워크스페이스 열기 | `/workspace` |
+| 워크스페이스 (카드) | 메뉴 카드 이동 | `/workspace` |
+| 연결 (카드) | 메뉴 카드 이동 | `/connections` |
+| 스키마 (카드) | 메뉴 카드 이동 | `/schema` |
+| 용어 사전 (카드) | 메뉴 카드 이동 | `/glossary` |
+| 결과 · 차트 (카드) | 메뉴 카드 이동 | `/charts` |
+| 대시보드 (카드) | 메뉴 카드 이동 | `/dashboards` |
+| 히스토리 (카드) | 메뉴 카드 이동 | `/history` |
+| 저장됨 (카드) | 메뉴 카드 이동 | `/saved` |
+| 설정 (카드) | 메뉴 카드 이동 | `/settings` |
+| 아코디언 가이드 (각 메뉴) | 사용법 가이드 펼치기 | — |
+
+---
+
+### `/workspace` — 워크스페이스 (버튼 12개)
+
+| 버튼 | 역할 |
 |------|------|
-| 페이지 라우트 | 12 / 12 통과 (200 OK) |
-| API 라우트 GET | 9 / 10 통과 (1개 N/A: `/api/charts` 없음, 차트는 `/api/saved` 활용) |
-| 수정된 버그 | `/api/settings` 500 → 200 수정 완료 |
-| 전체 메뉴 항목 | 11개 (사이드바 5그룹) |
-| 전체 버튼/액션 | 약 80개 (페이지별 상세 목록 아래 참조) |
+| 워크스페이스 / 인사이트 / 지식베이스 / 데이터 소스 / 계정 (사이드바 그룹) | 접기/펼치기 |
+| ⌘K 명령 팔레트 | 명령 팔레트 열기 |
+| 오늘 활성 사용자 | 즐겨찾기 예시 쿼리 로드 |
+| 주간 매출 추이 | 즐겨찾기 예시 쿼리 로드 |
+| 국가별 가입자 수 | 즐겨찾기 예시 쿼리 로드 |
+| 결제 실패율 | 즐겨찾기 예시 쿼리 로드 |
+| SQL 생성 | 자연어 → SQL 생성 요청 |
 
 ---
 
-## 1. 사이드바 메뉴 (Sidebar.tsx)
+### `/connections` — 연결 (버튼 26개)
 
-> 위치: `src/components/shell/Sidebar.tsx`
-
-| 그룹 | 라벨 | 경로 | HTTP 상태 | 비고 |
-|------|------|------|-----------|------|
-| **워크스페이스** | 워크스페이스 | `/workspace` | ✅ 200 | |
-| | 히스토리 | `/history` | ✅ 200 | |
-| | 저장됨 | `/saved` | ✅ 200 | 배지: 저장된 쿼리 수 |
-| **인사이트** | 대시보드 | `/dashboards` | ✅ 200 | |
-| | 차트 | `/charts` | ✅ 200 | |
-| **지식베이스** | 스키마 | `/schema` | ✅ 200 | |
-| | 용어 사전 | `/glossary` | ✅ 200 | |
-| **데이터 소스** | 연결 | `/connections` | ✅ 200 | |
-| | 상태 · 에러 | `/errors` | ✅ 200 | |
-| **계정** | 프로필 | `/profile` | ✅ 200 | |
-| | 설정 | `/settings` | ✅ 200 | |
-
-**헤더 버튼**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| vibeSQL (로고 클릭) | `/home` 이동 | ✅ |
-| ⌘K 명령 팔레트 | 명령 팔레트 열기 | ✅ |
-| 그룹 헤더 (각 5개) | 그룹 접기/펼치기 | ✅ |
+| 버튼 | 역할 |
+|------|------|
+| 사이드바 그룹 5개 | 접기/펼치기 |
+| ⌘K 명령 팔레트 | 명령 팔레트 열기 |
+| 새 연결 | 연결 추가 폼 열기 |
+| 재테스트 | 연결 상태 재테스트 |
+| 삭제 | 연결 삭제 (confirm) |
+| 드라이버 선택 버튼 (PostgreSQL, MySQL, SQLite, DuckDB 등) | 드라이버 전환 |
+| 저장 (폼) | 연결 정보 저장 |
+| 취소 (폼) | 폼 닫기 |
 
 ---
 
-## 2. 명령 팔레트 (CommandPalette.tsx)
+### `/history` — 히스토리 (버튼 14개)
 
-> 위치: `src/components/shell/CommandPalette.tsx`  
-> 단축키: `⌘K` (Mac) / `Ctrl+K` (Windows)
-
-| 라벨 | 경로 | 그룹 | 상태 |
-|------|------|------|------|
-| 워크스페이스 | `/workspace` | 페이지 | ✅ |
-| 스키마 브라우저 | `/schema` | 페이지 | ✅ |
-| 히스토리 | `/history` | 페이지 | ✅ |
-| 저장된 쿼리 | `/saved` | 페이지 | ✅ |
-| 차트 갤러리 | `/charts` | 페이지 | ✅ |
-| 대시보드 | `/dashboards` | 페이지 | ✅ |
-| 비즈니스 용어집 | `/glossary` | 페이지 | ✅ |
-| DB 연결 관리 | `/connections` | 설정 | ✅ |
-| 설정 | `/settings` | 설정 | ✅ |
+| 버튼 | 역할 |
+|------|------|
+| 사이드바 그룹 5개 | 접기/펼치기 |
+| ⌘K 명령 팔레트 | 명령 팔레트 열기 |
+| 전체 | 필터: 전체 히스토리 |
+| 성공 | 필터: 성공 쿼리만 |
+| 실패 | 필터: 실패 쿼리만 |
+| 즐겨찾기 | 필터: 즐겨찾기만 |
+| 재실행 | 쿼리 재실행 → 워크스페이스 |
+| 저장 | 저장됨으로 이동 |
+| 삭제 | 히스토리 항목 삭제 |
 
 ---
 
-## 3. 홈 페이지 (`/home`)
+### `/saved` — 저장됨 (버튼 13개)
 
-> 위치: `src/app/(app)/home/page.tsx`  
-> API: `GET /api/connections`, `GET /api/ai-providers`
-
-**페이지 상태 카드**
-
-| 라벨 | 동작 | 연동 API | 상태 |
-|------|------|----------|------|
-| 연결된 DB 카드 | `/connections` 이동 | `GET /api/connections` | ✅ |
-| AI 프로바이더 카드 | `/settings` 이동 | `GET /api/ai-providers` | ✅ |
-
-**워크플로 3단계**
-
-| 단계 | 라벨 | 버튼 | 동작 | 상태 |
-|------|------|------|------|------|
-| 1 | 데이터베이스 연결 | 연결 추가 / 관리 | `/connections` 이동 | ✅ |
-| 2 | AI 프로바이더 설정 | 설정하기 / 관리 | `/settings` 이동 | ✅ |
-| 3 | 자연어로 SQL 생성 | 열기 | `/workspace` 이동 | ✅ |
-
-**진행 상태 요약 버튼** (동적, 미완료 항목 우선)
-
-| 조건 | 버튼 라벨 | 이동 경로 |
-|------|----------|----------|
-| 연결 없음 | 연결 추가하기 | `/connections` |
-| AI 프로바이더 없음 | AI 프로바이더 설정하기 | `/settings` |
-| 모두 완료 | 워크스페이스에서 시작하기 | `/workspace` |
-
-**메뉴별 사용 가이드 (아코디언 9개)**
-
-| 메뉴 | 이동 버튼 | 상태 |
-|------|----------|------|
-| 워크스페이스 | 이동 → `/workspace` | ✅ |
-| 연결 | 이동 → `/connections` | ✅ |
-| 스키마 | 이동 → `/schema` | ✅ |
-| 용어 사전 | 이동 → `/glossary` | ✅ |
-| 결과 · 차트 | 이동 → `/charts` | ✅ |
-| 대시보드 | 이동 → `/dashboards` | ✅ |
-| 히스토리 | 이동 → `/history` | ✅ |
-| 저장됨 | 이동 → `/saved` | ✅ |
-| 설정 | 이동 → `/settings` | ✅ |
+| 버튼 | 역할 |
+|------|------|
+| 사이드바 그룹 5개 | 접기/펼치기 |
+| ⌘K 명령 팔레트 | 명령 팔레트 열기 |
+| 새 폴더 | 폴더 이름 prompt → 미분류 이동 |
+| 워크스페이스에서 저장 | → `/workspace` 이동 |
+| 워크스페이스에서 열기 (호버) | SQL 로드 후 → `/workspace` |
+| 실행 (호버) | SQL 로드 + running → `/workspace` |
+| 편집 (호버) | 쿼리 이름 변경 prompt |
+| 삭제 (호버) | confirm 후 DELETE |
 
 ---
 
-## 4. 워크스페이스 (`/workspace`)
+### `/schema` — 스키마 (버튼 11개)
 
-> 위치: `src/app/(app)/workspace/page.tsx`  
-> API: `POST /api/queries/generate`, `POST /api/queries/run`, `POST /api/saved`
-
-**TopBar 버튼**
-
-| 라벨 | 동작 | 표시 조건 | 상태 |
-|------|------|----------|------|
-| 연결 드롭다운 | 활성 DB 변경, 설정 PATCH | 항상 | ✅ |
-| 저장 | `POST /api/saved` | status ≠ idle | ✅ |
-| 공유 | 클립보드 복사 | status ≠ idle | ✅ |
-| 초기화 | 상태 리셋 | status ≠ idle | ✅ |
-
-**자연어 입력창 예시 칩**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 오늘 활성 사용자 | 입력창에 텍스트 설정 | ✅ |
-| 주간 매출 추이 | 입력창에 텍스트 설정 | ✅ |
-| 국가별 가입자 수 | 입력창에 텍스트 설정 | ✅ |
-| 결제 실패율 | 입력창에 텍스트 설정 | ✅ |
-
-**SQL 편집기 · 결과 버튼**
-
-| 라벨 | 단축키 | 동작 | API | 상태 |
-|------|--------|------|-----|------|
-| SQL 생성 (전송 버튼) | Enter | `POST /api/queries/generate` | ✅ |
-| 복사 | | 클립보드에 SQL 복사 | — | ✅ |
-| 실행 | ⌘⏎ / Ctrl+Enter | `POST /api/queries/run` | ✅ |
-| 결과: 테이블 탭 | | 결과 표시 | — | ✅ |
-| 결과: 차트 탭 | | 차트 렌더링 | — | ✅ |
-| 결과: SQL 설명 탭 | | AI 설명 표시 | — | ✅ |
-| CSV | | CSV 다운로드 | — | ✅ |
-| 대시보드 추가 | | `POST /api/dashboards/{id}` | ✅ |
+| 버튼 | 역할 |
+|------|------|
+| 사이드바 그룹 5개 | 접기/펼치기 |
+| ⌘K 명령 팔레트 | 명령 팔레트 열기 |
+| 전체 | 필터: 전체 스키마 |
+| public | 필터: public 스키마만 |
+| PII 포함 | 필터: PII 태그 포함 |
+| 연결 추가 | → `/connections` 이동 |
 
 ---
 
-## 5. 연결 (`/connections`)
+### `/glossary` — 용어 사전 (버튼 8개)
 
-> 위치: `src/app/(app)/connections/page.tsx`  
-> API: `GET /api/connections`, `POST /api/connections`, `POST /api/connections/{id}/test`, `DELETE /api/connections/{id}`
-
-**TopBar 버튼**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 새 연결 | ConnectionWizard 모달 열기 | — | ✅ |
-
-**연결 목록 버튼 (행당)**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 재테스트 | 연결 테스트 | `POST /api/connections/{id}/test` | ✅ |
-| 삭제 | confirm → DELETE | `DELETE /api/connections/{id}` | ✅ |
-
-**빈 상태 버튼**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 첫 연결 추가하기 | ConnectionWizard 모달 열기 | ✅ |
+| 버튼 | 역할 |
+|------|------|
+| 사이드바 그룹 5개 | 접기/펼치기 |
+| ⌘K 명령 팔레트 | 명령 팔레트 열기 |
+| 새 용어 | 용어 추가 인라인 폼 열기 |
 
 ---
 
-## 6. 히스토리 (`/history`)
+### `/settings` — 설정 (버튼 20개)
 
-> 위치: `src/app/(app)/history/page.tsx`  
-> API: `GET /api/history`, `POST /api/history/{id}/star`, `DELETE /api/history/{id}`
-
-**필터 · 검색**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 전체 | 필터 초기화 | ✅ |
-| 성공 | status=SUCCESS 필터 | ✅ |
-| 실패 | status=FAILURE 필터 | ✅ |
-| 즐겨찾기 | starred=true 필터 | ✅ |
-| 검색창 | 서버사이드 검색 | ✅ |
-
-**항목 호버 버튼 (행당)**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 재실행 | SQL 로드 + `/workspace` 이동 | — | ✅ |
-| 별표 | 즐겨찾기 토글 | `POST /api/history/{id}/star` | ✅ |
-| 삭제 | `DELETE /api/history/{id}` | ✅ |
-
-**페이지네이션**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 더 보기 ({현재}/{합계}개) | limit +50 (React Query 리페치) | ✅ |
+| 버튼 | 역할 |
+|------|------|
+| 사이드바 그룹 5개 | 접기/펼치기 |
+| ⌘K 명령 팔레트 | 명령 팔레트 열기 |
+| 외관 | 탭 전환 |
+| AI 설정 | 탭 전환 (AI 프로바이더 목록) |
+| 보안 | 탭 전환 |
+| 알림 | 탭 전환 |
+| Indigo / Emerald / Amber / Rose / Slate | 테마 컬러 선택 (5개) |
+| 다크 / 컴팩트 / 보통 / 넓게 | 모드·밀도 선택 (4개) |
+| AI 프로바이더 추가 | 추가 폼 열기 |
 
 ---
 
-## 7. 저장됨 (`/saved`)
+### `/dashboards` — 대시보드 (버튼 12개)
 
-> 위치: `src/app/(app)/saved/page.tsx`  
-> API: `GET /api/saved`, `PATCH /api/saved/{id}`, `DELETE /api/saved/{id}`
-
-**TopBar 버튼**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 새 폴더 | 이름 prompt → API 이동 | `PATCH /api/saved/{id}` (일괄) | ✅ |
-
-**페이지 버튼**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 워크스페이스에서 저장 | `/workspace` 이동 | — | ✅ |
-| 검색창 | 클라이언트 필터 | — | ✅ |
-
-**항목 호버 버튼 (행당)**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 워크스페이스에서 열기 | SQL 로드, status=ready, `/workspace` | — | ✅ |
-| 실행 | SQL 로드, status=running, `/workspace` | — | ✅ |
-| 편집 | prompt → 이름 변경 | `PATCH /api/saved/{id}` | ✅ |
-| 삭제 | confirm → DELETE | `DELETE /api/saved/{id}` | ✅ |
+| 버튼 | 역할 |
+|------|------|
+| 사이드바 그룹 5개 | 접기/펼치기 |
+| ⌘K 명령 팔레트 | 명령 팔레트 열기 |
+| 새 대시보드 | 이름 prompt → POST /api/dashboards |
+| 전체 | 필터: 전체 대시보드 |
+| 내 대시보드 | 필터: 본인 소유 |
+| 공유됨 | 필터: 공유된 대시보드 |
 
 ---
 
-## 8. 스키마 (`/schema`)
+### `/charts` — 차트 (버튼 16개)
 
-> 위치: `src/app/(app)/schema/page.tsx`  
-> API: `GET /api/schema`
-
-**필터 · 검색**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 전체 | 필터 초기화 | ✅ |
-| public | public 스키마 필터 | ✅ |
-| PII 포함 | PII 플래그 필터 | ✅ |
-| 검색창 | 테이블명 검색 | ✅ |
-
-**테이블 카드 버튼**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 카드 클릭 | SELECT * LIMIT 100 → `/workspace` | ✅ |
-| 테이블명 복사 | 클립보드 복사 | ✅ |
-| ▶ SELECT 실행 아이콘 | SQL 로드 → `/workspace` | ✅ |
-
-**빈 상태 버튼**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 연결 추가 | `/connections` 이동 | ✅ |
+| 버튼 | 역할 |
+|------|------|
+| 사이드바 그룹 5개 | 접기/펼치기 |
+| ⌘K 명령 팔레트 | 명령 팔레트 열기 |
+| 새 차트 | 새 차트 생성 |
+| 전체 / 라인 / 바 / 파이 / 테이블 | 차트 유형 필터 (5개) |
+| 연결하러 가기 | 연결 없을 때 → `/connections` |
+| 차트 실행 | 현재 쿼리로 차트 생성 |
 
 ---
 
-## 9. 용어 사전 (`/glossary`)
+### `/errors` — 상태 · 에러 (버튼 7개)
 
-> 위치: `src/app/(app)/glossary/page.tsx`  
-> API: `GET /api/glossary`, `POST /api/glossary`, `DELETE /api/glossary/{id}`
-
-**TopBar 버튼**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 새 용어 | 폼 토글 | ✅ |
-
-**좌측 패널**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 검색창 | 용어 클라이언트 필터 | ✅ |
-| 용어 항목 (클릭) | 우측 상세 표시 | ✅ |
-
-**용어 추가 폼**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 저장 | 용어 생성 | `POST /api/glossary` | ✅ |
-| 취소 | 폼 닫기 | — | ✅ |
-
-**우측 상세 패널**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 삭제 | confirm → DELETE | `DELETE /api/glossary/{id}` | ✅ |
-| 새 용어 추가 (용어 미선택 시) | 폼 토글 | — | ✅ |
+| 버튼 | 역할 |
+|------|------|
+| 사이드바 그룹 5개 | 접기/펼치기 |
+| ⌘K 명령 팔레트 | 명령 팔레트 열기 |
+| (상태 정보 읽기 전용) | — |
 
 ---
 
-## 10. 설정 (`/settings`)
+### `/profile` — 프로필 (버튼 12개)
 
-> 위치: `src/app/(app)/settings/page.tsx`  
-> API: `GET /api/settings`, `PATCH /api/settings`, `GET /api/ai-providers`, `POST/PATCH/DELETE /api/ai-providers`
-
-### 10-1. 외관 섹션
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 테마 (Indigo/Emerald/Amber/Rose/Slate) | 테마 선택 | `PATCH /api/settings` | ✅ |
-| 다크/라이트 모드 토글 | 모드 전환 | `PATCH /api/settings` | ✅ |
-| 밀도 (컴팩트/보통/넓게) | 밀도 선택 | `PATCH /api/settings` | ✅ |
-
-### 10-2. AI 설정 섹션
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| SQL 방언 드롭다운 | 방언 선택 | `PATCH /api/settings` | ✅ |
-| SQL 생성 온도 슬라이더 | 0.0~1.0 조정 | `PATCH /api/settings` | ✅ |
-| 항상 결과 설명 포함 토글 | on/off | `PATCH /api/settings` | ✅ |
-| AI 프로바이더 추가 버튼 | 추가 폼 열기 | — | ✅ |
-
-**AI 프로바이더 추가 폼**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 종류 드롭다운 (7종) | anthropic/openai/google/lmstudio/ollama/vllm/compat | — | ✅ |
-| 저장 | 프로바이더 생성 | `POST /api/ai-providers` | ✅ |
-| 취소 | 폼 닫기 | — | ✅ |
-
-**AI 프로바이더 항목 버튼 (행당)**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 테스트 | 연결 테스트 | `POST /api/ai-providers/{id}/test` | ✅ |
-| 삭제 | confirm → DELETE | `DELETE /api/ai-providers/{id}` | ✅ |
-
-### 10-3. 보안 섹션
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 세션 타임아웃 드롭다운 | 15분/30분/1시간/2시간/없음 | ✅ |
-| 읽기 전용 모드 토글 | 비활성화 (항상 켜짐) | ✅ (의도적 비활성) |
-
-### 10-4. 알림 섹션
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 쿼리 성공 알림 | on/off 토글 | `PATCH /api/settings` | ✅ |
-| 쿼리 오류 알림 | on/off 토글 | `PATCH /api/settings` | ✅ |
-| 장시간 실행 알림 | on/off 토글 | `PATCH /api/settings` | ✅ |
+| 버튼 | 역할 |
+|------|------|
+| 사이드바 그룹 5개 | 접기/펼치기 |
+| ⌘K 명령 팔레트 | 명령 팔레트 열기 |
+| 프로필 편집 | 이름·이메일 편집 폼 |
+| 재실행 | 최근 쿼리 → 워크스페이스 재실행 |
+| 변경하기 | 비밀번호 변경 |
+| 내보내기 | 쿼리 히스토리 CSV 내보내기 |
+| 계정 삭제 | confirm 후 계정 삭제 |
 
 ---
 
-## 11. 대시보드 (`/dashboards`)
+## API 엔드포인트 목록 (40개)
 
-> 위치: `src/app/(app)/dashboards/page.tsx`  
-> API: `GET /api/dashboards`, `POST /api/dashboards`, `DELETE /api/dashboards/{id}`
-
-**TopBar 버튼**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 새 대시보드 | 이름 prompt → 생성 | `POST /api/dashboards` | ✅ |
-
-**필터 · 검색**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 전체 / 내 대시보드 / 공유됨 | 필터 토글 | ✅ |
-| 검색창 | 클라이언트 필터 | ✅ |
-
-**대시보드 카드 버튼 (카드당)**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 열기 | `/dashboards/{id}` 이동 | — | ✅ |
-| 삭제 | confirm → DELETE | `DELETE /api/dashboards/{id}` | ✅ |
-
----
-
-## 12. 대시보드 상세 (`/dashboards/[id]`)
-
-> 위치: `src/app/(app)/dashboards/[id]/page.tsx`  
-> API: `GET /api/dashboards/{id}`, `PATCH /api/dashboards/{id}`, `DELETE /api/dashboards/{id}`
-
-**TopBar 버튼**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 편집 | 이름 prompt → PATCH | `PATCH /api/dashboards/{id}` | ✅ |
-| 삭제 | confirm → DELETE → `/dashboards` | `DELETE /api/dashboards/{id}` | ✅ |
-
-**페이지 버튼**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 공유됨/비공개 Pill | isPublic 토글 | `PATCH /api/dashboards/{id}` | ✅ |
-| 위젯 ✕ (삭제) | 위젯 제거 | `PATCH /api/dashboards/{id}` (위젯 배열 업데이트) | ✅ |
-
----
-
-## 13. 차트 (`/charts`)
-
-> 위치: `src/app/(app)/charts/page.tsx`  
-> API: `GET /api/saved`, `POST /api/queries/run`  
-> ⚠️ `/api/charts` 라우트 없음 (설계상 `/api/saved` 기반 차트 렌더링)
-
-**TopBar 버튼**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 새 차트 | `/workspace` 이동 | ✅ |
-
-**필터 · 검색**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 전체 / 라인 / 바 / 파이 / 테이블 | 차트 타입 필터 | ✅ |
-| 검색창 | 쿼리명 검색 | ✅ |
-
-**차트 카드 버튼 (카드당)**
-
-| 라벨 | 동작 | API | 상태 |
-|------|------|-----|------|
-| 차트 실행 / 새로고침 | 저장 쿼리 재실행 | `POST /api/queries/run` | ✅ |
-| 워크스페이스 | SQL 로드 → `/workspace` | — | ✅ |
-
----
-
-## 14. 상태 · 에러 (`/errors`)
-
-> 위치: `src/app/(app)/errors/page.tsx`  
-> API: `GET /api/stats`, `GET /api/history?status=FAILURE`
-
-**버튼 없음** — 상태 정보 표시 전용 (읽기 전용 대시보드)
-
----
-
-## 15. 프로필 (`/profile`)
-
-> 위치: `src/app/(app)/profile/page.tsx`  
-> API: `GET /api/stats`, `GET /api/saved`, `GET /api/history`
-
-**페이지 버튼**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 프로필 편집 | `/settings` 이동 | ✅ |
-| 비밀번호 변경하기 | `/settings` 이동 | ✅ |
-| 데이터 내보내기 | 저장 쿼리 + 히스토리 JSON 다운로드 | ✅ |
-| 계정 삭제 | confirm → 알림 (지원팀 문의 안내) | ✅ |
-
-**최근 활동 항목 버튼 (행당)**
-
-| 라벨 | 동작 | 상태 |
-|------|------|------|
-| 재실행 (호버) | SQL 로드 → `/workspace` | ✅ |
-
----
-
-## API 라우트 전수 검사 결과
-
-| 메서드 | 경로 | 상태 | 비고 |
+| 메서드 | 경로 | 설명 | 인증 |
 |--------|------|------|------|
-| GET | `/api/connections` | ✅ 200 | |
-| POST | `/api/connections` | ✅ 201 | |
-| POST | `/api/connections/{id}/test` | ✅ 200/422 | |
-| DELETE | `/api/connections/{id}` | ✅ 200 | |
-| GET | `/api/ai-providers` | ✅ 200 | |
-| POST | `/api/ai-providers` | ✅ 201 | |
-| PATCH | `/api/ai-providers/{id}` | ✅ 200 | |
-| DELETE | `/api/ai-providers/{id}` | ✅ 200 | |
-| POST | `/api/ai-providers/{id}/test` | ✅ 200/422 | |
-| POST | `/api/ai-providers/{id}/activate` | ✅ 200 | |
-| GET | `/api/settings` | ✅ 200 | ~~500~~ → 폴백 추가로 수정 |
-| PATCH | `/api/settings` | ✅ 200 | |
-| GET | `/api/history` | ✅ 200 | |
-| POST | `/api/history/{id}/star` | ✅ 200 | |
-| DELETE | `/api/history/{id}` | ✅ 200 | |
-| GET | `/api/saved` | ✅ 200 | |
-| POST | `/api/saved` | ✅ 201 | |
-| PATCH | `/api/saved/{id}` | ✅ 200 | |
-| DELETE | `/api/saved/{id}` | ✅ 200 | |
-| GET | `/api/schema` | ✅ 200 | |
-| GET | `/api/glossary` | ✅ 200 | |
-| POST | `/api/glossary` | ✅ 201 | |
-| DELETE | `/api/glossary/{id}` | ✅ 200 | |
-| POST | `/api/queries/generate` | ✅ 200/500 | AI 설정 필요 시 500 |
-| POST | `/api/queries/run` | ✅ 200/400/403 | SQL 가드 적용 |
-| GET | `/api/dashboards` | ✅ 200 | |
-| POST | `/api/dashboards` | ✅ 201 | |
-| PATCH | `/api/dashboards/{id}` | ✅ 200 | |
-| DELETE | `/api/dashboards/{id}` | ✅ 200 | |
-| GET | `/api/stats` | ✅ 200 | |
-| GET | `/api/charts` | ⚠️ 404 | 의도적 없음 (차트는 `/api/saved` 활용) |
+| GET | `/api/connections` | 연결 목록 조회 | 필요 |
+| POST | `/api/connections` | 연결 생성 | 필요 |
+| GET | `/api/connections/[id]` | 단일 연결 조회 | 필요 |
+| PATCH | `/api/connections/[id]` | 연결 수정 | 필요 |
+| DELETE | `/api/connections/[id]` | 연결 삭제 | 필요 |
+| POST | `/api/connections/[id]/test` | 연결 테스트 | 필요 |
+| POST | `/api/connections/[id]/scan` | 스키마 스캔 | 필요 |
+| GET | `/api/ai-providers` | AI 프로바이더 목록 | 필요 |
+| POST | `/api/ai-providers` | AI 프로바이더 추가 | 필요 |
+| GET | `/api/ai-providers/[id]` | 단일 프로바이더 조회 | 필요 |
+| PATCH | `/api/ai-providers/[id]` | 프로바이더 수정 | 필요 |
+| DELETE | `/api/ai-providers/[id]` | 프로바이더 삭제 | 필요 |
+| POST | `/api/ai-providers/[id]/activate` | 프로바이더 활성화 | 필요 |
+| POST | `/api/ai-providers/[id]/test` | 프로바이더 연결 테스트 | 필요 |
+| GET | `/api/history` | 쿼리 히스토리 목록 | 필요 |
+| GET | `/api/history/[id]` | 단일 히스토리 조회 | 필요 |
+| PATCH | `/api/history/[id]` | 히스토리 메타 수정 | 필요 |
+| DELETE | `/api/history/[id]` | 히스토리 삭제 | 필요 |
+| POST | `/api/history/[id]/star` | 즐겨찾기 토글 | 필요 |
+| GET | `/api/saved` | 저장된 쿼리 목록 | 필요 |
+| POST | `/api/saved` | 쿼리 저장 | 필요 |
+| PATCH | `/api/saved/[id]` | 저장 쿼리 수정 | 필요 |
+| DELETE | `/api/saved/[id]` | 저장 쿼리 삭제 | 필요 |
+| GET | `/api/schema` | 스키마 목록 조회 | 필요 |
+| GET | `/api/glossary` | 용어 사전 목록 | 필요 |
+| POST | `/api/glossary` | 용어 추가 | 필요 |
+| PATCH | `/api/glossary/[id]` | 용어 수정 | 필요 |
+| DELETE | `/api/glossary/[id]` | 용어 삭제 | 필요 |
+| GET | `/api/dashboards` | 대시보드 목록 | 필요 |
+| POST | `/api/dashboards` | 대시보드 생성 | 필요 |
+| PATCH | `/api/dashboards/[id]` | 대시보드 수정 | 필요 |
+| DELETE | `/api/dashboards/[id]` | 대시보드 삭제 | 필요 |
+| GET | `/api/stats` | 사용 통계 | 필요 |
+| GET | `/api/settings` | 사용자 설정 조회 | 필요 |
+| PATCH | `/api/settings` | 사용자 설정 저장 | 필요 |
+| POST | `/api/queries/generate` | 자연어 → SQL 생성 (스트리밍) | 필요 |
+| POST | `/api/queries/run` | SQL 실행 | 필요 |
+| POST | `/api/queries/explain` | SQL 설명 생성 | 필요 |
+| POST | `/api/share` | 쿼리 결과 공유 링크 생성 | 필요 |
+| GET | `/api/share/[token]` | 공유 링크 조회 (공개) | 불필요 |
 
 ---
 
-## 발견된 이슈 및 수정 사항
+## 검사 이력
 
-| 이슈 | 심각도 | 상태 | 수정 내용 |
-|------|--------|------|----------|
-| `/api/settings` GET → 500 (DB 테이블 미생성 시) | 중 | ✅ 수정 완료 | catch 블록에서 default settings 반환 |
-| `/api/settings` PATCH → 500 (DB 테이블 미생성 시) | 중 | ✅ 수정 완료 | catch 블록에서 요청 데이터 그대로 반환 |
-| `/api/charts` 라우트 없음 | 낮음 | ℹ️ 설계 의도 | 차트 페이지는 `/api/saved` 데이터 활용 |
-
----
-
-## 통계 요약
-
-| 분류 | 수량 |
-|------|------|
-| 페이지 라우트 | 12개 |
-| API 라우트 (엔드포인트) | 30개 |
-| 사이드바 메뉴 항목 | 11개 |
-| 명령 팔레트 커맨드 | 9개 |
-| 버튼 · 액션 (전체) | 약 82개 |
-| 발견된 버그 | 2개 (수정 완료) |
-| 브라우저 내비게이션 링크 | 30개+ |
+| 일시 | 검사 방식 | 결과 | 콘솔 에러 | PASS / FAIL | 비고 |
+|------|----------|------|-----------|-------------|------|
+| 2026-04-26 (1차) | Playwright 기본 렌더링 | 12/12 | 3건 | — | charts 페이지 버그 발견 |
+| 2026-04-26 (2차) | Playwright 기본 렌더링 | 12/12 | 0건 | — | charts 버그 수정 후 |
+| 2026-04-26 (3차) | Playwright 인터랙티브 | 12/12 | 1건 | 49P / 1F | saved 페이지 React 19 에러 |
+| 2026-04-26 (4차) | Playwright 인터랙티브 | 12/12 | 0건 | **49P / 0F** | 모든 버그 수정 완료 |
 
 ---
 
-*자동 생성: 소스 정적 분석 + HTTP 라우트 검사 (Playwright 미사용)*
+*정적 분석: 소스코드 grep | 동적 검사: Playwright 1.59 헤드리스 (scripts/ui-audit-interactive.mjs)*
