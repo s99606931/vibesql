@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatarUrl String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  connections  Connection[]
+  queries      SavedQuery[]
+  historyItems QueryHistory[]
+  dashboards   Dashboard[]
+
+  @@map("users")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Connection {
+  id           String           @id @default(cuid())
+  name         String
+  type         DbDialect
+  host         String?
+  port         Int?
+  database     String
+  username     String?
+  passwordHash String?          @map("password_hash")
+  ssl          Boolean          @default(false)
+  isActive     Boolean          @default(true) @map("is_active")
+  lastTestedAt DateTime?        @map("last_tested_at")
+  lastTestedOk Boolean?         @map("last_tested_ok")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  userId  String  @map("user_id")
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  schemaTables  SchemaTable[]
+  queryHistory  QueryHistory[]
+
+  @@map("connections")
+}
+
+enum DbDialect {
+  postgresql
+  mysql
+  sqlite
+  mssql
+  oracle
+}
+
+model SchemaTable {
+  id           String        @id @default(cuid())
+  tableName    String        @map("table_name")
+  schema       String        @default("public")
+  rowCountEst  String?       @map("row_count_est")
+  columnsDef   Json          @map("columns_def")
+  description  String?
+  hasPii       Boolean       @default(false) @map("has_pii")
+  scannedAt    DateTime      @default(now()) @map("scanned_at")
+
+  connectionId String       @map("connection_id")
+  connection   Connection   @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  chunks       SchemaChunk[]
+
+  @@unique([connectionId, tableName, schema])
+  @@map("schema_tables")
+}
+
+model SchemaChunk {
+  id         String                      @id @default(cuid())
+  content    String
+  // embedding stored as float4[] via pgvector — migrate manually if needed
+
+  tableId    String      @map("table_id")
+  table      SchemaTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@map("schema_chunks")
+}
+
+model SavedQuery {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  folder      String   @default("기본")
+  tags        String[]
+  nlQuery     String   @map("nl_query")
+  sql         String
+  dialect     DbDialect
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  userId       String  @map("user_id")
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("saved_queries")
+}
+
+model QueryHistory {
+  id          String      @id @default(cuid())
+  nlQuery     String?     @map("nl_query")
+  sql         String
+  dialect     DbDialect
+  status      QueryStatus @default(SUCCESS)
+  rowCount    Int?        @map("row_count")
+  durationMs  Int?        @map("duration_ms")
+  errorMsg    String?     @map("error_msg")
+  starred     Boolean     @default(false)
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  userId       String     @map("user_id")
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connectionId String?    @map("connection_id")
+  connection   Connection? @relation(fields: [connectionId], references: [id], onDelete: SetNull)
+
+  @@map("query_history")
+}
+
+enum QueryStatus {
+  SUCCESS
+  ERROR
+  BLOCKED
+}
+
+model Dashboard {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  widgets     Json     @default("[]")
+  isPublic    Boolean  @default(false) @map("is_public")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("dashboards")
+}
+
+model GlossaryTerm {
+  id          String   @id @default(cuid())
+  term        String   @unique
+  category    String
+  definition  String
+  columns     Json     @default("[]")
+  examples    String[]
+  createdBy   String?  @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("glossary_terms")
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String
+  userId      String?  @map("user_id")
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}
