@@ -42,17 +42,17 @@ function loadFromDisk(): MemAiProvider[] {
   return [];
 }
 
-function saveToDisk(providers: MemAiProvider[]) {
+async function saveToDisk(providers: MemAiProvider[]) {
   try {
     const dir = path.dirname(PERSIST_PATH);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(PERSIST_PATH, JSON.stringify(providers, null, 2), "utf8");
+    await fs.promises.mkdir(dir, { recursive: true });
+    await fs.promises.writeFile(PERSIST_PATH, JSON.stringify(providers, null, 2), "utf8");
   } catch { /* non-fatal */ }
 }
 
 // Singleton array — loaded once on first import, persisted on every mutation
 export const memAiProviders: MemAiProvider[] = loadFromDisk();
 
-export function persistAiProviders() {
-  saveToDisk(memAiProviders);
+export function persistAiProviders(): void {
+  void saveToDisk(memAiProviders);
 }

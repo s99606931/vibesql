@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { memAiProviders } from "@/lib/db/mem-ai-providers";
+import { requireUserId } from "@/lib/auth/require-user";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
+
+const CHAT_LIMIT = 30;
+const CHAT_WINDOW_MS = 60_000;
 
 const MessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
-  content: z.string(),
+  content: z.string().max(8000),
 });
 
 const BodySchema = z.object({
-  messages: z.array(MessageSchema).min(1),
+  messages: z.array(MessageSchema).min(1).max(50),
 });
 
 const SYSTEM_PROMPT = `당신은 vibeSQL의 AI 어시스턴트입니다.
@@ -42,7 +47,17 @@ function validateUrl(rawUrl: string) {
   let parsed: URL;
   try { parsed = new URL(rawUrl); } catch { throw new Error("Invalid provider URL"); }
   if (!["http:", "https:"].includes(parsed.protocol)) throw new Error("URL must use http or https");
-  if (/^169\.254\./.test(parsed.hostname.toLowerCase())) throw new Error("Forbidden URL");
+  const h = parsed.hostname.toLowerCase();
+  if (
+    /^169\.254\./.test(h) ||
+    /^127\./.test(h) ||
+    /^0\.0\.0\.0$/.test(h) ||
+    /^10\./.test(h) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(h) ||
+    h === "localhost" ||
+    h === "::1" ||
+    h === "[::1]"
+  ) throw new Error("Forbidden URL");
 }
 
 type OaiMessage = { role: string; content: string };
@@ -165,10 +180,10 @@ async function streamWithGoogle(
   }));
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}&alt=sse`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents,
@@ -218,6 +233,26 @@ async function streamWithGoogle(
 }
 
 export async function POST(req: Request) {
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
+
+  const ip = getClientIp(req.headers);
+  const rl = rateLimit(ip, CHAT_LIMIT, CHAT_WINDOW_MS);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
+      {
+        status: 429,
+        headers: {
+          "X-RateLimit-Limit": String(CHAT_LIMIT),
+          "X-RateLimit-Remaining": "0",
+          "Retry-After": String(Math.ceil(CHAT_WINDOW_MS / 1000)),
+        },
+      }
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) {
@@ -227,7 +262,7 @@ export async function POST(req: Request) {
   const { messages } = parsed.data;
 
   try {
-    const provider = await getActiveProvider();
+    const provider = await getActiveProvider(userId);
 
     let stream: ReadableStream<Uint8Array>;
 
@@ -262,7 +297,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "알 수 없는 오류";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("[chat] stream error:", err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: "AI 응답을 가져오지 못했습니다. 다시 시도해주세요." }, { status: 500 });
   }
 }
