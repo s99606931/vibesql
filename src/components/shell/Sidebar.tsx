@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import {
   Home,
   SquareTerminal,
@@ -21,14 +23,14 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { href: "/", icon: Home, label: "홈" },
+  { href: "/home", icon: Home, label: "홈" },
   { href: "/workspace", icon: SquareTerminal, label: "워크스페이스" },
   { href: "/schema", icon: Table2, label: "스키마" },
   { href: "/glossary", icon: BookOpen, label: "용어 사전" },
   { href: "/charts", icon: BarChart2, label: "결과 · 차트" },
   { href: "/dashboards", icon: LayoutDashboard, label: "대시보드" },
   { href: "/history", icon: History, label: "히스토리" },
-  { href: "/saved", icon: Star, label: "저장됨", count: 38 },
+  { href: "/saved", icon: Star, label: "저장됨", countKey: "saved" as const },
   { href: "/connections", icon: Plug, label: "연결" },
   { href: "/profile", icon: User, label: "프로필" },
   { href: "/errors", icon: AlertTriangle, label: "상태 · 에러" },
@@ -41,6 +43,30 @@ interface SidebarProps {
 
 export function Sidebar({ onOpenCommandPalette }: SidebarProps) {
   const pathname = usePathname();
+  const activeConnectionId = useWorkspaceStore((s) => s.activeConnectionId);
+
+  const { data: savedCount } = useQuery({
+    queryKey: ["saved"],
+    queryFn: async () => {
+      const res = await fetch("/api/saved");
+      const json = await res.json() as { data?: unknown[] };
+      return Array.isArray(json.data) ? json.data.length : 0;
+    },
+    staleTime: 30_000,
+    select: (data) => (typeof data === "number" ? data : 0),
+  });
+
+  const { data: connections } = useQuery({
+    queryKey: ["connections"],
+    queryFn: async () => {
+      const res = await fetch("/api/connections");
+      const json = await res.json() as { data?: Array<{ id: string; name: string }> };
+      return json.data ?? [];
+    },
+    staleTime: 30_000,
+  });
+
+  const activeConnection = (connections ?? []).find((c) => c.id === activeConnectionId);
 
   return (
     <aside
@@ -102,12 +128,21 @@ export function Sidebar({ onOpenCommandPalette }: SidebarProps) {
               width: 6,
               height: 6,
               borderRadius: "var(--ds-r-full)",
-              background: "var(--ds-success)",
+              background: activeConnection ? "var(--ds-success)" : "var(--ds-text-faint)",
               display: "inline-block",
+              flexShrink: 0,
             }}
           />
-          <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)" }}>
-            연결 없음
+          <span
+            style={{
+              fontSize: "var(--ds-fs-11)",
+              color: "var(--ds-text-mute)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {activeConnection ? activeConnection.name : "연결 없음"}
           </span>
         </div>
       </div>
@@ -115,7 +150,8 @@ export function Sidebar({ onOpenCommandPalette }: SidebarProps) {
       {/* Navigation */}
       <nav style={{ flex: 1, padding: "var(--ds-sp-2)", overflowY: "auto" }}>
         {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+          const isActive = pathname === item.href || (item.href !== "/home" && pathname.startsWith(item.href));
+          const count = "countKey" in item && item.countKey === "saved" ? savedCount : undefined;
           return (
             <Link
               key={item.href}
@@ -138,7 +174,7 @@ export function Sidebar({ onOpenCommandPalette }: SidebarProps) {
             >
               <item.icon size={14} style={{ flexShrink: 0 }} />
               <span style={{ flex: 1 }}>{item.label}</span>
-              {item.count && (
+              {count != null && count > 0 && (
                 <span
                   style={{
                     fontSize: "var(--ds-fs-9)",
@@ -149,7 +185,7 @@ export function Sidebar({ onOpenCommandPalette }: SidebarProps) {
                     padding: "1px 5px",
                   }}
                 >
-                  {item.count}
+                  {count}
                 </span>
               )}
             </Link>
