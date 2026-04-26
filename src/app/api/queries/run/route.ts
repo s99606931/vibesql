@@ -3,6 +3,9 @@ import { z } from "zod";
 import { guardSql } from "@/lib/sql-guard";
 import { getConnection, type StoredConnection } from "@/lib/connections/store";
 import { Pool } from "pg";
+import type { Pool as MySQLPool } from "mysql2/promise";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { requireUserId } from "@/lib/auth/require-user";
 
 const RunSchema = z.object({
   sql: z.string().min(1),
@@ -10,13 +13,16 @@ const RunSchema = z.object({
   limit: z.number().int().min(1).max(10000).default(1000),
 });
 
-// Pool cache — module-level singleton per connection
-const poolCache = new Map<string, Pool>();
+// 60 requests per minute per IP
+const RUN_LIMIT = 60;
+const RUN_WINDOW_MS = 60_000;
 
-function getPool(conn: StoredConnection): Pool {
-  const existing = poolCache.get(conn.id);
+// ── PostgreSQL pool cache ───────────────────────────────────────────────────
+const pgPoolCache = new Map<string, Pool>();
+
+function getPgPool(conn: StoredConnection): Pool {
+  const existing = pgPoolCache.get(conn.id);
   if (existing) return existing;
-
   const pool = new Pool({
     host: conn.host ?? "localhost",
     port: conn.port ?? 5432,
@@ -30,22 +36,50 @@ function getPool(conn: StoredConnection): Pool {
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 5_000,
   });
+  pgPoolCache.set(conn.id, pool);
+  return pool;
+}
 
-  poolCache.set(conn.id, pool);
+// ── MySQL pool cache ────────────────────────────────────────────────────────
+const mysqlPoolCache = new Map<string, MySQLPool>();
+
+async function getMysqlPool(conn: StoredConnection): Promise<MySQLPool> {
+  const existing = mysqlPoolCache.get(conn.id);
+  if (existing) return existing;
+  const mysql = await import("mysql2/promise");
+  const pool = mysql.createPool({
+    host: conn.host ?? "localhost",
+    port: conn.port ?? 3306,
+    database: conn.database,
+    user: conn.username,
+    password: conn.passwordBase64
+      ? Buffer.from(conn.passwordBase64, "base64").toString()
+      : undefined,
+    ssl: conn.ssl ? {} : undefined,
+    connectionLimit: 3,
+    connectTimeout: 5_000,
+  });
+  mysqlPoolCache.set(conn.id, pool);
   return pool;
 }
 
 // Drain all cached pools on process exit to avoid connection leaks
 function drainPools(): void {
-  for (const pool of poolCache.values()) {
-    pool.end().catch(() => {
-      // Best-effort; process is already exiting
-    });
-  }
-  poolCache.clear();
+  for (const pool of pgPoolCache.values()) pool.end().catch(() => undefined);
+  pgPoolCache.clear();
+  for (const pool of mysqlPoolCache.values()) pool.end().catch(() => undefined);
+  mysqlPoolCache.clear();
 }
 process.once("exit", drainPools);
 process.once("SIGINT", () => { drainPools(); process.exit(0); });
+
+/** Evict cached pools for a specific connection (call on connection delete/update). */
+export function evictRunPools(connectionId: string): void {
+  const pg = pgPoolCache.get(connectionId);
+  if (pg) { pg.end().catch(() => undefined); pgPoolCache.delete(connectionId); }
+  const my = mysqlPoolCache.get(connectionId);
+  if (my) { my.end().catch(() => undefined); mysqlPoolCache.delete(connectionId); }
+}
 process.once("SIGTERM", () => { drainPools(); process.exit(0); });
 
 /**
@@ -65,6 +99,26 @@ function wrapWithLimit(sql: string, limit: number): string {
 }
 
 export async function POST(req: Request) {
+  const ip = getClientIp(req.headers);
+  const rl = rateLimit(ip, RUN_LIMIT, RUN_WINDOW_MS);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "요청이 너무 많습니다. 잠시 후 다시 시도하세요." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil(rl.resetMs / 1000)),
+          "X-RateLimit-Limit": String(RUN_LIMIT),
+          "X-RateLimit-Remaining": "0",
+        },
+      }
+    );
+  }
+
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
+
   try {
     const body = await req.json() as unknown;
     const parsed = RunSchema.safeParse(body);
@@ -80,14 +134,44 @@ export async function POST(req: Request) {
       );
     }
 
-    // guard.normalizedSql is always defined when guard.allowed is true
-    const normalizedSql = guard.normalizedSql!;
+    if (!guard.normalizedSql) {
+      return NextResponse.json({ error: "쿼리 정규화에 실패했습니다." }, { status: 500 });
+    }
+    const normalizedSql = guard.normalizedSql;
 
     const startMs = Date.now();
-    const conn = getConnection(parsed.data.connectionId);
+    let conn = getConnection(parsed.data.connectionId);
+
+    // When DATABASE_URL is set, connections are persisted in Prisma not in-memory store.
+    // Filter by userId to prevent cross-tenant connection access.
+    if (!conn && process.env.DATABASE_URL) {
+      try {
+        const { prisma } = await import("@/lib/db/prisma");
+        const row = await prisma.connection.findUnique({
+          where: { id: parsed.data.connectionId, userId },
+        });
+        if (row) {
+          conn = {
+            id: row.id,
+            name: row.name,
+            type: row.type as StoredConnection["type"],
+            host: row.host ?? undefined,
+            port: row.port ?? undefined,
+            database: row.database,
+            username: row.username ?? undefined,
+            passwordBase64: row.passwordHash ?? undefined,
+            ssl: row.ssl,
+            isActive: row.isActive,
+            lastTestedAt: row.lastTestedAt?.toISOString(),
+            lastTestedOk: row.lastTestedOk ?? undefined,
+            createdAt: row.createdAt.toISOString(),
+          };
+        }
+      } catch { /* fall through to mock */ }
+    }
 
     if (conn && conn.type === "postgresql") {
-      const pool = getPool(conn);
+      const pool = getPgPool(conn);
       const pgClient = await pool.connect();
       try {
         await pgClient.query("SET statement_timeout = '10000'");
@@ -104,6 +188,28 @@ export async function POST(req: Request) {
         });
       } finally {
         pgClient.release();
+      }
+    }
+
+    if (conn && conn.type === "mysql") {
+      const pool = await getMysqlPool(conn);
+      const mysqlConn = await pool.getConnection();
+      try {
+        await mysqlConn.query("SET SESSION MAX_EXECUTION_TIME=10000");
+        const limitedSql = wrapWithLimit(normalizedSql, parsed.data.limit);
+        const [rows, fields] = await mysqlConn.execute(limitedSql);
+        const rowsArr = rows as Record<string, unknown>[];
+        return NextResponse.json({
+          data: {
+            columns: (fields as Array<{ name: string }>).map((f) => f.name),
+            rows: rowsArr,
+            rowCount: rowsArr.length,
+            durationMs: Date.now() - startMs,
+            sql: normalizedSql,
+          },
+        });
+      } finally {
+        mysqlConn.release();
       }
     }
 
@@ -128,8 +234,8 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
-    const msg =
-      error instanceof Error ? error.message : "쿼리 실행에 실패했습니다.";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    // Log the real error server-side; return a generic message to avoid leaking DB internals.
+    console.error("[run] query error:", error instanceof Error ? error.message : error);
+    return NextResponse.json({ error: "쿼리 실행에 실패했습니다." }, { status: 500 });
   }
 }

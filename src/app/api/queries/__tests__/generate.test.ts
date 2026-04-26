@@ -1,13 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("next/server", () => ({
-  NextResponse: {
-    json: vi.fn((body: unknown, init?: ResponseInit) => ({
-      json: async () => body,
-      status: init?.status ?? 200,
-    })),
-  },
-}));
+vi.mock("next/server", () => {
+  class MockNextResponse {
+    private _body: unknown;
+    status: number;
+    constructor(body: unknown, init?: ResponseInit) {
+      this._body = body;
+      this.status = init?.status ?? 200;
+    }
+    async json() { return this._body; }
+    static json(body: unknown, init?: ResponseInit) {
+      return new MockNextResponse(body, init);
+    }
+  }
+  return { NextResponse: MockNextResponse };
+});
 
 const VALID_SQL_RESULT = {
   sql: "SELECT id, name FROM users LIMIT 10",

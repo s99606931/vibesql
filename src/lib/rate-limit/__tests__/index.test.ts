@@ -63,9 +63,9 @@ describe("rateLimit — 윈도우 만료", () => {
 });
 
 describe("getClientIp", () => {
-  it("X-Forwarded-For 헤더에서 첫 번째 IP 반환", () => {
+  it("X-Forwarded-For 헤더에서 마지막(rightmost) IP 반환 — 프록시가 삽입한 신뢰 가능 항목", () => {
     const headers = new Headers({ "x-forwarded-for": "1.2.3.4, 5.6.7.8" });
-    expect(getClientIp(headers)).toBe("1.2.3.4");
+    expect(getClientIp(headers)).toBe("5.6.7.8");
   });
 
   it("X-Real-IP 헤더 fallback", () => {

@@ -4,7 +4,7 @@ export interface GuardResult {
   normalizedSql?: string;
 }
 
-// Simple state-machine to strip SQL string literals before keyword scanning
+// State-machine to strip single/double-quoted SQL string literals
 function stripStringLiterals(sql: string): string {
   let out = "";
   let i = 0;
@@ -27,10 +27,17 @@ function stripStringLiterals(sql: string): string {
   return out;
 }
 
+// Strip PostgreSQL dollar-quoted strings: $$...$$, $tag$...$tag$
+// These bypass single-quote stripping and can hide blocked keywords.
+function stripDollarQuotes(sql: string): string {
+  return sql.replace(/\$([^$]*)\$[\s\S]*?\$\1\$/g, " ");
+}
+
 // SQL keywords that must not appear (word-boundary matched, case-insensitive)
 const BLOCKED_WORDS = [
   "INSERT", "UPDATE", "DELETE", "DROP", "CREATE", "ALTER",
   "TRUNCATE", "EXEC", "EXECUTE", "GRANT", "REVOKE", "CALL",
+  "MERGE", "REPLACE", "LOAD", "LOCK", "UNLOCK",
 ];
 
 // Literal string fragments that must not appear in the string-stripped SQL.
@@ -38,17 +45,18 @@ const BLOCKED_WORDS = [
 const BLOCKED_LITERALS = ["--", "/*", "*/", ";"];
 
 export function guardSql(sql: string): GuardResult {
-  const trimmed = sql.trim();
+  // Strip a single trailing semicolon — harmless statement terminator that
+  // many LLMs append but which would otherwise trigger the ; blocked-literal check.
+  const trimmed = sql.trim().replace(/;$/, "");
   const upper = trimmed.toUpperCase();
 
   if (!upper.startsWith("SELECT") && !upper.startsWith("WITH")) {
     return { allowed: false, reason: "Only SELECT queries are allowed" };
   }
 
-  // Strip string literals first so checks below cannot be fooled by literal
-  // content, and so valid queries whose string values contain these sequences
-  // are not falsely rejected.
-  const stripped = stripStringLiterals(upper);
+  // Strip literals (quoted strings and dollar-quoted blocks) before keyword scanning
+  // so checks cannot be bypassed by embedding blocked keywords inside string values.
+  const stripped = stripDollarQuotes(stripStringLiterals(upper));
 
   // Check for comment markers and multi-statement separator
   for (const lit of BLOCKED_LITERALS) {

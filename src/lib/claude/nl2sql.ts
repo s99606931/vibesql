@@ -1,12 +1,16 @@
-import Anthropic from "@anthropic-ai/sdk";
-
-const client = new Anthropic();
+/**
+ * LLM provider abstraction — supports:
+ *   1. LM Studio (OpenAI-compatible)  → LMSTUDIO_BASE_URL + LMSTUDIO_API_KEY + LMSTUDIO_MODEL
+ *   2. Anthropic Claude              → ANTHROPIC_API_KEY
+ *
+ * LM Studio takes priority when LMSTUDIO_BASE_URL is set.
+ */
 
 export interface Nl2SqlOptions {
   nl: string;
   dialect: "postgresql" | "mysql" | "sqlite" | "mssql" | "oracle";
-  schemaContext: string; // DDL or description of available tables
-  glossary?: string; // business term definitions
+  schemaContext: string;
+  glossary?: string;
 }
 
 export interface Nl2SqlResult {
@@ -17,16 +21,11 @@ export interface Nl2SqlResult {
 }
 
 const DIALECT_HINTS: Record<string, string> = {
-  postgresql:
-    "Use PostgreSQL syntax. Use LIMIT not TOP. Use ILIKE for case-insensitive matching.",
-  mysql:
-    "Use MySQL syntax. Use LIMIT not TOP. Use IFNULL not COALESCE when possible.",
-  sqlite:
-    "Use SQLite syntax. No FULL OUTER JOIN. Use strftime for dates.",
-  mssql:
-    "Use SQL Server syntax. Use TOP not LIMIT. Use GETDATE() not NOW().",
-  oracle:
-    "Use Oracle syntax. Use ROWNUM or FETCH FIRST for limiting rows.",
+  postgresql: "Use PostgreSQL syntax. Use LIMIT not TOP. Use ILIKE for case-insensitive matching.",
+  mysql:      "Use MySQL syntax. Use LIMIT not TOP. Use IFNULL not COALESCE when possible.",
+  sqlite:     "Use SQLite syntax. No FULL OUTER JOIN. Use strftime for dates.",
+  mssql:      "Use SQL Server syntax. Use TOP not LIMIT. Use GETDATE() not NOW().",
+  oracle:     "Use Oracle syntax. Use ROWNUM or FETCH FIRST for limiting rows.",
 };
 
 function isNl2SqlResult(value: unknown): value is Nl2SqlResult {
@@ -39,10 +38,10 @@ function isNl2SqlResult(value: unknown): value is Nl2SqlResult {
   );
 }
 
-export async function generateSql(options: Nl2SqlOptions): Promise<Nl2SqlResult> {
+function buildPrompts(options: Nl2SqlOptions): { system: string; user: string } {
   const { nl, dialect, schemaContext, glossary } = options;
 
-  const systemPrompt = `You are an expert SQL generator for ${dialect} databases.
+  const system = `You are an expert SQL generator for ${dialect} databases.
 ${DIALECT_HINTS[dialect] ?? ""}
 
 Rules:
@@ -56,70 +55,115 @@ Available schema:
 ${schemaContext}
 ${glossary ? `\nBusiness terms:\n${glossary}` : ""}`;
 
-  // Wrap user input in XML tags to prevent prompt injection
-  const userPrompt = `Convert this natural language request to ${dialect} SQL:
+  const user = `Convert this natural language request to ${dialect} SQL:
 <query>${nl.replace(/<\/?query>/g, "")}</query>
 
-Respond in JSON format:
+Respond ONLY in JSON format (no markdown, no explanation outside JSON):
 {
   "sql": "SELECT ...",
   "explanation": "brief explanation in Korean",
   "confidence": "high|medium|low",
-  "warnings": ["optional warning if query might be slow or return too many rows"]
+  "warnings": ["optional warning"]
 }`;
 
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 1024,
-    messages: [{ role: "user", content: userPrompt }],
-    system: systemPrompt,
-  });
+  return { system, user };
+}
 
-  const content = message.content[0];
-  if (content.type !== "text") throw new Error("Unexpected response type");
-
-  // Extract JSON from response (Claude might wrap in code blocks)
-  const jsonMatch = content.text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error("No JSON in response");
-
+function extractJson(text: string): Nl2SqlResult {
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("No JSON in model response");
   let parsed: unknown;
   try {
     parsed = JSON.parse(jsonMatch[0]) as unknown;
   } catch {
     throw new Error("Failed to parse JSON from model response");
   }
-
   if (!isNl2SqlResult(parsed)) {
     throw new Error("Model response did not match expected schema");
   }
-
   return parsed;
+}
+
+// ── LM Studio (OpenAI-compatible) ──────────────────────────────────────────
+
+interface OaiMessage { role: "system" | "user" | "assistant"; content: string; }
+interface OaiChoice { message: OaiMessage; }
+interface OaiResponse { choices: OaiChoice[]; }
+
+async function generateWithLmStudio(options: Nl2SqlOptions): Promise<Nl2SqlResult> {
+  const baseUrl = process.env.LMSTUDIO_BASE_URL!.replace(/\/$/, "");
+  const apiKey  = process.env.LMSTUDIO_API_KEY ?? "lm-studio";
+  const model   = process.env.LMSTUDIO_MODEL   ?? "local-model";
+
+  const { system, user } = buildPrompts(options);
+
+  const messages: OaiMessage[] = [
+    { role: "system",    content: system },
+    { role: "user",      content: user   },
+  ];
+
+  const res = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type":  "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature: 0.2,
+      max_tokens: 1024,
+    }),
+    signal: AbortSignal.timeout(30_000),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`LM Studio error ${res.status}: ${err}`);
+  }
+
+  const json = (await res.json()) as OaiResponse;
+  const text = json.choices?.[0]?.message?.content ?? "";
+  return extractJson(text);
+}
+
+// ── Anthropic Claude ────────────────────────────────────────────────────────
+
+async function generateWithAnthropic(options: Nl2SqlOptions): Promise<Nl2SqlResult> {
+  const { default: Anthropic } = await import("@anthropic-ai/sdk");
+  const client = new Anthropic();
+  const { system, user } = buildPrompts(options);
+
+  const message = await client.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 1024,
+    messages: [{ role: "user", content: user }],
+    system,
+  });
+
+  const content = message.content[0];
+  if (content.type !== "text") throw new Error("Unexpected response type");
+  return extractJson(content.text);
+}
+
+// ── Public API ──────────────────────────────────────────────────────────────
+
+export async function generateSql(options: Nl2SqlOptions): Promise<Nl2SqlResult> {
+  if (process.env.LMSTUDIO_BASE_URL) {
+    return generateWithLmStudio(options);
+  }
+  if (process.env.ANTHROPIC_API_KEY) {
+    return generateWithAnthropic(options);
+  }
+  throw new Error(
+    "LLM not configured. Set LMSTUDIO_BASE_URL (+ LMSTUDIO_API_KEY, LMSTUDIO_MODEL) or ANTHROPIC_API_KEY in .env.local"
+  );
 }
 
 export async function* generateSqlStream(
   options: Nl2SqlOptions
 ): AsyncGenerator<string> {
-  const { nl, dialect, schemaContext, glossary } = options;
-
-  const systemPrompt = `You are an expert SQL generator for ${dialect} databases.
-${DIALECT_HINTS[dialect] ?? ""}
-Available schema:\n${schemaContext}
-${glossary ? `Business terms:\n${glossary}` : ""}
-Generate ONLY SELECT queries. Return raw SQL with no markdown fences.`;
-
-  const stream = client.messages.stream({
-    model: "claude-sonnet-4-6",
-    max_tokens: 1024,
-    messages: [{ role: "user", content: `Convert to ${dialect} SQL: "${nl}"` }],
-    system: systemPrompt,
-  });
-
-  for await (const event of stream) {
-    if (
-      event.type === "content_block_delta" &&
-      event.delta.type === "text_delta"
-    ) {
-      yield event.delta.text;
-    }
-  }
+  // For now, non-streaming fallback — yield full result as one chunk
+  const result = await generateSql(options);
+  yield result.sql;
 }
