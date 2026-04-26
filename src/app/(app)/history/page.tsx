@@ -86,8 +86,8 @@ export default function HistoryPage() {
 
   const statusParam =
     activeFilter === "성공" ? "SUCCESS" :
-    activeFilter === "실패" ? "ERROR" :
-    activeFilter === "즐겨찾기" ? undefined : undefined;
+    activeFilter === "실패" ? "FAILURE" :
+    undefined;
   const starredParam = activeFilter === "즐겨찾기";
 
   const { data: historyResponse, isLoading } = useQuery({
@@ -107,11 +107,7 @@ export default function HistoryPage() {
 
   const data = historyResponse?.data ?? [];
   const totalCount = historyResponse?.meta?.total ?? data.length;
-
-  const filtered = data.filter((item) => {
-    if (activeFilter === "실패" && item.status !== "ERROR" && item.status !== "BLOCKED") return false;
-    return true;
-  });
+  const filtered = data;
 
   const historyGroups = groupByDate(filtered);
 

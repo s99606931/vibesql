@@ -92,6 +92,7 @@ export default function DashboardsPage() {
     queryKey: ["stats"],
     queryFn: async () => {
       const r = await fetch("/api/stats");
+      if (!r.ok) throw new Error("통계를 불러오지 못했습니다.");
       const j = (await r.json()) as { data: StatsData };
       return j.data;
     },

@@ -36,7 +36,7 @@ export async function POST(
 
   // In-memory toggle — mutate the shared items array directly
   const item = items.find((i) => i.id === id);
-  if (!item) {
+  if (!item || item.userId !== userId) {
     return NextResponse.json(
       { error: "히스토리 항목을 찾을 수 없습니다." },
       { status: 404 }

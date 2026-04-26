@@ -39,10 +39,17 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const search = searchParams.get("search")?.trim() ?? "";
-  const status = searchParams.get("status") as "SUCCESS" | "ERROR" | "BLOCKED" | null;
+  const statusParam = searchParams.get("status") as "SUCCESS" | "ERROR" | "BLOCKED" | "FAILURE" | null;
   const starred = searchParams.get("starred") === "true";
-  const limit = Math.min(parseInt(searchParams.get("limit") ?? "50", 10), 200);
-  const offset = parseInt(searchParams.get("offset") ?? "0", 10);
+  const rawLimit = parseInt(searchParams.get("limit") ?? "50", 10);
+  const rawOffset = parseInt(searchParams.get("offset") ?? "0", 10);
+  const limit = isNaN(rawLimit) ? 50 : Math.min(rawLimit, 200);
+  const offset = isNaN(rawOffset) ? 0 : Math.max(rawOffset, 0);
+
+  // "FAILURE" is a virtual status that matches both ERROR and BLOCKED
+  const statusFilter = statusParam === "FAILURE"
+    ? { status: { in: ["ERROR", "BLOCKED"] as ("ERROR" | "BLOCKED")[] } }
+    : statusParam ? { status: statusParam as "SUCCESS" | "ERROR" | "BLOCKED" } : {};
 
   if (process.env.DATABASE_URL) {
     try {
@@ -53,7 +60,7 @@ export async function GET(req: Request) {
           { sql: { contains: search } },
           { nlQuery: { contains: search } },
         ] } : {}),
-        ...(status ? { status } : {}),
+        ...statusFilter,
         ...(starred ? { starred: true } : {}),
       };
       const [rows, total] = await Promise.all([
@@ -63,12 +70,12 @@ export async function GET(req: Request) {
           take: limit,
           skip: offset,
           include: { connection: { select: { name: true } } },
-        }),
+        }) as Promise<Array<Record<string, unknown> & { connection?: { name: string } | null }>>,
         prisma.queryHistory.count({ where }),
       ]);
       const mapped = rows.map(({ connection, ...r }) => ({
         ...r,
-        connectionName: connection?.name ?? undefined,
+        connectionName: (connection as { name?: string } | null | undefined)?.name ?? undefined,
       }));
       return NextResponse.json({ data: mapped, meta: { total, limit, offset } });
     } catch {
@@ -81,7 +88,11 @@ export async function GET(req: Request) {
     i.sql.toLowerCase().includes(search.toLowerCase()) ||
     (i.nlQuery ?? "").toLowerCase().includes(search.toLowerCase())
   );
-  if (status) filtered = filtered.filter((i) => i.status === status);
+  if (statusParam === "FAILURE") {
+    filtered = filtered.filter((i) => i.status === "ERROR" || i.status === "BLOCKED");
+  } else if (statusParam) {
+    filtered = filtered.filter((i) => i.status === statusParam);
+  }
   if (starred) filtered = filtered.filter((i) => i.starred);
 
   return NextResponse.json({

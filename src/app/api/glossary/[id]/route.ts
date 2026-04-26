@@ -32,12 +32,16 @@ export async function DELETE(
 ) {
   const authResult = await requireUserId();
   if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
 
   const { id } = await params;
 
   if (process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const existing = await (prisma as any).glossaryTerm.findFirst({ where: { id, createdBy: userId } });
+      if (!existing) return NextResponse.json({ error: "용어를 찾을 수 없습니다." }, { status: 404 });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (prisma as any).glossaryTerm.delete({ where: { id } });
       return NextResponse.json({ data: { id } });
@@ -55,7 +59,10 @@ export async function DELETE(
 
   // In-memory: mutate the shared array from the parent route
   const arr = await getTermsArray();
-  const idx = arr.findIndex((t) => t.id === id);
+  const idx = arr.findIndex((t) => {
+    const _userId = (t as GlossaryTerm & { _userId?: string })._userId;
+    return t.id === id && (_userId === undefined || _userId === userId);
+  });
   if (idx === -1) {
     return NextResponse.json(
       { error: "용어를 찾을 수 없습니다." },
@@ -72,6 +79,7 @@ export async function PATCH(
 ) {
   const authResult = await requireUserId();
   if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
 
   const { id } = await params;
   let body: unknown;
@@ -82,15 +90,15 @@ export async function PATCH(
   }
   const parsed = PatchSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: "잘못된 요청입니다.", issues: parsed.error.issues },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "잘못된 요청입니다." }, { status: 400 });
   }
 
   if (process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const existing = await (prisma as any).glossaryTerm.findFirst({ where: { id, createdBy: userId } });
+      if (!existing) return NextResponse.json({ error: "용어를 찾을 수 없습니다." }, { status: 404 });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updated = await (prisma as any).glossaryTerm.update({
         where: { id },
@@ -111,7 +119,10 @@ export async function PATCH(
 
   // In-memory
   const arr = await getTermsArray();
-  const term = arr.find((t) => t.id === id);
+  const term = arr.find((t) => {
+    const _userId = (t as GlossaryTerm & { _userId?: string })._userId;
+    return t.id === id && (_userId === undefined || _userId === userId);
+  });
   if (!term) {
     return NextResponse.json(
       { error: "용어를 찾을 수 없습니다." },
@@ -119,5 +130,7 @@ export async function PATCH(
     );
   }
   Object.assign(term, parsed.data);
-  return NextResponse.json({ data: { ...term } });
+  const { _userId: _u, ...pub } = term as GlossaryTerm & { _userId?: string };
+  void _u;
+  return NextResponse.json({ data: pub });
 }

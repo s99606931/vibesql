@@ -27,10 +27,10 @@ export async function DELETE(
 
   // In-memory: mutate the shared items array
   try {
-    const mod: { items?: Array<{ id: string }> } = await import("../route");
+    const mod: { items?: Array<{ id: string; userId: string }> } = await import("../route");
     const arr = mod.items;
     if (Array.isArray(arr)) {
-      const idx = arr.findIndex((i) => i.id === id);
+      const idx = arr.findIndex((i) => i.id === id && i.userId === userId);
       if (idx === -1) {
         return NextResponse.json({ error: "히스토리 항목을 찾을 수 없습니다." }, { status: 404 });
       }

@@ -92,10 +92,11 @@ export function ResultTable({ rows, columns }: ResultTableProps) {
   const [sortCol, setSortCol] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
-  const colTypes: Record<string, ColType> = {};
-  for (const col of columns) {
-    colTypes[col] = detectColType(rows, col);
-  }
+  const colTypes = useMemo(() => {
+    const map: Record<string, ColType> = {};
+    for (const col of columns) map[col] = detectColType(rows, col);
+    return map;
+  }, [rows, columns]);
 
   function handleHeaderClick(col: string) {
     if (sortCol === col) {

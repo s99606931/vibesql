@@ -31,23 +31,24 @@ export async function GET(
 
   // In-memory: access the items array from the parent route module
   try {
-    const mod: { __items?: { id: string }[] } = await import("../route");
+    const mod: { __items?: Array<{ id: string; _userId: string }> } = await import("../route");
     const arr = mod.__items;
     if (Array.isArray(arr)) {
-      const item = arr.find((i) => i.id === id);
+      const item = arr.find((i) => i.id === id && i._userId === userId);
       if (!item) {
         return NextResponse.json(
           { error: "저장된 쿼리를 찾을 수 없습니다." },
           { status: 404 }
         );
       }
-      return NextResponse.json({ data: item });
+      // Strip internal field before returning
+      const { _userId: _, ...pub } = item as typeof item & { _userId: string };
+      return NextResponse.json({ data: pub });
     }
   } catch {
     /* ignore */
   }
 
-  // Fallback: cannot resolve without shared reference
   return NextResponse.json(
     { error: "저장된 쿼리를 찾을 수 없습니다." },
     { status: 404 }
@@ -91,7 +92,18 @@ export async function DELETE(
     }
   }
 
-  // In-memory: the parent route owns the items array; we return success
+  // In-memory: splice from the shared array with ownership check
+  try {
+    const mod: { __items?: Array<{ id: string; _userId: string }> } = await import("../route");
+    const arr = mod.__items;
+    if (Array.isArray(arr)) {
+      const idx = arr.findIndex((i) => i.id === id && i._userId === userId);
+      if (idx === -1) {
+        return NextResponse.json({ error: "저장된 쿼리를 찾을 수 없습니다." }, { status: 404 });
+      }
+      arr.splice(idx, 1);
+    }
+  } catch { /* ignore */ }
   return NextResponse.json({ data: { id } });
 }
 
@@ -131,6 +143,20 @@ export async function PATCH(
     }
   }
 
-  // In-memory fallback
-  return NextResponse.json({ data: { id, ...parsed.data } });
+  // In-memory: update in place with ownership check
+  try {
+    const mod: { __items?: Array<{ id: string; _userId: string }> } = await import("../route");
+    const arr = mod.__items;
+    if (Array.isArray(arr)) {
+      const item = arr.find((i) => i.id === id && i._userId === userId);
+      if (!item) {
+        return NextResponse.json({ error: "저장된 쿼리를 찾을 수 없습니다." }, { status: 404 });
+      }
+      Object.assign(item, parsed.data);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { _userId: _, ...pub } = item as typeof item & Record<string, unknown>;
+      return NextResponse.json({ data: pub });
+    }
+  } catch { /* ignore */ }
+  return NextResponse.json({ error: "저장된 쿼리를 찾을 수 없습니다." }, { status: 404 });
 }

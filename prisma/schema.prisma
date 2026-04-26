@@ -20,6 +20,7 @@ model User {
   queries      SavedQuery[]
   historyItems QueryHistory[]
   dashboards   Dashboard[]
+  sharedLinks  SharedLink[]
   settings     UserSettings?
   aiProviders  AiProvider[]
 
@@ -181,6 +182,26 @@ model Dashboard {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("dashboards")
+}
+
+model SharedLink {
+  id           String    @id @default(cuid())
+  token        String    @unique @default(cuid())
+  resourceType String    @map("resource_type")
+  resourceId   String?   @map("resource_id")
+  sql          String?
+  nlQuery      String?   @map("nl_query")
+  dialect      String    @default("postgresql")
+  title        String?
+  expiresAt    DateTime? @map("expires_at")
+  revokedAt    DateTime? @map("revoked_at")
+  viewCount    Int       @default(0) @map("view_count")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("shared_links")
 }
 
 model GlossaryTerm {

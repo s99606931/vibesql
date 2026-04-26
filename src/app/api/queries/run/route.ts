@@ -99,6 +99,10 @@ function wrapWithLimit(sql: string, limit: number): string {
 }
 
 export async function POST(req: Request) {
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
+
   const ip = getClientIp(req.headers);
   const rl = rateLimit(ip, RUN_LIMIT, RUN_WINDOW_MS);
   if (!rl.allowed) {
@@ -114,10 +118,6 @@ export async function POST(req: Request) {
       }
     );
   }
-
-  const authResult = await requireUserId();
-  if (authResult instanceof NextResponse) return authResult;
-  const userId = authResult;
 
   try {
     const body = await req.json() as unknown;
@@ -141,13 +141,16 @@ export async function POST(req: Request) {
 
     const startMs = Date.now();
     let conn = getConnection(parsed.data.connectionId);
+    if (conn && conn.userId !== undefined && conn.userId !== userId) {
+      return NextResponse.json({ error: "연결을 찾을 수 없습니다." }, { status: 404 });
+    }
 
     // When DATABASE_URL is set, connections are persisted in Prisma not in-memory store.
     // Filter by userId to prevent cross-tenant connection access.
     if (!conn && process.env.DATABASE_URL) {
       try {
         const { prisma } = await import("@/lib/db/prisma");
-        const row = await prisma.connection.findUnique({
+        const row = await prisma.connection.findFirst({
           where: { id: parsed.data.connectionId, userId },
         });
         if (row) {

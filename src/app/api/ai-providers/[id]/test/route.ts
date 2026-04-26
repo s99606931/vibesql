@@ -45,6 +45,16 @@ async function testProvider(provider: AiProvider): Promise<{ ok: boolean; latenc
     const baseUrl = (provider.baseUrl ?? (provider.type === "openai" ? "https://api.openai.com" : "")).replace(/\/$/, "");
     if (!baseUrl) return { ok: false, latencyMs: 0, message: "Base URL이 없습니다." };
 
+    // Guard against cloud metadata SSRF (169.254.x.x link-local)
+    try {
+      const parsed = new URL(baseUrl);
+      if (/^169\.254\./.test(parsed.hostname)) {
+        return { ok: false, latencyMs: 0, message: "허용되지 않는 URL입니다." };
+      }
+    } catch {
+      return { ok: false, latencyMs: 0, message: "잘못된 URL입니다." };
+    }
+
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     const key = provider.apiKey ?? (provider.type === "openai" ? process.env.OPENAI_API_KEY : undefined);
     if (key) headers["Authorization"] = `Bearer ${key}`;

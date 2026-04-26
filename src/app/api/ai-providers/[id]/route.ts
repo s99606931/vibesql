@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUserId } from "@/lib/auth/require-user";
-import { memProviders } from "../route";
+import { memProviders, type AiProvider } from "../route";
+
+function sanitize(p: AiProvider | Record<string, unknown>) {
+  const { apiKey: _k, ...safe } = p as AiProvider;
+  return { ...safe, hasApiKey: !!_k };
+}
 
 const PatchSchema = z.object({
   name: z.string().min(1).max(80).optional(),
@@ -25,13 +30,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       const { prisma } = await import("@/lib/db/prisma");
       const row = await prisma.aiProvider.findFirst({ where: { id, userId } });
       if (!row) return NextResponse.json({ error: "찾을 수 없습니다." }, { status: 404 });
-      return NextResponse.json({ data: row });
+      return NextResponse.json({ data: sanitize(row as unknown as AiProvider) });
     } catch { /* fall through */ }
   }
 
   const p = memProviders.find((x) => x.id === id && x.userId === userId);
   if (!p) return NextResponse.json({ error: "찾을 수 없습니다." }, { status: 404 });
-  return NextResponse.json({ data: p });
+  return NextResponse.json({ data: sanitize(p) });
 }
 
 // ─── PATCH /api/ai-providers/[id] ────────────────────────────────────────────

@@ -92,6 +92,21 @@ interface OaiMessage { role: "system" | "user" | "assistant"; content: string; }
 interface OaiChoice { message: OaiMessage; }
 interface OaiResponse { choices: OaiChoice[]; }
 
+// Block cloud metadata endpoints (169.254.x.x link-local) to prevent SSRF.
+// Localhost and private LAN ranges are intentionally allowed — Ollama/LM Studio
+// commonly run on 127.0.0.1 or a local network host.
+function assertNotMetadataUrl(rawUrl: string): void {
+  let parsed: URL;
+  try { parsed = new URL(rawUrl); } catch { throw new Error("Invalid provider URL"); }
+  if (!["http:", "https:"].includes(parsed.protocol)) {
+    throw new Error("Provider URL must use http or https");
+  }
+  const host = parsed.hostname.toLowerCase();
+  if (/^169\.254\./.test(host)) {
+    throw new Error("Provider URL resolves to a link-local address (cloud metadata endpoint)");
+  }
+}
+
 async function generateWithOpenAiCompat(
   options: Nl2SqlOptions,
   baseUrl: string,
@@ -100,6 +115,7 @@ async function generateWithOpenAiCompat(
   temperature: number,
   maxTokens: number,
 ): Promise<Nl2SqlResult> {
+  assertNotMetadataUrl(baseUrl);
   const { system, user } = buildPrompts(options);
   const url = baseUrl.replace(/\/$/, "");
 

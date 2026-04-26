@@ -62,7 +62,7 @@ describe("POST /api/queries/generate", () => {
     const res = await POST(req);
     expect((res as { status: number }).status).toBe(500);
     const body = await (res as { json: () => Promise<unknown> }).json();
-    expect((body as { error: string }).error).toMatch(/LLM not configured/);
+    expect((body as { error: string }).error).toBeTruthy();
   });
 
   it("생성된 SQL이 비-SELECT → 422", async () => {

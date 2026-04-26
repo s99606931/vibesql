@@ -4,10 +4,13 @@ import type { SavedQuery, DbDialect } from "@/types";
 import { requireUserId } from "@/lib/auth/require-user";
 
 const MAX_ITEMS = 200;
-const items: SavedQuery[] = [];
 
-// Exported for use by sub-routes (e.g. [id]/route.ts)
-export const __items = items;
+// Internal storage type — userId field kept private to this module tree
+type _StoredItem = SavedQuery & { _userId: string };
+const items: _StoredItem[] = [];
+
+// Exported for sub-routes; they must check _userId for ownership
+export const __items: _StoredItem[] = items;
 
 const SaveSchema = z.object({
   name: z.string().min(1).max(200),
@@ -37,7 +40,8 @@ export async function GET() {
       /* fall through */
     }
   }
-  return NextResponse.json({ data: [...items] });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  return NextResponse.json({ data: items.filter((i) => i._userId === userId).map(({ _userId, ...q }) => q) });
 }
 
 export async function POST(req: Request) {
@@ -68,8 +72,9 @@ export async function POST(req: Request) {
     }
   }
 
-  const item: SavedQuery = {
+  const item: _StoredItem = {
     id: crypto.randomUUID(),
+    _userId: userId,
     createdAt: new Date().toISOString(),
     ...parsed.data,
     dialect: parsed.data.dialect as DbDialect,

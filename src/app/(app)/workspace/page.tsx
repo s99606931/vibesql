@@ -26,6 +26,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ResultTable } from "@/components/workspace/ResultTable";
 import ResultChart from "@/components/workspace/ResultChart";
 import { SqlEditor } from "@/components/workspace/SqlEditor";
+import { ShareDialog } from "@/components/share/ShareDialog";
 
 type ResultTab = "table" | "chart" | "explain";
 
@@ -94,8 +95,10 @@ export default function WorkspacePage() {
   const [activeTab, setActiveTab] = useState<ResultTab>("table");
   const [isEdited, setIsEdited] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
+  const [confidence, setConfidence] = useState<"high" | "medium" | "low" | null>(null);
   const [savedOk, setSavedOk] = useState(false);
   const savedOkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -118,7 +121,7 @@ export default function WorkspacePage() {
           ...(activeConnectionId ? { connectionId: activeConnectionId } : {}),
         }),
       });
-      const json = await res.json();
+      const json = await res.json() as { data: unknown; error?: string };
       if (!res.ok) throw new Error(json.error ?? "저장 실패");
       return json.data;
     },
@@ -223,10 +226,14 @@ export default function WorkspacePage() {
         const retryAfter = res.headers.get("Retry-After") ?? "60";
         throw new Error(`요청이 너무 많습니다. ${retryAfter}초 후 다시 시도하세요.`);
       }
-      const json = await res.json();
+      const json = await res.json() as {
+        error?: string;
+        data: { sql: string; explanation: string; confidence: "high" | "medium" | "low"; warnings?: string[] };
+      };
       if (!res.ok || json.error) throw new Error(json.error ?? "SQL generation failed");
       setSql(json.data.sql);
       setExplanation(json.data.explanation);
+      setConfidence(json.data.confidence ?? null);
       setStatus("ready");
     } catch (err) {
       setError(err instanceof Error ? err.message : "SQL 생성에 실패했습니다");
@@ -270,7 +277,9 @@ export default function WorkspacePage() {
         }).then(() => queryClient.invalidateQueries({ queryKey: ["history"] })).catch(() => undefined);
         throw new Error(json.error ?? "Query execution failed");
       }
-      const { rows, rowCount: rc, durationMs } = json.data;
+      const runData = (json as { data?: { rows: Record<string, unknown>[]; rowCount: number; durationMs: number } }).data;
+      if (!runData) throw new Error("서버 응답 형식이 올바르지 않습니다.");
+      const { rows, rowCount: rc, durationMs } = runData;
       setResults(rows, rc, durationMs); // setResults already sets status → "success"
       // Save to history + invalidate cache (non-blocking)
       fetch("/api/history", {
@@ -286,8 +295,8 @@ export default function WorkspacePage() {
           ...(activeConnectionId ? { connectionId: activeConnectionId } : {}),
           ...(activeConnection ? { connectionName: activeConnection.name } : {}),
         }),
-      }).then(async (r) => {
-        if (r.ok) queryClient.invalidateQueries({ queryKey: ["history"] });
+      }).then((r) => {
+        if (r.ok) return queryClient.invalidateQueries({ queryKey: ["history"] });
       }).catch(() => undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : "실행에 실패했습니다");
@@ -363,17 +372,12 @@ export default function WorkspacePage() {
                   variant="ghost"
                   size="sm"
                   icon={<Share2 size={13} />}
-                  onClick={() => {
-                    const url = `${window.location.origin}/workspace?sql=${encodeURIComponent(sql)}`;
-                    navigator.clipboard.writeText(url)
-                      .then(() => alert("공유 링크가 클립보드에 복사되었습니다."))
-                      .catch(() => alert("클립보드 복사에 실패했습니다. URL을 수동으로 복사하세요:\n" + url));
-                  }}
+                  onClick={() => setShareOpen(true)}
                 >공유</Button>
               </>
             )}
             {status !== "idle" && (
-              <Button variant="ghost" size="sm" onClick={reset}>초기화</Button>
+              <Button variant="ghost" size="sm" onClick={() => { reset(); setConfidence(null); setExplanation(null); }}>초기화</Button>
             )}
           </>
         }
@@ -402,6 +406,7 @@ export default function WorkspacePage() {
             <textarea
               value={nlQuery}
               onChange={(e) => setNlQuery(e.target.value)}
+              aria-label="자연어 질문 입력"
               placeholder="결제 사용자에 대해 무엇을 알고 싶나요?"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleGenerate();
@@ -508,12 +513,52 @@ export default function WorkspacePage() {
             >
               <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-mono)" }}>SQL</span>
               {isEdited && <Pill variant="warn">수정됨</Pill>}
+              {confidence && !isEdited && (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: "1px 8px",
+                    borderRadius: "var(--ds-r-full)",
+                    fontSize: "var(--ds-fs-10)",
+                    fontWeight: "var(--ds-fw-semibold)",
+                    letterSpacing: "0.03em",
+                    background:
+                      confidence === "high"
+                        ? "var(--ds-success-soft, color-mix(in srgb, var(--ds-success) 15%, transparent))"
+                        : confidence === "medium"
+                        ? "var(--ds-warn-soft, color-mix(in srgb, var(--ds-warn) 15%, transparent))"
+                        : "var(--ds-danger-soft, color-mix(in srgb, var(--ds-danger) 15%, transparent))",
+                    color:
+                      confidence === "high"
+                        ? "var(--ds-success)"
+                        : confidence === "medium"
+                        ? "var(--ds-warn)"
+                        : "var(--ds-danger)",
+                    border: `1px solid ${
+                      confidence === "high"
+                        ? "var(--ds-success)"
+                        : confidence === "medium"
+                        ? "var(--ds-warn)"
+                        : "var(--ds-danger)"
+                    }`,
+                    opacity: 0.8,
+                  }}
+                >
+                  {confidence === "high" ? "신뢰도 높음" : confidence === "medium" ? "신뢰도 중간" : "신뢰도 낮음"}
+                </span>
+              )}
               <div style={{ flex: 1 }} />
               <Button
                 variant="ghost"
                 size="sm"
                 icon={<Copy size={12} />}
-                onClick={() => navigator.clipboard.writeText(sql)}
+                onClick={() =>
+                  navigator.clipboard.writeText(sql).catch(() =>
+                    alert("클립보드 복사에 실패했습니다.")
+                  )
+                }
               >
                 복사
               </Button>
@@ -648,6 +693,14 @@ export default function WorkspacePage() {
           </div>
         )}
       </div>
+
+      <ShareDialog
+        sql={sql}
+        nlQuery={nlQuery || undefined}
+        dialect={dialect}
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+      />
     </div>
   );
 }

@@ -115,6 +115,7 @@ describe("[삭제] DELETE /api/saved/{id}", () => {
     const { __items } = await import("../saved/route");
     const testItem = {
       id: "saved-del-001",
+      _userId: "dev-user",
       name: "삭제대상쿼리",
       folder: "기본",
       tags: [],
@@ -123,7 +124,8 @@ describe("[삭제] DELETE /api/saved/{id}", () => {
       dialect: "postgresql" as const,
       createdAt: new Date().toISOString(),
     };
-    __items.unshift(testItem);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    __items.unshift(testItem as any);
 
     const { DELETE } = await import("../saved/[id]/route");
     const res = (await DELETE(new Request("http://localhost"), {
@@ -145,6 +147,11 @@ describe("[수정] PATCH /api/saved/{id}", () => {
   });
 
   it("이름·태그 수정 → 200 + 수정된 데이터", async () => {
+    // Seed an item so the in-memory PATCH can find it
+    const { __items } = await import("../saved/route");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    __items.unshift({ id: "any-id", _userId: "dev-user", name: "원래이름", folder: "기본", tags: [], nlQuery: "", sql: "SELECT 1", dialect: "postgresql", createdAt: new Date().toISOString() } as any);
+
     const { PATCH } = await import("../saved/[id]/route");
     const req = new Request("http://localhost/api/saved/any-id", {
       method: "PATCH",

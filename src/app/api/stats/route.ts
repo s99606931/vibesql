@@ -51,19 +51,23 @@ export async function GET(req: Request) {
     }
   }
 
-  // In-memory fallback: attempt to read from the history module's in-memory store.
-  // If unavailable, return zeros.
+  // In-memory fallback: read from in-memory stores
   let totalQueries = 0;
   let successCount = 0;
   let sumDurationMs = 0;
+  let totalConnections = 0;
+  let totalSaved = 0;
 
   try {
-    // history/route.ts does not export items, so we call its GET handler
-    // and derive counts from the response payload.
-    const mod = await import("@/app/api/history/route");
-    const res = await mod.GET(new Request("http://localhost/api/history?limit=200"));
-    const json = (await res.json()) as { data: Array<{ status: string; durationMs?: number }> };
-    const rows = json.data;
+    const [histMod, connMod, savedMod] = await Promise.all([
+      import("@/app/api/history/route"),
+      import("@/lib/connections/store"),
+      import("@/app/api/saved/route"),
+    ]);
+
+    const res = await histMod.GET(new Request(`http://localhost/api/history?limit=200`));
+    const json = (await res.json()) as { data: Array<{ status: string; durationMs?: number; userId: string }> };
+    const rows = json.data.filter((r) => r.userId === userId);
     totalQueries = rows.length;
     for (const row of rows) {
       if (row.status === "SUCCESS") {
@@ -71,6 +75,9 @@ export async function GET(req: Request) {
         sumDurationMs += row.durationMs ?? 0;
       }
     }
+
+    totalConnections = connMod.getAllConnections().filter((c) => c.userId === userId).length;
+    totalSaved = savedMod.__items.filter((i: { _userId?: string }) => i._userId === userId).length;
   } catch {
     /* ignore — return zeros */
   }
@@ -83,8 +90,8 @@ export async function GET(req: Request) {
   const data: StatsData = {
     totalQueries,
     successRate,
-    totalConnections: 0,
-    totalSaved: 0,
+    totalConnections,
+    totalSaved,
     avgDurationMs,
   };
 

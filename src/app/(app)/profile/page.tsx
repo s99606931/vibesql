@@ -310,7 +310,7 @@ export default function ProfilePage() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--ds-sp-4)", paddingBottom: "var(--ds-sp-3)", borderBottom: "1px solid var(--ds-border)" }}>
                 <div>
                   <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>비밀번호 변경</div>
-                  <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>마지막 변경: 90일 전</div>
+                  <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>설정에서 변경하세요</div>
                 </div>
                 <Button variant="default" size="sm" icon={<KeyRound size={12} />} onClick={() => router.push("/settings")}>변경하기</Button>
               </div>

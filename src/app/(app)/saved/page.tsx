@@ -63,7 +63,6 @@ export default function SavedPage() {
       const json = (await res.json()) as { data?: SavedQuery[] };
       return Array.isArray(json.data) ? json.data : [];
     },
-    initialData: [],
     staleTime: 10_000,
   });
 
@@ -102,7 +101,8 @@ export default function SavedPage() {
     queryClient.invalidateQueries({ queryKey: ["saved"] });
   }
 
-  const filtered = (data ?? []).filter(
+  const savedList = Array.isArray(data) ? data : [];
+  const filtered = savedList.filter(
     (q) =>
       !search ||
       q.name.toLowerCase().includes(search.toLowerCase()) ||

@@ -22,10 +22,13 @@ export async function POST(
 
   // Try in-memory store first, then Prisma (filtered by userId to prevent cross-tenant access)
   let conn: StoredConnection | undefined = getConnection(id);
+  if (conn && conn.userId !== undefined && conn.userId !== userId) {
+    return NextResponse.json({ error: "연결을 찾을 수 없습니다." }, { status: 404 });
+  }
   if (!conn && process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
-      const row = await prisma.connection.findUnique({ where: { id, userId } });
+      const row = await prisma.connection.findFirst({ where: { id, userId } });
       if (row) {
         conn = {
           id: row.id,
@@ -107,7 +110,7 @@ export async function POST(
         try {
           const { prisma } = await import("@/lib/db/prisma");
           await prisma.connection.update({
-            where: { id },
+            where: { id, userId },
             data: { lastTestedAt: new Date(), lastTestedOk: false },
           });
         } catch { /* fall through */ }

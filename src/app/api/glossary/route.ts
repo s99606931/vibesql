@@ -45,11 +45,16 @@ const CreateSchema = z.object({
 });
 
 export async function GET() {
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
+
   if (process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rows = await (prisma as any).glossaryTerm.findMany({
+        where: { createdBy: userId },
         orderBy: { createdAt: "desc" },
       });
       return NextResponse.json({ data: rows });
@@ -58,7 +63,11 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json({ data: [...terms] });
+  return NextResponse.json({
+    data: terms
+      .filter((t) => (t as GlossaryTerm & { _userId?: string })._userId === undefined || (t as GlossaryTerm & { _userId?: string })._userId === userId)
+      .map(({ ...pub }) => pub),
+  });
 }
 
 export async function POST(req: Request) {
@@ -100,13 +109,14 @@ export async function POST(req: Request) {
     );
   }
 
-  const newTerm: GlossaryTerm = {
+  const newTerm = {
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
+    _userId: userId,
     ...parsed.data,
-  };
+  } as GlossaryTerm & { _userId: string };
 
-  terms.unshift(newTerm);
+  terms.unshift(newTerm as unknown as GlossaryTerm);
 
   return NextResponse.json({ data: newTerm }, { status: 201 });
 }

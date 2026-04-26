@@ -5,7 +5,7 @@ interface SettingsState {
   theme: "indigo" | "emerald" | "amber" | "rose" | "slate";
   mode: "light" | "dark";
   density: "compact" | "regular" | "comfy";
-  dialect: "postgresql" | "mysql" | "sqlite" | "mssql";
+  dialect: "postgresql" | "mysql" | "sqlite" | "mssql" | "oracle";
   temperature: number;
   alwaysExplain: boolean;
   readOnly: boolean;
@@ -16,7 +16,7 @@ interface SettingsState {
   setTheme: (t: SettingsState["theme"]) => void;
   setMode: (m: SettingsState["mode"]) => void;
   setDensity: (d: SettingsState["density"]) => void;
-  setDialect: (d: SettingsState["dialect"]) => void;
+  setDialect: (d: SettingsState["dialect"]) => void; // matches DbDialect in types/index.ts
   setTemperature: (v: number) => void;
   setSessionTimeout: (v: number) => void;
   toggle: (key: "alwaysExplain" | "readOnly" | "notifySuccess" | "notifyError" | "notifyLong") => void;

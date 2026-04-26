@@ -72,5 +72,19 @@ export function guardSql(sql: string): GuardResult {
     }
   }
 
+  // Block dangerous PostgreSQL built-in functions that can exfiltrate files or
+  // execute commands even inside a SELECT (pg_read_file, dblink_exec, lo_export…)
+  const BLOCKED_FUNCTIONS = [
+    "pg_read_file", "pg_read_binary_file", "pg_ls_dir", "pg_stat_file",
+    "lo_export", "lo_read", "lo_get",
+    "dblink", "dblink_exec", "dblink_connect",
+    "pg_sleep",
+  ];
+  for (const fn of BLOCKED_FUNCTIONS) {
+    if (new RegExp(`\\b${fn}\\s*\\(`, "i").test(stripped)) {
+      return { allowed: false, reason: `Forbidden function: ${fn}` };
+    }
+  }
+
   return { allowed: true, normalizedSql: trimmed };
 }

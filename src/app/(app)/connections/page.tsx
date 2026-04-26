@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
-import { Card } from "@/components/ui-vs/Card";
+import { Card, CardHead } from "@/components/ui-vs/Card";
 import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { ConnectionWizard } from "@/components/connections/ConnectionWizard";
-import { useConnections, useTestConnection } from "@/hooks/useConnections";
+import { useConnections, useTestConnection, useUpdateConnection } from "@/hooks/useConnections";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, RefreshCw, Loader2, Trash2 } from "lucide-react";
-import type { DbDialect } from "@/types";
+import { Plus, RefreshCw, Loader2, Trash2, Pencil, X } from "lucide-react";
+import type { DbDialect, Connection } from "@/types";
 
 const dialectLabels: Record<DbDialect, string> = {
   postgresql: "PostgreSQL",
@@ -20,8 +20,107 @@ const dialectLabels: Record<DbDialect, string> = {
   oracle: "Oracle",
 };
 
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "var(--ds-sp-2) var(--ds-sp-3)",
+  border: "1px solid var(--ds-border)",
+  borderRadius: "var(--ds-r-6)",
+  background: "var(--ds-surface-2)",
+  color: "var(--ds-text)",
+  fontSize: "var(--ds-fs-13)",
+  outline: "none",
+  fontFamily: "var(--ds-font-sans)",
+  boxSizing: "border-box",
+};
+
+function EditConnectionForm({
+  conn,
+  onClose,
+}: {
+  conn: Connection;
+  onClose: () => void;
+}) {
+  const [form, setForm] = useState({
+    name: conn.name,
+    host: conn.host ?? "",
+    port: conn.port ? String(conn.port) : "",
+    database: conn.database,
+    username: conn.username ?? "",
+    password: "",
+    ssl: conn.ssl,
+  });
+  const update = useUpdateConnection();
+
+  function set(key: string, value: string | boolean) {
+    setForm((p) => ({ ...p, [key]: value }));
+  }
+
+  async function handleSave() {
+    await update.mutateAsync({
+      id: conn.id,
+      config: {
+        name: form.name || undefined,
+        host: form.host || undefined,
+        port: form.port ? parseInt(form.port, 10) : undefined,
+        database: form.database || undefined,
+        username: form.username || undefined,
+        password: form.password || undefined,
+        ssl: form.ssl,
+      },
+    });
+    onClose();
+  }
+
+  return (
+    <Card padding="var(--ds-sp-4)" style={{ marginTop: "var(--ds-sp-3)", border: "1px solid var(--ds-accent)" }}>
+      <CardHead
+        title={`연결 편집 — ${conn.name}`}
+        actions={<Button variant="ghost" size="sm" icon={<X size={13} />} onClick={onClose}>닫기</Button>}
+      />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ds-sp-3)", marginTop: "var(--ds-sp-3)" }}>
+        <div>
+          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>이름</label>
+          <input style={inputStyle} value={form.name} onChange={(e) => set("name", e.target.value)} />
+        </div>
+        <div>
+          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>호스트</label>
+          <input style={inputStyle} value={form.host} onChange={(e) => set("host", e.target.value)} placeholder="db.example.com" />
+        </div>
+        <div>
+          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>포트</label>
+          <input style={{ ...inputStyle, fontFamily: "var(--ds-font-mono)" }} value={form.port} onChange={(e) => set("port", e.target.value)} placeholder="5432" />
+        </div>
+        <div>
+          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>데이터베이스</label>
+          <input style={inputStyle} value={form.database} onChange={(e) => set("database", e.target.value)} />
+        </div>
+        <div>
+          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>사용자명</label>
+          <input style={inputStyle} value={form.username} onChange={(e) => set("username", e.target.value)} />
+        </div>
+        <div>
+          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>비밀번호 (변경 시만 입력)</label>
+          <input style={inputStyle} type="password" value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="••••••••" />
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-3)", marginTop: "var(--ds-sp-3)" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text)" }}>
+          <input type="checkbox" checked={form.ssl} onChange={(e) => set("ssl", e.target.checked)} />
+          SSL 활성화
+        </label>
+        <div style={{ flex: 1 }} />
+        <Button variant="ghost" size="sm" onClick={onClose}>취소</Button>
+        <Button variant="accent" size="sm" loading={update.isPending} onClick={handleSave} disabled={!form.name || !form.database}>
+          저장
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
 export default function ConnectionsPage() {
   const [showWizard, setShowWizard] = useState(false);
+  const [editingConn, setEditingConn] = useState<Connection | null>(null);
   const { data: connections, isLoading, isError, error } = useConnections();
   const testMutation = useTestConnection();
   const queryClient = useQueryClient();
@@ -210,6 +309,14 @@ export default function ConnectionsPage() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              icon={<Pencil size={12} />}
+                              onClick={() => setEditingConn(editingConn?.id === conn.id ? null : conn)}
+                            >
+                              편집
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               icon={
                                 isTesting ? (
                                   <Loader2
@@ -249,6 +356,10 @@ export default function ConnectionsPage() {
               </table>
             </div>
           </Card>
+        )}
+
+        {editingConn && (
+          <EditConnectionForm conn={editingConn} onClose={() => setEditingConn(null)} />
         )}
 
         {!isLoading && !isError && (!connections || connections.length === 0) && (

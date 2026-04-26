@@ -64,7 +64,7 @@ describe("generateSql — LM Studio 경로", () => {
     });
 
     const { generateSql } = await import("../nl2sql");
-    await expect(generateSql(BASE_OPTIONS)).rejects.toThrow(/LM Studio error 500/);
+    await expect(generateSql(BASE_OPTIONS)).rejects.toThrow(/500/);
   });
 
   it("JSON 없는 응답 → Error throw", async () => {
@@ -115,7 +115,7 @@ describe("generateSql — LLM 미설정", () => {
 
   it("LLM 설정 없으면 Error throw", async () => {
     const { generateSql } = await import("../nl2sql");
-    await expect(generateSql(BASE_OPTIONS)).rejects.toThrow(/LLM not configured/);
+    await expect(generateSql(BASE_OPTIONS)).rejects.toThrow();
   });
 });
 

@@ -20,6 +20,8 @@ import {
   ChevronDown,
   ChevronUp,
   AlertCircle,
+  TrendingUp,
+  Clock,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui-vs/Button";
@@ -584,6 +586,9 @@ export default function HomePage() {
             />
           </div>
 
+          {/* ── 통계 + 최근 쿼리 ──────────────────────────────────────────── */}
+          <StatsSection />
+
           {/* ── 메뉴별 사용 가이드 ────────────────────────────────────────── */}
           <div>
             <div
@@ -625,6 +630,274 @@ export default function HomePage() {
           </div>
 
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── StatsSection ─────────────────────────────────────────────────────────────
+
+type StatsData = {
+  totalQueries: number;
+  successRate: number;
+  totalSaved: number;
+  avgDurationMs: number;
+};
+
+type HistoryItem = {
+  id: string;
+  nlQuery?: string;
+  sql: string;
+  status: string;
+  createdAt: string;
+};
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { label: string; color: string; bg: string }> = {
+    SUCCESS: {
+      label: "성공",
+      color: "var(--ds-success)",
+      bg: "color-mix(in srgb, var(--ds-success) 12%, transparent)",
+    },
+    ERROR: {
+      label: "오류",
+      color: "var(--ds-danger)",
+      bg: "color-mix(in srgb, var(--ds-danger) 12%, transparent)",
+    },
+    BLOCKED: {
+      label: "차단",
+      color: "var(--ds-warn)",
+      bg: "color-mix(in srgb, var(--ds-warn) 12%, transparent)",
+    },
+  };
+  const s = map[status] ?? { label: status, color: "var(--ds-text-mute)", bg: "var(--ds-fill)" };
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        padding: "1px 8px",
+        borderRadius: "var(--ds-r-full)",
+        fontSize: "var(--ds-fs-10)",
+        fontWeight: "var(--ds-fw-semibold)",
+        color: s.color,
+        background: s.bg,
+        border: `1px solid ${s.color}`,
+        flexShrink: 0,
+        opacity: 0.85,
+        fontFamily: "var(--ds-font-sans)",
+      }}
+    >
+      {s.label}
+    </span>
+  );
+}
+
+function StatsSection() {
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ["stats"],
+    queryFn: async () => {
+      const r = await fetch("/api/stats");
+      const j = await r.json() as { data?: StatsData };
+      return j.data ?? null;
+    },
+    staleTime: 30_000,
+  });
+
+  const { data: recentHistory, isLoading: historyLoading } = useQuery({
+    queryKey: ["history-recent"],
+    queryFn: async () => {
+      const r = await fetch("/api/history?limit=3");
+      const j = await r.json() as { data?: HistoryItem[] };
+      return j.data ?? [];
+    },
+    staleTime: 30_000,
+  });
+
+  const statCards = [
+    {
+      label: "전체 쿼리",
+      value: stats ? `${stats.totalQueries}개` : "—",
+      icon: <BarChart2 size={14} />,
+    },
+    {
+      label: "성공률",
+      value: stats ? `${stats.successRate}%` : "—",
+      icon: <TrendingUp size={14} />,
+    },
+    {
+      label: "저장된 쿼리",
+      value: stats ? `${stats.totalSaved}개` : "—",
+      icon: <Star size={14} />,
+    },
+    {
+      label: "평균 실행 시간",
+      value: stats ? `${stats.avgDurationMs}ms` : "—",
+      icon: <Clock size={14} />,
+    },
+  ];
+
+  const sectionHeaderStyle: React.CSSProperties = {
+    fontSize: "var(--ds-fs-12)",
+    fontWeight: "var(--ds-fw-semibold)",
+    color: "var(--ds-text-mute)",
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
+    marginBottom: "var(--ds-sp-3)",
+    fontFamily: "var(--ds-font-sans)",
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }}>
+      {/* 통계 카드 2×2 */}
+      <div>
+        <div style={sectionHeaderStyle}>사용 통계</div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "var(--ds-sp-3)",
+          }}
+        >
+          {statCards.map((card) => (
+            <div
+              key={card.label}
+              style={{
+                padding: "var(--ds-sp-4)",
+                border: "1px solid var(--ds-border)",
+                borderRadius: "var(--ds-r-8)",
+                background: "var(--ds-surface)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "var(--ds-sp-2)",
+                  marginBottom: "var(--ds-sp-2)",
+                }}
+              >
+                <span style={{ color: "var(--ds-text-mute)" }}>{card.icon}</span>
+                <span
+                  style={{
+                    fontSize: "var(--ds-fs-11)",
+                    color: "var(--ds-text-mute)",
+                    fontFamily: "var(--ds-font-sans)",
+                  }}
+                >
+                  {card.label}
+                </span>
+              </div>
+              <div
+                style={{
+                  fontSize: "var(--ds-fs-22)",
+                  fontWeight: "var(--ds-fw-bold)",
+                  color: statsLoading ? "var(--ds-text-faint)" : "var(--ds-text)",
+                  fontFamily: "var(--ds-font-mono)",
+                  lineHeight: 1,
+                }}
+              >
+                {card.value}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 최근 쿼리 3개 */}
+      <div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "var(--ds-sp-3)",
+          }}
+        >
+          <div style={sectionHeaderStyle as React.CSSProperties}>최근 쿼리</div>
+          <Link
+            href="/history"
+            style={{
+              fontSize: "var(--ds-fs-11)",
+              color: "var(--ds-accent)",
+              textDecoration: "none",
+            }}
+          >
+            히스토리 더 보기 →
+          </Link>
+        </div>
+
+        {historyLoading ? (
+          <div
+            style={{
+              padding: "var(--ds-sp-4)",
+              border: "1px solid var(--ds-border)",
+              borderRadius: "var(--ds-r-8)",
+              background: "var(--ds-surface)",
+              color: "var(--ds-text-faint)",
+              fontSize: "var(--ds-fs-12)",
+              textAlign: "center",
+            }}
+          >
+            불러오는 중...
+          </div>
+        ) : !recentHistory || recentHistory.length === 0 ? (
+          <div
+            style={{
+              padding: "var(--ds-sp-4)",
+              border: "1px solid var(--ds-border)",
+              borderRadius: "var(--ds-r-8)",
+              background: "var(--ds-surface)",
+              color: "var(--ds-text-faint)",
+              fontSize: "var(--ds-fs-12)",
+              textAlign: "center",
+            }}
+          >
+            아직 실행된 쿼리가 없습니다.
+          </div>
+        ) : (
+          <div
+            style={{
+              border: "1px solid var(--ds-border)",
+              borderRadius: "var(--ds-r-8)",
+              overflow: "hidden",
+            }}
+          >
+            {recentHistory.map((item, idx) => {
+              const preview = (item.nlQuery || item.sql).slice(0, 60);
+              const isTruncated = (item.nlQuery || item.sql).length > 60;
+              return (
+                <div
+                  key={item.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--ds-sp-3)",
+                    padding: "var(--ds-sp-3) var(--ds-sp-4)",
+                    background: "var(--ds-surface)",
+                    borderTop: idx > 0 ? "1px solid var(--ds-border)" : "none",
+                  }}
+                >
+                  <span
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      fontSize: "var(--ds-fs-12)",
+                      color: "var(--ds-text)",
+                      fontFamily: item.nlQuery ? "var(--ds-font-sans)" : "var(--ds-font-mono)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {preview}{isTruncated ? "..." : ""}
+                  </span>
+                  <StatusBadge status={item.status} />
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

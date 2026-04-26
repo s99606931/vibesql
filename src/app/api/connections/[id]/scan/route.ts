@@ -51,10 +51,13 @@ export async function POST(
   const { id } = await params;
 
   let conn: StoredConnection | undefined = getConnection(id);
+  if (conn && conn.userId !== undefined && conn.userId !== userId) {
+    return NextResponse.json({ error: "연결을 찾을 수 없습니다." }, { status: 404 });
+  }
   if (!conn && process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
-      const row = await prisma.connection.findUnique({ where: { id, userId } });
+      const row = await prisma.connection.findFirst({ where: { id, userId } });
       if (row) {
         conn = {
           id: row.id,

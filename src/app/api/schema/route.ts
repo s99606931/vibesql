@@ -158,10 +158,13 @@ export async function GET(req: Request) {
 
   if (connectionId) {
     let conn = getConnection(connectionId);
+    if (conn && conn.userId !== undefined && conn.userId !== userId) {
+      conn = undefined;
+    }
     if (!conn && process.env.DATABASE_URL) {
       try {
         const { prisma } = await import("@/lib/db/prisma");
-        const row = await prisma.connection.findUnique({ where: { id: connectionId, userId } });
+        const row = await prisma.connection.findFirst({ where: { id: connectionId, userId } });
         if (row) {
           conn = {
             id: row.id,

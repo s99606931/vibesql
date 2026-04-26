@@ -71,6 +71,23 @@ export function useCreateConnection() {
   });
 }
 
+export function useUpdateConnection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, config }: { id: string; config: Partial<ConnectionConfig> }) => {
+      const res = await fetch(`/api/connections/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      const json = (await res.json()) as { data: Connection; error?: string };
+      if (!res.ok) throw new Error(json.error ?? "Failed to update connection");
+      return json.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["connections"] }),
+  });
+}
+
 export function useTestConnection() {
   return useMutation({ mutationFn: testConnection });
 }

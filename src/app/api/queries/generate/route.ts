@@ -64,8 +64,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ data: result });
   } catch (error) {
-    const msg =
-      error instanceof Error ? error.message : "SQL generation failed";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("[generate] error:", error instanceof Error ? error.message : error);
+    return NextResponse.json({ error: "SQL 생성에 실패했습니다." }, { status: 500 });
   }
 }

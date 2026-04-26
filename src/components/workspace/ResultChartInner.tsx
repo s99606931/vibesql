@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useId } from "react";
+import { useState, useRef, useId, useEffect } from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -82,9 +82,16 @@ export default function ResultChartInner({ rows, columns }: ResultChartInnerProp
   const { numericCols, stringCols, dateCols } = detectColumnTypes(rows, columns);
 
   const defaultKind = detectDefaultKind(dateCols, stringCols, numericCols);
-  const [kind, setKind] = useState<ChartKind>(defaultKind);
-  // Reset chart type when the data schema changes (different query result loaded)
-  useEffect(() => { setKind(defaultKind); }, [defaultKind]);
+  const [kindOverride, setKindOverride] = useState<ChartKind | null>(null);
+  const prevDefaultRef = useRef(defaultKind);
+  // Reset user override when the inferred defaultKind changes (data schema changed)
+  useEffect(() => {
+    if (prevDefaultRef.current !== defaultKind) {
+      prevDefaultRef.current = defaultKind;
+      setKindOverride(null);
+    }
+  }, [defaultKind]);
+  const kind = kindOverride ?? defaultKind;
 
   if (numericCols.length === 0) {
     return (
@@ -150,7 +157,7 @@ export default function ResultChartInner({ rows, columns }: ResultChartInnerProp
         {CHART_TYPES.map((ct) => (
           <button
             key={ct.key}
-            onClick={() => setKind(ct.key)}
+            onClick={() => setKindOverride(ct.key)}
             style={{
               padding: "2px 10px",
               borderRadius: "var(--ds-r-full)",

@@ -54,9 +54,9 @@ export async function GET() {
     }
   }
 
-  const conns = getAllConnections().map(
-    ({ passwordBase64: _pw, ...rest }) => rest
-  );
+  const conns = getAllConnections()
+    .filter((c) => c.userId === undefined || c.userId === userId)
+    .map(({ passwordBase64: _pw, ...rest }) => rest);
   return NextResponse.json({ data: conns });
 }
 
