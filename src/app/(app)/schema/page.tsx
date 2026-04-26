@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { Card, CardHead } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
 import { AICallout, AIBadge } from "@/components/ui-vs/AICallout";
+import { Button } from "@/components/ui-vs/Button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search } from "lucide-react";
+import { Search, Database } from "lucide-react";
 
 interface TableMeta {
   name: string;
@@ -19,74 +22,23 @@ interface TableMeta {
   pii: boolean;
 }
 
-const mockTables: TableMeta[] = [
-  {
-    name: "orders",
-    rows: "8.4M",
-    columns: 18,
-    description: "주문 트랜잭션 테이블. 결제 상태, 금액, 배송 정보 포함.",
-    cols: ["id", "user_id", "status", "amount", "created_at", "updated_at"],
-    fks: ["customers", "products"],
-    pii: true,
-  },
-  {
-    name: "customers",
-    rows: "1.2M",
-    columns: 12,
-    description: "고객 계정 정보. PII 컬럼 포함 — 주의.",
-    cols: ["id", "email", "name", "country", "plan", "created_at"],
-    fks: [],
-    pii: true,
-  },
-  {
-    name: "products",
-    rows: "4,832",
-    columns: 9,
-    description: "상품 카탈로그. 활성/비활성 포함.",
-    cols: ["id", "name", "category", "price", "stock", "active"],
-    fks: [],
-    pii: false,
-  },
-  {
-    name: "payments",
-    rows: "9.1M",
-    columns: 14,
-    description: "결제 처리 이력. orders와 1:1 관계.",
-    cols: ["id", "order_id", "method", "status", "amount", "processed_at"],
-    fks: ["orders"],
-    pii: true,
-  },
-  {
-    name: "audit_logs",
-    rows: "22.3M",
-    columns: 7,
-    description: "모든 쿼리 실행 감사 로그. Append-only.",
-    cols: ["id", "user_id", "query", "rows_affected", "duration_ms", "created_at"],
-    fks: ["customers"],
-    pii: false,
-  },
-  {
-    name: "glossary_terms",
-    rows: "143",
-    columns: 6,
-    description: "회사 용어 사전. AI 쿼리 정확도 향상.",
-    cols: ["id", "term", "definition", "mapped_columns", "category", "created_by"],
-    fks: [],
-    pii: false,
-  },
-];
 
 export default function SchemaPage() {
   const [search, setSearch] = useState("");
+  const activeConnectionId = useWorkspaceStore((s) => s.activeConnectionId);
+  const router = useRouter();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["schema"],
+    queryKey: ["schema", activeConnectionId],
     queryFn: async () => {
-      const res = await fetch("/api/schema");
+      const url = activeConnectionId
+        ? `/api/schema?connectionId=${encodeURIComponent(activeConnectionId)}`
+        : "/api/schema";
+      const res = await fetch(url);
       const json = await res.json();
       return json.data as TableMeta[];
     },
-    initialData: mockTables,
+    initialData: [],
     staleTime: 30_000,
   });
 
@@ -144,6 +96,30 @@ export default function SchemaPage() {
           <Pill>PII 포함</Pill>
           <Pill>최근 변경</Pill>
         </div>
+
+        {/* No connection callout */}
+        {!activeConnectionId && !isLoading && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--ds-sp-3)",
+              padding: "var(--ds-sp-3) var(--ds-sp-4)",
+              background: "var(--ds-accent-soft)",
+              border: "1px solid var(--ds-accent)",
+              borderRadius: "var(--ds-r-8)",
+              marginBottom: "var(--ds-sp-4)",
+              fontSize: "var(--ds-fs-13)",
+              color: "var(--ds-accent)",
+            }}
+          >
+            <Database size={16} style={{ flexShrink: 0 }} />
+            <span style={{ flex: 1 }}>연결된 DB가 없습니다. 스키마를 보려면 워크스페이스에서 DB 연결을 활성화하세요.</span>
+            <Button variant="accent" size="sm" onClick={() => router.push("/connections")}>
+              연결 추가
+            </Button>
+          </div>
+        )}
 
         {/* Loading skeleton */}
         {isLoading && (

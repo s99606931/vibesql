@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Card } from "@/components/ui-vs/Card";
 import { Button } from "@/components/ui-vs/Button";
@@ -8,7 +9,7 @@ import { Pill } from "@/components/ui-vs/Pill";
 import { ConnectionWizard } from "@/components/connections/ConnectionWizard";
 import { useConnections, useTestConnection } from "@/hooks/useConnections";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, RefreshCw, Loader2 } from "lucide-react";
+import { Plus, RefreshCw, Loader2, Trash2 } from "lucide-react";
 import type { DbDialect } from "@/types";
 
 const dialectLabels: Record<DbDialect, string> = {
@@ -23,6 +24,21 @@ export default function ConnectionsPage() {
   const [showWizard, setShowWizard] = useState(false);
   const { data: connections, isLoading, isError, error } = useConnections();
   const testMutation = useTestConnection();
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/connections/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error((json as { error?: string }).error ?? "삭제에 실패했습니다.");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["connections"] });
+    },
+  });
 
   return (
     <div
@@ -210,6 +226,19 @@ export default function ConnectionsPage() {
                               }
                             >
                               재테스트
+                            </Button>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              icon={<Trash2 size={12} />}
+                              disabled={deleteMutation.isPending && deleteMutation.variables === conn.id}
+                              onClick={() => {
+                                if (confirm(`"${conn.name}" 연결을 삭제하시겠습니까?`)) {
+                                  deleteMutation.mutate(conn.id);
+                                }
+                              }}
+                            >
+                              삭제
                             </Button>
                           </div>
                         </td>

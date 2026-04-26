@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { TopBar } from "@/components/shell/TopBar";
 import { Card, CardHead } from "@/components/ui-vs/Card";
 import { Button } from "@/components/ui-vs/Button";
@@ -145,6 +145,8 @@ const THEMES: {
 
 export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState<Section>("appearance");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const {
     theme, mode, density,
     dialect, temperature, alwaysExplain,
@@ -155,11 +157,61 @@ export default function SettingsPage() {
     toggle,
   } = useSettingsStore();
 
+  // Load settings from DB on mount
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((json) => {
+        if (!json.data) return;
+        const s = json.data;
+        if (s.theme && s.theme !== theme) setTheme(s.theme);
+        if (s.defaultDialect && s.defaultDialect !== dialect) setDialect(s.defaultDialect);
+        if (s.aiTemperature != null && s.aiTemperature !== temperature) setTemperature(s.aiTemperature);
+        if (s.showExplanation != null && s.showExplanation !== alwaysExplain) toggle("alwaysExplain");
+        if (s.sessionTimeout != null && s.sessionTimeout !== sessionTimeout) setSessionTimeout(s.sessionTimeout);
+      })
+      .catch(() => { /* DB not configured — use localStorage only */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Debounced save to DB whenever settings change
+  function persistSettings() {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    setSaveStatus("saving");
+    saveTimerRef.current = setTimeout(async () => {
+      try {
+        await fetch("/api/settings", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            theme,
+            defaultDialect: dialect,
+            aiTemperature: temperature,
+            showExplanation: alwaysExplain,
+            sessionTimeout,
+            showSqlPreview: true,
+          }),
+        });
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus("idle"), 2000);
+      } catch {
+        setSaveStatus("idle");
+      }
+    }, 800);
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <TopBar
         title="설정"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "설정" }]}
+        actions={
+          saveStatus !== "idle" ? (
+            <span style={{ fontSize: "var(--ds-fs-12)", color: saveStatus === "saved" ? "var(--ds-success)" : "var(--ds-text-faint)" }}>
+              {saveStatus === "saving" ? "저장 중..." : "저장됨"}
+            </span>
+          ) : undefined
+        }
       />
 
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
@@ -238,7 +290,7 @@ export default function SettingsPage() {
                     return (
                       <button
                         key={t.id}
-                        onClick={() => setTheme(t.id)}
+                        onClick={() => { setTheme(t.id); persistSettings(); }}
                         style={{
                           display: "flex",
                           flexDirection: "column",
@@ -332,7 +384,7 @@ export default function SettingsPage() {
                   description="밝기 모드를 전환합니다"
                 >
                   <button
-                    onClick={() => setMode(mode === "dark" ? "light" : "dark")}
+                    onClick={() => { setMode(mode === "dark" ? "light" : "dark"); persistSettings(); }}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -361,7 +413,7 @@ export default function SettingsPage() {
                     {(["compact", "regular", "comfy"] as const).map((d) => (
                       <button
                         key={d}
-                        onClick={() => setDensity(d)}
+                        onClick={() => { setDensity(d); persistSettings(); }}
                         style={{
                           padding: "4px 10px",
                           border: "1px solid var(--ds-border)",
@@ -391,9 +443,10 @@ export default function SettingsPage() {
               <SettingRow label="기본 SQL 방언" description="AI가 생성하는 SQL의 기본 방언">
                 <select
                   value={dialect}
-                  onChange={(e) =>
-                    setDialect(e.target.value as "postgresql" | "mysql" | "sqlite" | "mssql")
-                  }
+                  onChange={(e) => {
+                    setDialect(e.target.value as "postgresql" | "mysql" | "sqlite" | "mssql");
+                    persistSettings();
+                  }}
                   style={{
                     padding: "var(--ds-sp-1) var(--ds-sp-3)",
                     border: "1px solid var(--ds-border)",
@@ -426,7 +479,7 @@ export default function SettingsPage() {
                     max={1}
                     step={0.1}
                     value={temperature}
-                    onChange={(e) => setTemperature(Number(e.target.value))}
+                    onChange={(e) => { setTemperature(Number(e.target.value)); persistSettings(); }}
                     style={{
                       accentColor: "var(--ds-accent)",
                       width: 120,
@@ -456,7 +509,7 @@ export default function SettingsPage() {
               >
                 <Toggle
                   checked={alwaysExplain}
-                  onChange={() => toggle("alwaysExplain")}
+                  onChange={() => { toggle("alwaysExplain"); persistSettings(); }}
                 />
               </SettingRow>
             </Card>
@@ -474,7 +527,7 @@ export default function SettingsPage() {
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
                   <select
                     value={sessionTimeout}
-                    onChange={(e) => setSessionTimeout(Number(e.target.value))}
+                    onChange={(e) => { setSessionTimeout(Number(e.target.value)); persistSettings(); }}
                     style={{
                       padding: "var(--ds-sp-1) var(--ds-sp-3)",
                       border: "1px solid var(--ds-border)",
@@ -526,7 +579,7 @@ export default function SettingsPage() {
                   >
                     sk-••••••••••••••••••••3f9a
                   </code>
-                  <Button variant="ghost" size="sm">복사</Button>
+                  <Button variant="ghost" size="sm" onClick={() => navigator.clipboard.writeText("sk-3f9a").then(() => alert("API 키가 클립보드에 복사되었습니다."))}>복사</Button>
                 </div>
               </SettingRow>
             </Card>
@@ -543,7 +596,7 @@ export default function SettingsPage() {
               >
                 <Toggle
                   checked={notifySuccess}
-                  onChange={() => toggle("notifySuccess")}
+                  onChange={() => { toggle("notifySuccess"); persistSettings(); }}
                 />
               </SettingRow>
 
@@ -553,7 +606,7 @@ export default function SettingsPage() {
               >
                 <Toggle
                   checked={notifyError}
-                  onChange={() => toggle("notifyError")}
+                  onChange={() => { toggle("notifyError"); persistSettings(); }}
                 />
               </SettingRow>
 
@@ -564,7 +617,7 @@ export default function SettingsPage() {
               >
                 <Toggle
                   checked={notifyLong}
-                  onChange={() => toggle("notifyLong")}
+                  onChange={() => { toggle("notifyLong"); persistSettings(); }}
                 />
               </SettingRow>
             </Card>

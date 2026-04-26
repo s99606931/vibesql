@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Button } from "@/components/ui-vs/Button";
@@ -26,32 +28,6 @@ interface HistoryItem {
   connectionName?: string;
 }
 
-const mockHistory: HistoryItem[] = [
-  {
-    id: "1",
-    createdAt: new Date().toISOString(),
-    nlQuery: "결제 사용자 100명을 보여줘",
-    sql: "SELECT...",
-    connectionName: "prod_analytics",
-    status: "SUCCESS",
-    rowCount: 1000,
-    durationMs: 800,
-    starred: true,
-    dialect: "postgresql",
-  },
-  {
-    id: "2",
-    createdAt: new Date().toISOString(),
-    nlQuery: "결제 실패 — checkout",
-    sql: "SELECT...",
-    connectionName: "prod_analytics",
-    status: "ERROR",
-    rowCount: 0,
-    durationMs: null,
-    starred: false,
-    dialect: "postgresql",
-  },
-];
 
 function groupByDate(items: HistoryItem[]): Record<string, HistoryItem[]> {
   const today = new Date().toDateString();
@@ -85,15 +61,36 @@ function formatDuration(ms?: number | null): string {
 export default function HistoryPage() {
   const [activeFilter, setActiveFilter] = useState<HistoryFilter>("전체");
   const [search, setSearch] = useState("");
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
+
+  const starMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/history/${id}/star`, { method: "POST" });
+      if (!res.ok) throw new Error("즐겨찾기 처리에 실패했습니다.");
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["history"] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/history/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("삭제 실패");
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["history"] }),
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["history"],
     queryFn: async () => {
       const res = await fetch("/api/history");
-      const json = await res.json();
-      return json.data as HistoryItem[];
+      const json = await res.json() as { data: HistoryItem[]; error?: string };
+      if (!res.ok) throw new Error(json.error ?? "히스토리를 불러오지 못했습니다.");
+      return json.data;
     },
-    initialData: mockHistory,
+    initialData: [],
     staleTime: 10_000,
   });
 
@@ -285,9 +282,40 @@ export default function HistoryPage() {
                       }}
                       className="group-hover:opacity-100"
                     >
-                      <Button variant="ghost" size="sm" icon={<RotateCcw size={12} />}>재실행</Button>
-                      <Button variant="ghost" size="sm" icon={<Star size={12} />}>저장</Button>
-                      <Button variant="ghost" size="sm" icon={<MoreHorizontal size={12} />} aria-label="더보기">···</Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={<RotateCcw size={12} />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (item.nlQuery) setNlQuery(item.nlQuery);
+                          setSql(item.sql);
+                          setStatus("ready");
+                          router.push("/workspace");
+                        }}
+                      >재실행</Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={
+                          <Star
+                            size={12}
+                            style={item.starred ? { fill: "var(--ds-warn)", color: "var(--ds-warn)" } : undefined}
+                          />
+                        }
+                        onClick={(e) => { e.stopPropagation(); starMutation.mutate(item.id); }}
+                      >저장</Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={<MoreHorizontal size={12} />}
+                        aria-label="삭제"
+                        loading={deleteMutation.isPending && deleteMutation.variables === item.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm("이 히스토리 항목을 삭제할까요?")) deleteMutation.mutate(item.id);
+                        }}
+                      >삭제</Button>
                     </div>
                   </div>
                 ))}

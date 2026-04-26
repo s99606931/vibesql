@@ -1,11 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
 import { Card, CardHead } from "@/components/ui-vs/Card";
 import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSettingsStore } from "@/store/useSettingsStore";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import {
   Database,
   BookMarked,
@@ -47,6 +50,13 @@ async function fetchSaved(): Promise<unknown[]> {
   return json.data ?? [];
 }
 
+async function fetchDashboards(): Promise<unknown[]> {
+  const res = await fetch("/api/dashboards");
+  if (!res.ok) return [];
+  const json = (await res.json()) as { data?: unknown[] };
+  return Array.isArray(json.data) ? json.data : [];
+}
+
 function formatDuration(ms?: number): string {
   if (!ms) return "—";
   if (ms < 1000) return `${ms}ms`;
@@ -67,22 +77,31 @@ function formatTime(iso: string): string {
 
 export default function ProfilePage() {
   const dialect = useSettingsStore((s) => s.dialect);
+  const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
+  const router = useRouter();
 
-  const { data: history = [] } = useQuery({
+  const { data: history = [], isLoading: historyLoading } = useQuery({
     queryKey: ["history"],
     queryFn: fetchHistory,
     staleTime: 10_000,
   });
-  const { data: connections = [] } = useQuery({
+  const { data: connections = [], isLoading: connectionsLoading } = useQuery({
     queryKey: ["connections"],
     queryFn: fetchConnections,
     staleTime: 30_000,
   });
-  const { data: saved = [] } = useQuery({
+  const { data: saved = [], isLoading: savedLoading } = useQuery({
     queryKey: ["saved"],
     queryFn: fetchSaved,
     staleTime: 30_000,
   });
+  const { data: dashboards = [], isLoading: dashboardsLoading } = useQuery({
+    queryKey: ["dashboards"],
+    queryFn: fetchDashboards,
+    staleTime: 30_000,
+  });
+
+  const isLoading = historyLoading || connectionsLoading || savedLoading || dashboardsLoading;
 
   const thisMonth = history.filter((h) => {
     const d = new Date(h.createdAt);
@@ -94,10 +113,42 @@ export default function ProfilePage() {
     { label: "이번 달 쿼리", value: thisMonth.length.toLocaleString(), icon: <Activity size={16} /> },
     { label: "연결된 DB", value: String(connections.length), icon: <Database size={16} /> },
     { label: "저장된 쿼리", value: String(saved.length), icon: <BookMarked size={16} /> },
-    { label: "대시보드", value: "0", icon: <LayoutDashboard size={16} /> },
+    { label: "대시보드", value: String(dashboards.length), icon: <LayoutDashboard size={16} /> },
   ];
 
   const recentItems = history.slice(0, 5);
+
+  function handleRerun(item: HistoryItem) {
+    if (item.nlQuery) setNlQuery(item.nlQuery);
+    setSql(item.sql);
+    setStatus("ready");
+    router.push("/workspace");
+  }
+
+  async function handleExport() {
+    const [savedRes, historyRes] = await Promise.all([
+      fetch("/api/saved").then((r) => r.json()) as Promise<{ data?: unknown }>,
+      fetch("/api/history").then((r) => r.json()) as Promise<{ data?: unknown }>,
+    ]);
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      savedQueries: savedRes.data ?? [],
+      history: historyRes.data ?? [],
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `vibesql-export-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleDeleteAccount() {
+    if (confirm("정말 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
+      alert("계정 삭제는 Clerk 관리자 패널에서 처리됩니다. 지원팀에 문의해주세요.");
+    }
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
@@ -146,39 +197,54 @@ export default function ProfilePage() {
                 </div>
                 <Pill variant="accent">일반 사용자</Pill>
               </div>
-              <Button variant="default" size="sm">프로필 편집</Button>
+              <Button variant="default" size="sm" onClick={() => router.push("/settings")}>프로필 편집</Button>
             </div>
           </Card>
 
           {/* Usage stats */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--ds-sp-3)" }}>
-            {STATS.map((stat) => (
-              <Card key={stat.label}>
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>
-                  {stat.icon}
-                  <span style={{ fontSize: "var(--ds-fs-11)" }}>{stat.label}</span>
-                </div>
-                <div
-                  className="ds-num"
-                  style={{ fontSize: "var(--ds-fs-22)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}
-                >
-                  {stat.value}
-                </div>
-              </Card>
-            ))}
+            {isLoading
+              ? [0, 1, 2, 3].map((i) => (
+                  <Card key={i}>
+                    <Skeleton className="h-4 w-3/4 rounded" style={{ marginBottom: "var(--ds-sp-2)" }} />
+                    <Skeleton className="h-7 w-1/2 rounded" />
+                  </Card>
+                ))
+              : STATS.map((stat) => (
+                  <Card key={stat.label}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>
+                      {stat.icon}
+                      <span style={{ fontSize: "var(--ds-fs-11)" }}>{stat.label}</span>
+                    </div>
+                    <div
+                      className="ds-num"
+                      style={{ fontSize: "var(--ds-fs-22)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}
+                    >
+                      {stat.value}
+                    </div>
+                  </Card>
+                ))}
           </div>
 
           {/* Recent activity */}
           <Card>
-            <CardHead title="최근 활동" meta={`최근 ${recentItems.length}개 쿼리`} />
+            <CardHead title="최근 활동" meta={isLoading ? "" : `최근 ${recentItems.length}개 쿼리`} />
 
-            {recentItems.length === 0 && (
+            {isLoading && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-2) 0" }}>
+                <Skeleton className="h-12 w-full rounded" />
+                <Skeleton className="h-12 w-full rounded" />
+                <Skeleton className="h-12 w-full rounded" />
+              </div>
+            )}
+
+            {!isLoading && recentItems.length === 0 && (
               <div style={{ padding: "var(--ds-sp-4)", textAlign: "center", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
                 아직 실행한 쿼리가 없습니다.
               </div>
             )}
 
-            {recentItems.map((item, i) => (
+            {!isLoading && recentItems.map((item, i) => (
               <div
                 key={item.id}
                 className="group"
@@ -224,7 +290,14 @@ export default function ProfilePage() {
                   : <Pill variant="danger" dot="err">실패</Pill>
                 }
                 <div style={{ opacity: 0, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }} className="group-hover:opacity-100">
-                  <Button variant="ghost" size="sm" icon={<RotateCcw size={12} />}>재실행</Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={<RotateCcw size={12} />}
+                    onClick={(e) => { e.stopPropagation(); handleRerun(item); }}
+                  >
+                    재실행
+                  </Button>
                 </div>
               </div>
             ))}
@@ -239,14 +312,14 @@ export default function ProfilePage() {
                   <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>비밀번호 변경</div>
                   <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>마지막 변경: 90일 전</div>
                 </div>
-                <Button variant="default" size="sm" icon={<KeyRound size={12} />}>변경하기</Button>
+                <Button variant="default" size="sm" icon={<KeyRound size={12} />} onClick={() => router.push("/settings")}>변경하기</Button>
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--ds-sp-4)", paddingBottom: "var(--ds-sp-3)", borderBottom: "1px solid var(--ds-border)" }}>
                 <div>
                   <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>데이터 내보내기</div>
                   <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>저장된 쿼리, 히스토리, 설정을 JSON으로 다운로드</div>
                 </div>
-                <Button variant="default" size="sm" icon={<Download size={12} />}>내보내기</Button>
+                <Button variant="default" size="sm" icon={<Download size={12} />} onClick={handleExport}>내보내기</Button>
               </div>
               <div style={{ border: "1px solid var(--ds-danger)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-4)" }}>
                 <div style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-danger)", marginBottom: "var(--ds-sp-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
@@ -257,7 +330,7 @@ export default function ProfilePage() {
                     <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>계정 삭제</div>
                     <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>계정과 모든 데이터가 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</div>
                   </div>
-                  <Button variant="danger" size="sm" icon={<Trash2 size={12} />}>계정 삭제</Button>
+                  <Button variant="danger" size="sm" icon={<Trash2 size={12} />} onClick={handleDeleteAccount}>계정 삭제</Button>
                 </div>
               </div>
             </div>

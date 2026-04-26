@@ -29,44 +29,6 @@ interface FolderGroup {
   queries: SavedQuery[];
 }
 
-const mockSaved: SavedQuery[] = [
-  {
-    id: "1",
-    name: "결제 사용자 Top 100",
-    description: "결제 사용자 100명을 최근 구매 순으로 보여줘",
-    folder: "기본",
-    tags: ["결제", "사용자"],
-    nlQuery: "결제 사용자 100명을 최근 구매 순으로 보여줘",
-    sql: "SELECT * FROM customers ORDER BY last_purchase DESC LIMIT 100",
-    dialect: "postgresql",
-    connectionId: "prod_analytics",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    name: "국가별 신규 가입자 추이",
-    description: "국가별로 신규 가입자 수 추이를 월별로 보여줘",
-    folder: "기본",
-    tags: ["가입자", "추이"],
-    nlQuery: "국가별로 신규 가입자 수 추이를 월별로 보여줘",
-    sql: "SELECT country, DATE_TRUNC('month', created_at), COUNT(*) FROM customers GROUP BY 1,2",
-    dialect: "postgresql",
-    connectionId: "prod_analytics",
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: "3",
-    name: "주간 매출 집계",
-    description: "이번 주 일별 매출 합계와 전주 대비 증감률",
-    folder: "매출 분석",
-    tags: ["매출", "주간"],
-    nlQuery: "이번 주 일별 매출 합계와 전주 대비 증감률",
-    sql: "SELECT DATE(created_at), SUM(amount) FROM orders GROUP BY 1",
-    dialect: "postgresql",
-    connectionId: "local_dev",
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
 
 function groupByFolder(items: SavedQuery[]): FolderGroup[] {
   const map: Record<string, SavedQuery[]> = {};
@@ -97,11 +59,24 @@ export default function SavedPage() {
     queryKey: ["saved"],
     queryFn: async () => {
       const res = await fetch("/api/saved");
-      const json = await res.json();
-      return json.data as SavedQuery[];
+      if (!res.ok) throw new Error(`saved fetch failed: ${res.status}`);
+      const json = (await res.json()) as { data?: SavedQuery[] };
+      return Array.isArray(json.data) ? json.data : [];
     },
-    initialData: mockSaved,
+    initialData: [],
     staleTime: 10_000,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/saved/${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "삭제 실패");
+      return json;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved"] });
+    },
   });
 
   const saveMutation = useMutation({
@@ -400,13 +375,52 @@ export default function SavedPage() {
                         >
                           워크스페이스에서 열기
                         </Button>
-                        <Button variant="ghost" size="sm" icon={<Play size={12} />}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={<Play size={12} />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSql(query.sql);
+                            setStatus("running");
+                            router.push("/workspace");
+                          }}
+                        >
                           실행
                         </Button>
-                        <Button variant="ghost" size="sm" icon={<Pencil size={12} />}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={<Pencil size={12} />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newName = prompt("쿼리 이름을 변경하세요:", query.name);
+                            if (newName && newName !== query.name) {
+                              fetch(`/api/saved/${query.id}`, {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ name: newName }),
+                              }).then(async (r) => {
+                                if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error ?? "편집 실패");
+                                queryClient.invalidateQueries({ queryKey: ["saved"] });
+                              }).catch((e) => console.warn("[saved] rename failed:", e));
+                            }
+                          }}
+                        >
                           편집
                         </Button>
-                        <Button variant="danger" size="sm" icon={<Trash2 size={12} />}>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          icon={<Trash2 size={12} />}
+                          loading={deleteMutation.isPending}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm(`"${query.name}" 쿼리를 삭제할까요?`)) {
+                              deleteMutation.mutate(query.id);
+                            }
+                          }}
+                        >
                           삭제
                         </Button>
                       </div>
