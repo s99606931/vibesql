@@ -16,13 +16,16 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  connections  Connection[]
-  queries      SavedQuery[]
-  historyItems QueryHistory[]
-  dashboards   Dashboard[]
-  sharedLinks  SharedLink[]
-  settings     UserSettings?
-  aiProviders  AiProvider[]
+  connections      Connection[]
+  queries          SavedQuery[]
+  historyItems     QueryHistory[]
+  dashboards       Dashboard[]
+  sharedLinks      SharedLink[]
+  settings         UserSettings?
+  aiProviders      AiProvider[]
+  aiContextRules   AiContextRule[]
+  scheduledQueries ScheduledQuery[]
+  queryTemplates   QueryTemplate[]
 
   @@map("users")
 }
@@ -139,8 +142,24 @@ model SavedQuery {
 
   userId       String  @map("user_id")
   user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  versions     QueryVersion[]
 
   @@map("saved_queries")
+}
+
+model QueryVersion {
+  id        String   @id @default(cuid())
+  queryId   String   @map("query_id")
+  versionNo Int      @map("version_no")
+  sql       String
+  nlQuery   String   @map("nl_query")
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  query     SavedQuery @relation(fields: [queryId], references: [id], onDelete: Cascade)
+
+  @@index([queryId])
+  @@map("query_versions")
 }
 
 model QueryHistory {
@@ -259,4 +278,75 @@ model AuditLog {
   createdAt   DateTime @default(now()) @map("created_at")
 
   @@map("audit_logs")
+}
+
+model AiContextRule {
+  id          String   @id @default(cuid())
+  ruleType    String   @map("rule_type")
+  key         String
+  value       String
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  priority    Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ai_context_rules")
+}
+
+model ScheduledQuery {
+  id            String    @id @default(cuid())
+  name          String
+  savedQueryId  String?   @map("saved_query_id")
+  sql           String
+  dialect       DbDialect
+  cronExpr      String    @map("cron_expr")
+  isActive      Boolean   @default(true) @map("is_active")
+  lastRunAt     DateTime? @map("last_run_at")
+  lastRunStatus String?   @map("last_run_status")
+  nextRunAt     DateTime? @map("next_run_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  userId        String    @map("user_id")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  runs          ScheduleRun[]
+
+  @@map("scheduled_queries")
+}
+
+model ScheduleRun {
+  id          String    @id @default(cuid())
+  scheduleId  String    @map("schedule_id")
+  status      String
+  rowCount    Int?      @map("row_count")
+  durationMs  Int?      @map("duration_ms")
+  errorMsg    String?   @map("error_msg")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  schedule    ScheduledQuery @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@map("schedule_runs")
+}
+
+model QueryTemplate {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  name        String
+  description String?
+  category    String
+  nlQuery     String   @map("nl_query")
+  sql         String
+  dialect     String
+  tags        Json     @default("[]")
+  usageCount  Int      @default(0) @map("usage_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("query_templates")
 }
