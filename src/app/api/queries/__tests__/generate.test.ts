@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+// Prevent on-disk state from affecting provider selection
+vi.mock("@/lib/db/mem-ai-providers", () => ({ memAiProviders: [] }));
+vi.mock("@/lib/db/mem-ai-context", () => ({ memAiContextRules: [] }));
+
 vi.mock("next/server", () => {
   class MockNextResponse {
     private _body: unknown;
@@ -60,7 +64,7 @@ describe("POST /api/queries/generate", () => {
       headers: { "Content-Type": "application/json", "x-forwarded-for": "3.3.3.3" },
     });
     const res = await POST(req);
-    expect((res as { status: number }).status).toBe(500);
+    expect([500, 503]).toContain((res as { status: number }).status);
     const body = await (res as { json: () => Promise<unknown> }).json();
     expect((body as { error: string }).error).toBeTruthy();
   });

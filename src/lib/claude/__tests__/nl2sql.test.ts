@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Nl2SqlOptions } from "../nl2sql";
 
+// Ensure no active DB providers bleed in from on-disk state
+vi.mock("@/lib/db/mem-ai-providers", () => ({ memAiProviders: [] }));
+
 // Mock fetch globally for LM Studio tests
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);

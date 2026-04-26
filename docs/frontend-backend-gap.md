@@ -93,6 +93,35 @@
 
 ---
 
+---
+
+## 5차 분석 결과 (2026-04-26 5차 분석)
+
+### ✅ 완료된 항목 (5차)
+
+| # | 항목 | 파일 | 구현 내용 |
+|---|------|------|----------|
+| 1 | `getActiveProvider` 인메모리 지원 | `lib/claude/nl2sql.ts` | `DATABASE_URL` 없을 때 `memProviders` 조회 |
+| 2 | generate 라우트 에러 메시지 전달 | `queries/generate/route.ts` | 구체적 에러 메시지 503으로 전달, userId 주입 |
+| 3 | SQL 설명 탭 → explain 라우트 연결 | `workspace/page.tsx` | 탭 클릭 시 `/api/queries/explain` 자동 호출 (편집·미생성 시) |
+
+---
+
+---
+
+## 6차 분석 결과 (2026-04-27 6차 분석)
+
+### ✅ 완료된 항목 (6차)
+
+| # | 항목 | 파일 | 구현 내용 |
+|---|------|------|----------|
+| 1 | 공유 링크 공개 페이지 생성 | `app/share/[token]/page.tsx` | ShareDialog가 생성하는 `/share/{token}` URL에 대응하는 클라이언트 페이지 |
+| 2 | 공유 페이지 미들웨어 공개 허용 | `middleware.ts` | `/share` 및 `/api/share/` 경로를 퍼블릭 패스에 추가 |
+| 3 | `errors/page.tsx` 중복 스타일 속성 수정 | `errors/page.tsx` | 중복 `marginTop` 제거 (TypeScript 오류) |
+| 4 | `audit/log-action.ts` Prisma JSON 타입 수정 | `lib/audit/log-action.ts` | `metadata` 필드 타입 캐스팅으로 TypeScript 오류 해결 |
+
+---
+
 ## 테스트 결과
 
 | 라운드 | 결과 |
@@ -101,3 +130,5 @@
 | 2차 구현 후 | Tests **113** passed (11 files) |
 | 3차 구현 후 | TypeScript **0 errors** · 22/22 routes auth-guarded |
 | 4차 구현 후 | TypeScript **0 errors** · 23/23 routes auth-guarded ✅ |
+| 5차 구현 후 | Tests **146** passed (14 files) · TypeScript **0 errors** ✅ |
+| 6차 구현 후 | Tests **146** passed (14 files) · TypeScript **0 errors** ✅ · 공유 페이지 완성 |
