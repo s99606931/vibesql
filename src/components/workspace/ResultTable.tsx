@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo } from "react";
 import { Hash, Calendar, Type, ArrowUp, ArrowDown } from "lucide-react";
 
 type ColType = "number" | "date" | "boolean" | "string" | "null";
@@ -83,6 +83,76 @@ function BoolCell({ value }: { value: unknown }) {
   );
 }
 
+interface ResultRowProps {
+  row: Record<string, unknown>;
+  columns: string[];
+  colTypes: Record<string, ColType>;
+  index: number;
+}
+
+const ResultRow = memo(function ResultRow({ row, columns, colTypes, index }: ResultRowProps) {
+  return (
+    <tr style={{ borderBottom: "1px solid var(--ds-border)" }}>
+      <td
+        style={{
+          width: 36,
+          minWidth: 36,
+          padding: "var(--ds-sp-2) var(--ds-sp-2)",
+          textAlign: "right",
+          fontSize: "var(--ds-fs-11)",
+          color: "var(--ds-text-faint)",
+          fontFamily: "var(--ds-font-mono)",
+          position: "sticky",
+          left: 0,
+          background: "var(--ds-surface)",
+        }}
+      >
+        {index + 1}
+      </td>
+      {columns.map((col) => {
+        const raw = row[col];
+        const type = colTypes[col];
+        if (raw === null || raw === undefined) {
+          return (
+            <td key={col} style={{ padding: "var(--ds-sp-2) var(--ds-sp-3)", fontSize: "var(--ds-fs-13)" }}>
+              <span style={{ fontFamily: "var(--ds-font-mono)", fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", opacity: 0.7 }}>NULL</span>
+            </td>
+          );
+        }
+        if (type === "boolean") {
+          return (
+            <td key={col} style={{ padding: "var(--ds-sp-2) var(--ds-sp-3)", fontSize: "var(--ds-fs-13)" }}>
+              <BoolCell value={raw} />
+            </td>
+          );
+        }
+        const { text } = formatValue(raw, type);
+        const isTruncated = text.length > 80;
+        const display = isTruncated ? text.slice(0, 80) + "…" : text;
+        return (
+          <td
+            key={col}
+            title={isTruncated ? text : undefined}
+            style={{
+              padding: "var(--ds-sp-2) var(--ds-sp-3)",
+              fontSize: "var(--ds-fs-13)",
+              color: "var(--ds-text)",
+              textAlign: type === "number" ? "right" : "left",
+              fontFamily: type === "number" || type === "date" ? "var(--ds-font-mono)" : "var(--ds-font-sans)",
+              whiteSpace: "nowrap" as const,
+              maxWidth: 320,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {display}
+          </td>
+        );
+      })}
+    </tr>
+  );
+});
+
 interface ResultTableProps {
   rows: Record<string, unknown>[];
   columns: string[];
@@ -107,19 +177,20 @@ export function ResultTable({ rows, columns }: ResultTableProps) {
     }
   }
 
-  const sorted = sortCol
-    ? [...rows].sort((a, b) => {
-        const av = a[sortCol];
-        const bv = b[sortCol];
-        if (av === null || av === undefined) return 1;
-        if (bv === null || bv === undefined) return -1;
-        const cmp =
-          typeof av === "number" && typeof bv === "number"
-            ? av - bv
-            : String(av).localeCompare(String(bv));
-        return sortDir === "asc" ? cmp : -cmp;
-      })
-    : rows;
+  const sorted = useMemo(() => {
+    if (!sortCol) return rows;
+    return [...rows].sort((a, b) => {
+      const av = a[sortCol];
+      const bv = b[sortCol];
+      if (av === null || av === undefined) return 1;
+      if (bv === null || bv === undefined) return -1;
+      const cmp =
+        typeof av === "number" && typeof bv === "number"
+          ? av - bv
+          : String(av).localeCompare(String(bv));
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [rows, sortCol, sortDir]);
 
   return (
     <div style={{ overflow: "auto" }}>
@@ -187,93 +258,13 @@ export function ResultTable({ rows, columns }: ResultTableProps) {
         </thead>
         <tbody>
           {sorted.map((row, i) => (
-            <tr key={`row-${i}-${String(row[columns[0]] ?? i)}`} style={{ borderBottom: "1px solid var(--ds-border)" }}>
-              {/* Row number */}
-              <td
-                style={{
-                  width: 36,
-                  minWidth: 36,
-                  padding: "var(--ds-sp-2) var(--ds-sp-2)",
-                  textAlign: "right",
-                  fontSize: "var(--ds-fs-11)",
-                  color: "var(--ds-text-faint)",
-                  fontFamily: "var(--ds-font-mono)",
-                  position: "sticky",
-                  left: 0,
-                  background: "var(--ds-surface)",
-                }}
-              >
-                {i + 1}
-              </td>
-              {columns.map((col) => {
-                const raw = row[col];
-                const type = colTypes[col];
-
-                if (raw === null || raw === undefined) {
-                  return (
-                    <td
-                      key={col}
-                      style={{
-                        padding: "var(--ds-sp-2) var(--ds-sp-3)",
-                        fontSize: "var(--ds-fs-13)",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontFamily: "var(--ds-font-mono)",
-                          fontSize: "var(--ds-fs-11)",
-                          color: "var(--ds-text-faint)",
-                          opacity: 0.7,
-                        }}
-                      >
-                        NULL
-                      </span>
-                    </td>
-                  );
-                }
-
-                if (type === "boolean") {
-                  return (
-                    <td
-                      key={col}
-                      style={{
-                        padding: "var(--ds-sp-2) var(--ds-sp-3)",
-                        fontSize: "var(--ds-fs-13)",
-                      }}
-                    >
-                      <BoolCell value={raw} />
-                    </td>
-                  );
-                }
-
-                const { text } = formatValue(raw, type);
-                const isTruncated = text.length > 80;
-                const display = isTruncated ? text.slice(0, 80) + "…" : text;
-
-                return (
-                  <td
-                    key={col}
-                    title={isTruncated ? text : undefined}
-                    style={{
-                      padding: "var(--ds-sp-2) var(--ds-sp-3)",
-                      fontSize: "var(--ds-fs-13)",
-                      color: "var(--ds-text)",
-                      textAlign: type === "number" ? "right" : "left",
-                      fontFamily:
-                        type === "number" || type === "date"
-                          ? "var(--ds-font-mono)"
-                          : "var(--ds-font-sans)",
-                      whiteSpace: "nowrap" as const,
-                      maxWidth: 320,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {display}
-                  </td>
-                );
-              })}
-            </tr>
+            <ResultRow
+              key={`row-${i}-${String(row[columns[0]] ?? i)}`}
+              row={row}
+              columns={columns}
+              colTypes={colTypes}
+              index={i}
+            />
           ))}
         </tbody>
       </table>

@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { X, Send, Bot, User, Loader2, Trash2 } from "lucide-react";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Message {
   id: string;
@@ -13,7 +15,19 @@ interface Message {
 interface AiChatPanelProps {
   open: boolean;
   onClose: () => void;
+  width?: number;
+  onWidthChange?: (w: number) => void;
+  minWidth?: number;
+  maxWidth?: number;
 }
+
+const MARKDOWN_COMPONENTS: Components = {
+  a: ({ href, children }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer">
+      {children}
+    </a>
+  ),
+};
 
 function useAutoScroll(dep: unknown) {
   const ref = useRef<HTMLDivElement>(null);
@@ -25,17 +39,56 @@ function useAutoScroll(dep: unknown) {
   return ref;
 }
 
-export function AiChatPanel({ open, onClose }: AiChatPanelProps) {
+export function AiChatPanel({
+  open,
+  onClose,
+  width = 380,
+  onWidthChange,
+  minWidth = 280,
+  maxWidth = 720,
+}: AiChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollRef = useAutoScroll(messages);
+
+  // Abort in-flight request when panel closes or component unmounts
+  useEffect(() => {
+    if (!open) abortRef.current?.abort();
+    return () => {
+      abortRef.current?.abort();
+      if (focusTimerRef.current !== null) clearTimeout(focusTimerRef.current);
+    };
+  }, [open]);
+
+  // Drag-to-resize logic
+  const startResize = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    const startX = e.clientX;
+    const startW = width;
+
+    const onMouseMove = (ev: MouseEvent) => {
+      const delta = startX - ev.clientX;
+      const newW = Math.min(maxWidth, Math.max(minWidth, startW + delta));
+      onWidthChange?.(newW);
+    };
+    const onMouseUp = () => {
+      setIsResizing(false);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  }, [width, minWidth, maxWidth, onWidthChange]);
 
   useEffect(() => {
     if (open) {
-      setTimeout(() => inputRef.current?.focus(), 150);
+      focusTimerRef.current = setTimeout(() => inputRef.current?.focus(), 150);
     }
   }, [open]);
 
@@ -87,7 +140,9 @@ export function AiChatPanel({ open, onClose }: AiChatPanelProps) {
         return;
       }
 
-      const reader = res.body!.getReader();
+      if (!res.body) throw new Error("스트림 응답을 받지 못했습니다.");
+
+      const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let accumulated = "";
 
@@ -109,7 +164,14 @@ export function AiChatPanel({ open, onClose }: AiChatPanelProps) {
         )
       );
     } catch (err) {
-      if ((err as Error).name === "AbortError") return;
+      if ((err as Error).name === "AbortError") {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId ? { ...m, streaming: false } : m
+          )
+        );
+        return;
+      }
       setMessages((prev) =>
         prev.map((m) =>
           m.id === assistantId
@@ -120,7 +182,7 @@ export function AiChatPanel({ open, onClose }: AiChatPanelProps) {
     } finally {
       setLoading(false);
       abortRef.current = null;
-      setTimeout(() => inputRef.current?.focus(), 50);
+      focusTimerRef.current = setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [input, loading, messages]);
 
@@ -140,18 +202,7 @@ export function AiChatPanel({ open, onClose }: AiChatPanelProps) {
 
   return (
     <>
-      {/* Backdrop */}
-      {open && (
-        <div
-          onClick={onClose}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 39,
-            background: "transparent",
-          }}
-        />
-      )}
+      {/* No backdrop — main content shifts instead of overlapping */}
 
       {/* Panel */}
       <aside
@@ -160,7 +211,7 @@ export function AiChatPanel({ open, onClose }: AiChatPanelProps) {
           top: 0,
           right: 0,
           bottom: 0,
-          width: 380,
+          width,
           zIndex: 40,
           display: "flex",
           flexDirection: "column",
@@ -168,12 +219,30 @@ export function AiChatPanel({ open, onClose }: AiChatPanelProps) {
           borderLeft: "1px solid var(--ds-border)",
           boxShadow: "-4px 0 24px rgba(0,0,0,0.12)",
           transform: open ? "translateX(0)" : "translateX(100%)",
-          transition: "transform 220ms cubic-bezier(0.4, 0, 0.2, 1)",
+          transition: isResizing ? "none" : "transform 220ms cubic-bezier(0.4, 0, 0.2, 1), width 0ms",
           willChange: "transform",
+          userSelect: isResizing ? "none" : "auto",
         }}
         aria-label="AI 챗봇"
         aria-hidden={!open}
       >
+        {/* Resize handle */}
+        <div
+          onMouseDown={startResize}
+          title="드래그하여 너비 조절"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            bottom: 0,
+            width: 4,
+            cursor: "col-resize",
+            zIndex: 10,
+            background: isResizing ? "var(--ds-accent)" : "transparent",
+            transition: "background 0.15s",
+          }}
+          className="hover:bg-accent-soft"
+        />
         {/* Header */}
         <div
           style={{
@@ -200,6 +269,7 @@ export function AiChatPanel({ open, onClose }: AiChatPanelProps) {
             <button
               onClick={handleClear}
               title="대화 초기화"
+              aria-label="대화 초기화"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -220,6 +290,7 @@ export function AiChatPanel({ open, onClose }: AiChatPanelProps) {
           <button
             onClick={onClose}
             title="닫기 (Esc)"
+            aria-label="닫기"
             style={{
               display: "flex",
               alignItems: "center",
@@ -358,29 +429,40 @@ export function AiChatPanel({ open, onClose }: AiChatPanelProps) {
                   padding: "var(--ds-sp-2) var(--ds-sp-3)",
                   borderRadius: "var(--ds-r-8)",
                   background: msg.role === "user" ? "var(--ds-accent)" : "var(--ds-fill)",
-                  color: msg.role === "user" ? "#fff" : "var(--ds-text)",
+                  color: msg.role === "user" ? "var(--ds-text-on-accent)" : "var(--ds-text)",
                   fontSize: "var(--ds-fs-12)",
                   lineHeight: 1.6,
-                  whiteSpace: "pre-wrap",
                   wordBreak: "break-word",
                   position: "relative",
                 }}
+                className={msg.role === "assistant" ? "ai-bubble" : undefined}
               >
-                {msg.content || (msg.streaming && (
+                {!msg.content && msg.streaming ? (
                   <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />
-                ))}
-                {msg.streaming && msg.content && (
-                  <span
-                    style={{
-                      display: "inline-block",
-                      width: 2,
-                      height: "1em",
-                      background: "currentColor",
-                      marginLeft: 2,
-                      animation: "blink 1s step-end infinite",
-                      verticalAlign: "text-bottom",
-                    }}
-                  />
+                ) : msg.role === "assistant" ? (
+                  <>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={MARKDOWN_COMPONENTS}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                    {msg.streaming && (
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: 2,
+                          height: "1em",
+                          background: "currentColor",
+                          marginLeft: 2,
+                          animation: "blink 1s step-end infinite",
+                          verticalAlign: "text-bottom",
+                        }}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <span style={{ whiteSpace: "pre-wrap" }}>{msg.content}</span>
                 )}
               </div>
             </div>
@@ -415,6 +497,7 @@ export function AiChatPanel({ open, onClose }: AiChatPanelProps) {
               onKeyDown={handleKeyDown}
               placeholder="메시지를 입력하세요... (Enter 전송, Shift+Enter 줄바꿈)"
               rows={1}
+              maxLength={8000}
               style={{
                 flex: 1,
                 border: "none",
@@ -438,6 +521,7 @@ export function AiChatPanel({ open, onClose }: AiChatPanelProps) {
               onClick={() => void send()}
               disabled={!input.trim() || loading}
               title="전송 (Enter)"
+              aria-label="전송"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -448,7 +532,7 @@ export function AiChatPanel({ open, onClose }: AiChatPanelProps) {
                 background: input.trim() && !loading ? "var(--ds-accent)" : "var(--ds-fill)",
                 border: "none",
                 cursor: input.trim() && !loading ? "pointer" : "default",
-                color: input.trim() && !loading ? "#fff" : "var(--ds-text-faint)",
+                color: input.trim() && !loading ? "var(--ds-text-on-accent)" : "var(--ds-text-faint)",
                 flexShrink: 0,
                 transition: "background var(--ds-dur-fast) var(--ds-ease)",
               }}
@@ -478,6 +562,69 @@ export function AiChatPanel({ open, onClose }: AiChatPanelProps) {
           0%, 100% { opacity: 1; }
           50% { opacity: 0; }
         }
+        .ai-bubble p { margin: 0 0 0.5em; }
+        .ai-bubble p:last-child { margin-bottom: 0; }
+        .ai-bubble h1, .ai-bubble h2, .ai-bubble h3 {
+          font-size: var(--ds-fs-13);
+          font-weight: var(--ds-fw-semibold);
+          margin: 0.75em 0 0.25em;
+          color: var(--ds-text);
+        }
+        .ai-bubble h1:first-child, .ai-bubble h2:first-child, .ai-bubble h3:first-child { margin-top: 0; }
+        .ai-bubble ul, .ai-bubble ol {
+          margin: 0.25em 0 0.5em;
+          padding-left: 1.25em;
+        }
+        .ai-bubble li { margin-bottom: 0.15em; }
+        .ai-bubble code {
+          font-family: var(--ds-font-mono);
+          font-size: var(--ds-fs-11);
+          background: var(--ds-surface);
+          border: 1px solid var(--ds-border);
+          border-radius: var(--ds-r-6);
+          padding: 1px 5px;
+        }
+        .ai-bubble pre {
+          background: var(--ds-surface);
+          border: 1px solid var(--ds-border);
+          border-radius: var(--ds-r-8);
+          padding: var(--ds-sp-3);
+          overflow-x: auto;
+          margin: 0.5em 0;
+        }
+        .ai-bubble pre code {
+          background: none;
+          border: none;
+          padding: 0;
+          font-size: var(--ds-fs-11);
+          line-height: 1.6;
+        }
+        .ai-bubble blockquote {
+          border-left: 3px solid var(--ds-accent);
+          margin: 0.5em 0;
+          padding: 0 var(--ds-sp-3);
+          color: var(--ds-text-mute);
+          font-style: italic;
+        }
+        .ai-bubble hr {
+          border: none;
+          border-top: 1px solid var(--ds-border);
+          margin: 0.5em 0;
+        }
+        .ai-bubble table {
+          border-collapse: collapse;
+          width: 100%;
+          font-size: var(--ds-fs-11);
+          margin: 0.5em 0;
+        }
+        .ai-bubble th, .ai-bubble td {
+          border: 1px solid var(--ds-border);
+          padding: 4px 8px;
+          text-align: left;
+        }
+        .ai-bubble th { background: var(--ds-surface); font-weight: var(--ds-fw-semibold); }
+        .ai-bubble strong { font-weight: var(--ds-fw-semibold); color: var(--ds-text); }
+        .ai-bubble a { color: var(--ds-accent); text-decoration: underline; }
       `}</style>
     </>
   );

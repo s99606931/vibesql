@@ -40,13 +40,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        if (!open) onClose();
-      }
-      if (e.key === "Escape" && open) {
-        onClose();
-      }
+      if (e.key === "Escape" && open) onClose();
     };
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);

@@ -39,12 +39,12 @@ function resetToDefaultMocks() {
   mockUsePathname.mockReturnValue("/workspace");
 }
 
-describe("Sidebar — 5-group structure", () => {
+describe("Sidebar — 6-group structure", () => {
   beforeEach(() => {
     resetToDefaultMocks();
   });
 
-  it("renders all 5 group headers", () => {
+  it("renders all 6 group headers", () => {
     render(<Sidebar />);
 
     // Group header buttons contain the label inside a flex span.
@@ -53,7 +53,7 @@ describe("Sidebar — 5-group structure", () => {
     const buttons = screen.getAllByRole("button");
     const buttonTexts = buttons.map((b) => b.textContent ?? "");
 
-    const groupLabels = ["워크스페이스", "인사이트", "지식베이스", "데이터 소스", "계정"];
+    const groupLabels = ["워크스페이스", "인사이트", "지식베이스", "AI 설정", "데이터 소스", "계정"];
     groupLabels.forEach((label) => {
       const found = buttonTexts.some((t) => t.includes(label));
       expect(found, `Expected a button containing "${label}"`).toBe(true);
@@ -64,6 +64,7 @@ describe("Sidebar — 5-group structure", () => {
     render(<Sidebar />);
 
     // Workspace group items
+    expect(screen.getByText("템플릿")).toBeInTheDocument();
     expect(screen.getByText("히스토리")).toBeInTheDocument();
     expect(screen.getByText("저장됨")).toBeInTheDocument();
 
@@ -75,6 +76,10 @@ describe("Sidebar — 5-group structure", () => {
     expect(screen.getByText("스키마")).toBeInTheDocument();
     expect(screen.getByText("용어 사전")).toBeInTheDocument();
 
+    // AI 설정 group items
+    expect(screen.getByText("AI 프로바이더")).toBeInTheDocument();
+    expect(screen.getByText("AI 컨텍스트")).toBeInTheDocument();
+
     // Sources group items
     expect(screen.getByText("연결")).toBeInTheDocument();
     expect(screen.getByText("상태 · 에러")).toBeInTheDocument();
@@ -82,6 +87,7 @@ describe("Sidebar — 5-group structure", () => {
     // Account group items
     expect(screen.getByText("프로필")).toBeInTheDocument();
     expect(screen.getByText("설정")).toBeInTheDocument();
+    expect(screen.getByText("감사 로그")).toBeInTheDocument();
   });
 
   it("clicking a non-active group header toggles it closed", () => {
@@ -137,9 +143,13 @@ describe("Sidebar — 5-group structure", () => {
     expect(screen.getByRole("link", { name: /차트/ })).toHaveAttribute("href", "/charts");
     expect(screen.getByRole("link", { name: /스키마/ })).toHaveAttribute("href", "/schema");
     expect(screen.getByRole("link", { name: /용어 사전/ })).toHaveAttribute("href", "/glossary");
+    expect(screen.getByRole("link", { name: /템플릿/ })).toHaveAttribute("href", "/templates");
+    expect(screen.getByRole("link", { name: /AI 프로바이더/ })).toHaveAttribute("href", "/ai-providers");
+    expect(screen.getByRole("link", { name: /AI 컨텍스트/ })).toHaveAttribute("href", "/ai-context");
     expect(screen.getByRole("link", { name: /연결/ })).toHaveAttribute("href", "/connections");
     expect(screen.getByRole("link", { name: /프로필/ })).toHaveAttribute("href", "/profile");
     expect(screen.getByRole("link", { name: /설정/ })).toHaveAttribute("href", "/settings");
+    expect(screen.getByRole("link", { name: /감사 로그/ })).toHaveAttribute("href", "/audit-logs");
   });
 
   it("re-clicking a collapsed non-active group reopens it", () => {

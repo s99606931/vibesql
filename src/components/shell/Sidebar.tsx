@@ -20,10 +20,16 @@ import {
   AlertTriangle,
   Settings,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Zap,
   Home,
   Bot,
+  Sparkles,
+  CalendarClock,
+  Cpu,
+  FileText,
+  ScrollText,
 } from "lucide-react";
 
 type NavItem = {
@@ -46,8 +52,10 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/home", icon: Home, label: "홈" },
       { href: "/workspace", icon: SquareTerminal, label: "워크스페이스" },
+      { href: "/templates", icon: FileText, label: "템플릿" },
       { href: "/history", icon: History, label: "히스토리" },
       { href: "/saved", icon: Star, label: "저장됨", countKey: "saved" },
+      { href: "/schedules", icon: CalendarClock, label: "스케줄러" },
     ],
   },
   {
@@ -67,6 +75,14 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
+    id: "ai",
+    label: "AI 설정",
+    items: [
+      { href: "/ai-providers", icon: Cpu, label: "AI 프로바이더" },
+      { href: "/ai-context", icon: Sparkles, label: "AI 컨텍스트" },
+    ],
+  },
+  {
     id: "sources",
     label: "데이터 소스",
     items: [
@@ -80,6 +96,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/profile", icon: User, label: "프로필" },
       { href: "/settings", icon: Settings, label: "설정" },
+      { href: "/audit-logs", icon: ScrollText, label: "감사 로그" },
     ],
   },
 ];
@@ -88,9 +105,11 @@ interface SidebarProps {
   onOpenCommandPalette?: () => void;
   onOpenChat?: () => void;
   chatOpen?: boolean;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen }: SidebarProps) {
+export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed = false, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
   const activeConnectionId = useWorkspaceStore((s) => s.activeConnectionId);
 
@@ -99,6 +118,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen }: SidebarP
     workspace: true,
     insights: true,
     knowledge: true,
+    ai: true,
     sources: true,
     account: true,
   });
@@ -130,10 +150,33 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen }: SidebarP
     setOpenGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
   }
 
+  const iconOnlyBtn = (icon: React.ReactNode, onClick?: () => void, title?: string, active?: boolean) => (
+    <button
+      onClick={onClick}
+      title={title}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 32,
+        height: 32,
+        borderRadius: "var(--ds-r-6)",
+        background: active ? "var(--ds-accent-soft)" : "transparent",
+        border: "none",
+        cursor: "pointer",
+        color: active ? "var(--ds-accent)" : "var(--ds-text-faint)",
+        transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
+      }}
+      className={cn(!active && "hover:bg-fill hover:text-text-mute")}
+    >
+      {icon}
+    </button>
+  );
+
   return (
     <aside
       style={{
-        width: "var(--ds-sidebar-w)",
+        width: collapsed ? 48 : "var(--ds-sidebar-w)",
         background: "var(--ds-surface)",
         borderRight: "1px solid var(--ds-border)",
         display: "flex",
@@ -144,270 +187,270 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen }: SidebarP
         left: 0,
         zIndex: "var(--ds-z-sticky)",
         flexShrink: 0,
+        overflow: "hidden",
+        transition: "width 200ms var(--ds-ease, ease)",
       }}
     >
-      {/* Logo / home link */}
+      {/* Logo / header */}
       <div
         style={{
-          padding: "var(--ds-sp-2) var(--ds-sp-3)",
+          padding: collapsed ? "var(--ds-sp-2)" : "var(--ds-sp-2) var(--ds-sp-3)",
           borderBottom: "1px solid var(--ds-border)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--ds-sp-1)",
         }}
       >
-        <Link href="/" style={{ textDecoration: "none" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "var(--ds-sp-2)",
-              width: "100%",
-              padding: "var(--ds-sp-1) var(--ds-sp-2)",
-              borderRadius: "var(--ds-r-6)",
-              color: "var(--ds-text)",
-              fontSize: "var(--ds-fs-13)",
-              fontWeight: "var(--ds-fw-medium)",
-              cursor: "pointer",
-            }}
-            className="hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
-          >
-            <Zap size={14} style={{ color: "var(--ds-accent)" }} />
-            <span style={{ flex: 1 }}>vibeSQL</span>
-            <ChevronDown size={12} style={{ color: "var(--ds-text-faint)" }} />
+        {collapsed ? (
+          /* collapsed: just logo icon + toggle */
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ds-sp-1)" }}>
+            <Link href="/" style={{ textDecoration: "none" }} title="vibeSQL 홈">
+              <div
+                style={{
+                  width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
+                  borderRadius: "var(--ds-r-6)", cursor: "pointer",
+                }}
+                className="hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
+              >
+                <Zap size={14} style={{ color: "var(--ds-accent)" }} />
+              </div>
+            </Link>
+            <button
+              onClick={onToggleCollapse}
+              title="사이드바 펼치기 (⌘\\)"
+              style={{
+                width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
+                borderRadius: "var(--ds-r-6)", background: "transparent", border: "none", cursor: "pointer",
+                color: "var(--ds-text-faint)",
+              }}
+              className="hover:bg-fill hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
+            >
+              <ChevronRight size={13} />
+            </button>
+            {/* connection dot */}
+            <span
+              style={{
+                width: 6, height: 6, borderRadius: "var(--ds-r-full)",
+                background: activeConnection ? "var(--ds-success)" : "var(--ds-text-faint)",
+                display: "inline-block", margin: "2px auto",
+              }}
+              title={activeConnection ? activeConnection.name : "연결 없음"}
+            />
           </div>
-        </Link>
+        ) : (
+          /* expanded: full logo row */
+          <>
+            <Link href="/" style={{ textDecoration: "none" }}>
+              <div
+                style={{
+                  display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", width: "100%",
+                  padding: "var(--ds-sp-1) var(--ds-sp-2)", borderRadius: "var(--ds-r-6)",
+                  color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-medium)", cursor: "pointer",
+                }}
+                className="hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
+              >
+                <Zap size={14} style={{ color: "var(--ds-accent)" }} />
+                <span style={{ flex: 1 }}>vibeSQL</span>
+                <button
+                  onClick={(e) => { e.preventDefault(); onToggleCollapse?.(); }}
+                  title="사이드바 접기 (⌘\\)"
+                  style={{
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    width: 20, height: 20, borderRadius: "var(--ds-r-6)",
+                    background: "transparent", border: "none", cursor: "pointer",
+                    color: "var(--ds-text-faint)", padding: 0,
+                  }}
+                  className="hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
+                >
+                  <ChevronLeft size={12} />
+                </button>
+              </div>
+            </Link>
 
-        {/* Active connection chip */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--ds-sp-1)",
-            padding: "var(--ds-sp-1) var(--ds-sp-2)",
-            marginTop: "var(--ds-sp-1)",
-          }}
-        >
-          <span
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: "var(--ds-r-full)",
-              background: activeConnection ? "var(--ds-success)" : "var(--ds-text-faint)",
-              display: "inline-block",
-              flexShrink: 0,
-            }}
-          />
-          <span
-            style={{
-              fontSize: "var(--ds-fs-11)",
-              color: "var(--ds-text-mute)",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {activeConnection ? activeConnection.name : "연결 없음"}
-          </span>
-        </div>
+            {/* Active connection chip */}
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-1)", padding: "var(--ds-sp-1) var(--ds-sp-2)" }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: "var(--ds-r-full)",
+                background: activeConnection ? "var(--ds-success)" : "var(--ds-text-faint)",
+                display: "inline-block", flexShrink: 0,
+              }} />
+              <span style={{
+                fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {activeConnection ? activeConnection.name : "연결 없음"}
+              </span>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, padding: "var(--ds-sp-2)", overflowY: "auto" }}>
-        {navGroups.map((group) => {
-          const hasActiveItem = isGroupActive(group);
-          const isOpen = hasActiveItem || (openGroups[group.id] ?? true);
+      <nav style={{ flex: 1, padding: "var(--ds-sp-2)", overflowY: "auto", overflowX: "hidden" }}>
+        {collapsed ? (
+          /* Collapsed: icon-only nav */
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+            {navGroups.flatMap((g) => g.items).map((item) => {
+              const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  title={item.label}
+                  style={{
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    width: 32, height: 32, borderRadius: "var(--ds-r-6)",
+                    color: isActive ? "var(--ds-text)" : "var(--ds-text-mute)",
+                    background: isActive ? "var(--ds-fill)" : "transparent",
+                    borderLeft: isActive ? "2px solid var(--ds-accent)" : "2px solid transparent",
+                    textDecoration: "none",
+                    transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
+                  }}
+                  className={cn(!isActive && "hover:bg-fill hover:text-text")}
+                >
+                  <item.icon size={14} />
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          /* Expanded: grouped nav */
+          navGroups.map((group) => {
+            const hasActiveItem = isGroupActive(group);
+            const isOpen = hasActiveItem || (openGroups[group.id] ?? true);
 
-          return (
-            <div key={group.id} style={{ marginBottom: "var(--ds-sp-2)" }}>
-              {/* Group header */}
-              <button
-                onClick={() => toggleGroup(group.id, hasActiveItem)}
-                aria-expanded={isOpen}
-                aria-label={group.label}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--ds-sp-1)",
-                  width: "100%",
-                  padding: "2px var(--ds-sp-2)",
-                  background: "transparent",
-                  border: "none",
-                  cursor: hasActiveItem ? "default" : "pointer",
-                  color: "var(--ds-text-faint)",
-                  fontSize: "var(--ds-fs-10)",
-                  fontWeight: "var(--ds-fw-semibold)",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  borderRadius: "var(--ds-r-6)",
-                  userSelect: "none",
-                  marginBottom: 2,
-                }}
-                className={cn(
-                  !hasActiveItem && "hover:text-mute transition-colors duration-[var(--ds-dur-fast)]"
+            return (
+              <div key={group.id} style={{ marginBottom: "var(--ds-sp-2)" }}>
+                <button
+                  onClick={() => toggleGroup(group.id, hasActiveItem)}
+                  aria-expanded={isOpen}
+                  aria-label={group.label}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "var(--ds-sp-1)", width: "100%",
+                    padding: "2px var(--ds-sp-2)", background: "transparent", border: "none",
+                    cursor: hasActiveItem ? "default" : "pointer", color: "var(--ds-text-faint)",
+                    fontSize: "var(--ds-fs-10)", fontWeight: "var(--ds-fw-semibold)",
+                    letterSpacing: "0.06em", textTransform: "uppercase",
+                    borderRadius: "var(--ds-r-6)", userSelect: "none", marginBottom: 2,
+                  }}
+                  className={cn(!hasActiveItem && "hover:text-mute transition-colors duration-[var(--ds-dur-fast)]")}
+                >
+                  <span style={{ flex: 1, textAlign: "left" }}>{group.label}</span>
+                  {isOpen ? <ChevronDown size={9} /> : <ChevronRight size={9} />}
+                </button>
+
+                {isOpen && (
+                  <div>
+                    {group.items.map((item) => {
+                      const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+                      const count = item.countKey === "saved" ? savedCount : undefined;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          style={{
+                            display: "flex", alignItems: "center", gap: "var(--ds-sp-2)",
+                            padding: "var(--ds-sp-1) var(--ds-sp-3)", borderRadius: "var(--ds-r-6)",
+                            fontSize: "var(--ds-fs-12)",
+                            color: isActive ? "var(--ds-text)" : "var(--ds-text-mute)",
+                            background: isActive ? "var(--ds-fill)" : "transparent",
+                            borderLeft: isActive ? "2px solid var(--ds-accent)" : "2px solid transparent",
+                            textDecoration: "none", marginBottom: 1,
+                            transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
+                          }}
+                          className={cn("group", !isActive && "hover:bg-fill hover:text-text")}
+                        >
+                          <item.icon size={14} style={{ flexShrink: 0 }} />
+                          <span style={{ flex: 1 }}>{item.label}</span>
+                          {count != null && count > 0 && (
+                            <span style={{
+                              fontSize: "var(--ds-fs-9)", fontFamily: "var(--ds-font-mono)",
+                              color: "var(--ds-text-faint)", background: "var(--ds-fill)",
+                              borderRadius: "var(--ds-r-full)", padding: "1px 5px",
+                            }}>
+                              {count}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
                 )}
-              >
-                <span style={{ flex: 1, textAlign: "left" }}>{group.label}</span>
-                {isOpen
-                  ? <ChevronDown size={9} />
-                  : <ChevronRight size={9} />
-                }
-              </button>
-
-              {/* Group items */}
-              {isOpen && (
-                <div>
-                  {group.items.map((item) => {
-                    const isActive =
-                      pathname === item.href ||
-                      (item.href !== "/" && pathname.startsWith(item.href));
-                    const count = item.countKey === "saved" ? savedCount : undefined;
-
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "var(--ds-sp-2)",
-                          padding: "var(--ds-sp-1) var(--ds-sp-3)",
-                          borderRadius: "var(--ds-r-6)",
-                          fontSize: "var(--ds-fs-12)",
-                          color: isActive ? "var(--ds-text)" : "var(--ds-text-mute)",
-                          background: isActive ? "var(--ds-fill)" : "transparent",
-                          borderLeft: isActive
-                            ? "2px solid var(--ds-accent)"
-                            : "2px solid transparent",
-                          textDecoration: "none",
-                          marginBottom: 1,
-                          transition: `background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)`,
-                        }}
-                        className={cn("group", !isActive && "hover:bg-fill hover:text-text")}
-                      >
-                        <item.icon size={14} style={{ flexShrink: 0 }} />
-                        <span style={{ flex: 1 }}>{item.label}</span>
-                        {count != null && count > 0 && (
-                          <span
-                            style={{
-                              fontSize: "var(--ds-fs-9)",
-                              fontFamily: "var(--ds-font-mono)",
-                              color: "var(--ds-text-faint)",
-                              background: "var(--ds-fill)",
-                              borderRadius: "var(--ds-r-full)",
-                              padding: "1px 5px",
-                            }}
-                          >
-                            {count}
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+              </div>
+            );
+          })
+        )}
       </nav>
 
-      {/* User card */}
+      {/* Bottom: user card + action buttons */}
       <div
         style={{
           borderTop: "1px solid var(--ds-border)",
-          padding: "var(--ds-sp-2) var(--ds-sp-3)",
+          padding: collapsed ? "var(--ds-sp-2)" : "var(--ds-sp-2) var(--ds-sp-3)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: collapsed ? "center" : "stretch",
+          gap: 2,
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--ds-sp-2)",
-            padding: "var(--ds-sp-1) var(--ds-sp-2)",
-          }}
-        >
-          <div
-            style={{
-              width: 24,
-              height: 24,
-              borderRadius: "var(--ds-r-full)",
-              background: "var(--ds-fill-strong)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "var(--ds-fs-10)",
-              fontWeight: "var(--ds-fw-semibold)",
-              color: "var(--ds-text-mute)",
-              flexShrink: 0,
-            }}
-          >
-            U
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: "var(--ds-fs-12)",
-                fontWeight: "var(--ds-fw-medium)",
-                color: "var(--ds-text)",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              사용자
+        {collapsed ? (
+          /* collapsed footer: icon buttons only */
+          <>
+            {iconOnlyBtn(<User size={13} />, undefined, "사용자")}
+            {iconOnlyBtn(<Bot size={13} />, onOpenChat, "AI 어시스턴트 (⌘I)", chatOpen)}
+          </>
+        ) : (
+          /* expanded footer */
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-1) var(--ds-sp-2)" }}>
+              <div style={{
+                width: 24, height: 24, borderRadius: "var(--ds-r-full)",
+                background: "var(--ds-fill-strong)", display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "var(--ds-fs-10)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", flexShrink: 0,
+              }}>
+                U
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text)",
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                }}>
+                  사용자
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <button
-          onClick={onOpenCommandPalette}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--ds-sp-2)",
-            width: "100%",
-            padding: "var(--ds-sp-1) var(--ds-sp-2)",
-            borderRadius: "var(--ds-r-6)",
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            color: "var(--ds-text-faint)",
-            fontSize: "var(--ds-fs-11)",
-            fontFamily: "var(--ds-font-mono)",
-            marginTop: "var(--ds-sp-1)",
-          }}
-          className="hover:bg-fill hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
-        >
-          ⌘K 명령 팔레트
-        </button>
-        <button
-          onClick={onOpenChat}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--ds-sp-2)",
-            width: "100%",
-            padding: "var(--ds-sp-1) var(--ds-sp-2)",
-            borderRadius: "var(--ds-r-6)",
-            background: chatOpen ? "var(--ds-accent-soft)" : "transparent",
-            border: "none",
-            cursor: "pointer",
-            color: chatOpen ? "var(--ds-accent)" : "var(--ds-text-faint)",
-            fontSize: "var(--ds-fs-11)",
-            marginTop: 2,
-            transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
-          }}
-          className={cn(!chatOpen && "hover:bg-fill hover:text-text-mute")}
-        >
-          <Bot size={12} style={{ flexShrink: 0 }} />
-          <span>AI 어시스턴트</span>
-          <span
-            style={{
-              marginLeft: "auto",
-              fontSize: "var(--ds-fs-10)",
-              fontFamily: "var(--ds-font-mono)",
-              opacity: 0.6,
-            }}
-          >
-            ⌘I
-          </span>
-        </button>
+            <button
+              onClick={onOpenCommandPalette}
+              style={{
+                display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", width: "100%",
+                padding: "var(--ds-sp-1) var(--ds-sp-2)", borderRadius: "var(--ds-r-6)",
+                background: "transparent", border: "none", cursor: "pointer",
+                color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-11)", fontFamily: "var(--ds-font-mono)",
+                marginTop: "var(--ds-sp-1)",
+              }}
+              className="hover:bg-fill hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
+            >
+              ⌘K 명령 팔레트
+            </button>
+            <button
+              onClick={onOpenChat}
+              style={{
+                display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", width: "100%",
+                padding: "var(--ds-sp-1) var(--ds-sp-2)", borderRadius: "var(--ds-r-6)",
+                background: chatOpen ? "var(--ds-accent-soft)" : "transparent",
+                border: "none", cursor: "pointer",
+                color: chatOpen ? "var(--ds-accent)" : "var(--ds-text-faint)",
+                fontSize: "var(--ds-fs-11)", marginTop: 2,
+                transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
+              }}
+              className={cn(!chatOpen && "hover:bg-fill hover:text-text-mute")}
+            >
+              <Bot size={12} style={{ flexShrink: 0 }} />
+              <span>AI 어시스턴트</span>
+              <span style={{ marginLeft: "auto", fontSize: "var(--ds-fs-10)", fontFamily: "var(--ds-font-mono)", opacity: 0.6 }}>⌘I</span>
+            </button>
+          </>
+        )}
       </div>
     </aside>
   );
