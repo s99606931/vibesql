@@ -25,10 +25,10 @@ export async function GET(
 
   // In-memory: access the items array from the parent route module
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mod = await import("../route") as any;
-    if (Array.isArray(mod.__items)) {
-      const item = mod.__items.find((i: { id: string }) => i.id === id);
+    const mod: { __items?: { id: string }[] } = await import("../route");
+    const arr = mod.__items;
+    if (Array.isArray(arr)) {
+      const item = arr.find((i) => i.id === id);
       if (!item) {
         return NextResponse.json(
           { error: "저장된 쿼리를 찾을 수 없습니다." },

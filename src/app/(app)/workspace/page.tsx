@@ -1,13 +1,13 @@
 "use client";
 
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useConnections } from "@/hooks/useConnections";
 import { TopBar } from "@/components/shell/TopBar";
 import { AICallout } from "@/components/ui-vs/AICallout";
 import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import {
   Play,
-  Save,
   Share2,
   Star,
   Copy,
@@ -15,13 +15,42 @@ import {
   BarChart2,
   MessageSquare,
   TriangleAlert,
+  Check,
+  Save,
 } from "lucide-react";
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ResultTable } from "@/components/workspace/ResultTable";
 import ResultChart from "@/components/workspace/ResultChart";
 import { SqlEditor } from "@/components/workspace/SqlEditor";
 
 type ResultTab = "table" | "chart" | "explain";
+
+function exportToCsv(rows: Record<string, unknown>[], columns: string[]): void {
+  if (rows.length === 0 || columns.length === 0) return;
+
+  const escape = (val: unknown): string => {
+    const str = val === null || val === undefined ? "" : String(val);
+    if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
+  const header = columns.map(escape).join(",");
+  const body = rows.map((row) => columns.map((col) => escape(row[col])).join(",")).join("\n");
+  const csv = `${header}\n${body}`;
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `vibesql-export-${Date.now()}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
 
 export default function WorkspacePage() {
   const {
@@ -32,17 +61,41 @@ export default function WorkspacePage() {
     rowCount,
     duration,
     errorMessage,
+    activeConnectionId,
     setNlQuery,
     setSql,
     setStatus,
     setResults,
     setError,
     reset,
+    setActiveConnection,
   } = useWorkspaceStore();
+
+  const { data: connections } = useConnections();
+  const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState<ResultTab>("table");
   const [isEdited, setIsEdited] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
+  const [savedOk, setSavedOk] = useState(false);
+
+  const saveQueryMutation = useMutation({
+    mutationFn: async (payload: { name: string; query: string; folder: string }) => {
+      const res = await fetch("/api/saved", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "저장 실패");
+      return json.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved"] });
+      setSavedOk(true);
+      setTimeout(() => setSavedOk(false), 1500);
+    },
+  });
 
   async function handleGenerate() {
     if (!nlQuery.trim()) return;
@@ -76,7 +129,11 @@ export default function WorkspacePage() {
       const res = await fetch("/api/queries/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sql, connectionId: "default", limit: 1000 }),
+        body: JSON.stringify({
+          sql,
+          connectionId: activeConnectionId ?? "default",
+          limit: 1000,
+        }),
       });
       const json = await res.json();
       if (!res.ok || json.error) throw new Error(json.error ?? "Query execution failed");
@@ -125,9 +182,47 @@ export default function WorkspacePage() {
         breadcrumbs={[{ label: "vibeSQL", href: "/" }, { label: "워크스페이스" }]}
         actions={
           <>
+            {/* Connection selector */}
+            <select
+              value={activeConnectionId ?? ""}
+              onChange={(e) => setActiveConnection(e.target.value || null)}
+              style={{
+                border: "1px solid var(--ds-border)",
+                borderRadius: "var(--ds-r-6)",
+                background: "var(--ds-surface)",
+                color: activeConnectionId ? "var(--ds-text)" : "var(--ds-text-faint)",
+                fontSize: "var(--ds-fs-12)",
+                padding: "var(--ds-sp-1) var(--ds-sp-2)",
+                fontFamily: "var(--ds-font-sans)",
+                outline: "none",
+                cursor: "pointer",
+              }}
+            >
+              <option value="" disabled>연결 선택...</option>
+              {(connections ?? []).map((conn) => (
+                <option key={conn.id} value={conn.id}>
+                  {conn.name}
+                </option>
+              ))}
+            </select>
+
             {showResults && (
               <>
-                <Button variant="ghost" size="sm" icon={<Star size={13} />}>저장</Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={savedOk ? <Check size={13} /> : <Star size={13} />}
+                  loading={saveQueryMutation.isPending}
+                  onClick={() =>
+                    saveQueryMutation.mutate({
+                      name: nlQuery || "쿼리",
+                      query: sql,
+                      folder: "기본",
+                    })
+                  }
+                >
+                  저장
+                </Button>
                 <Button variant="ghost" size="sm" icon={<Share2 size={13} />}>공유</Button>
               </>
             )}
@@ -350,7 +445,14 @@ export default function WorkspacePage() {
               <span className="ds-num" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
                 {rowCount}행 · {duration ? `${duration}ms` : "—"}
               </span>
-              <Button variant="ghost" size="sm" icon={<Save size={12} />}>CSV</Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Save size={12} />}
+                onClick={() => exportToCsv(results!, columns)}
+              >
+                CSV
+              </Button>
             </div>
 
             {activeTab === "table" && (

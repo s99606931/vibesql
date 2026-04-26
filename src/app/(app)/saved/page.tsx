@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
@@ -18,8 +19,10 @@ import {
   Hash,
   Clock,
   Save,
+  ExternalLink,
 } from "lucide-react";
 import type { SavedQuery } from "@/types";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 interface FolderGroup {
   name: string;
@@ -87,6 +90,8 @@ function formatDate(iso: string): string {
 export default function SavedPage() {
   const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const { setSql, setStatus } = useWorkspaceStore();
 
   const { data, isLoading } = useQuery({
     queryKey: ["saved"],
@@ -383,6 +388,18 @@ export default function SavedPage() {
                         }}
                         className="group-hover:opacity-100"
                       >
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={<ExternalLink size={12} />}
+                          onClick={() => {
+                            setSql(query.sql);
+                            setStatus("ready");
+                            router.push("/workspace");
+                          }}
+                        >
+                          워크스페이스에서 열기
+                        </Button>
                         <Button variant="ghost" size="sm" icon={<Play size={12} />}>
                           실행
                         </Button>
