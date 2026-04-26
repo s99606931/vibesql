@@ -21,6 +21,7 @@ model User {
   historyItems QueryHistory[]
   dashboards   Dashboard[]
   settings     UserSettings?
+  aiProviders  AiProvider[]
 
   @@map("users")
 }
@@ -194,6 +195,37 @@ model GlossaryTerm {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("glossary_terms")
+}
+
+model AiProvider {
+  id           String         @id @default(cuid())
+  name         String
+  type         AiProviderType
+  baseUrl      String?        @map("base_url")
+  apiKey       String?        @map("api_key")
+  model        String
+  temperature  Float          @default(0.3)
+  maxTokens    Int            @default(2048) @map("max_tokens")
+  isActive     Boolean        @default(false) @map("is_active")
+  lastTestedAt DateTime?      @map("last_tested_at")
+  lastTestedOk Boolean?       @map("last_tested_ok")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ai_providers")
+}
+
+enum AiProviderType {
+  anthropic
+  openai
+  google
+  lmstudio
+  ollama
+  vllm
+  openai_compat
 }
 
 model AuditLog {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Card, CardHead } from "@/components/ui-vs/Card";
 import { Button } from "@/components/ui-vs/Button";
@@ -14,7 +15,50 @@ import {
   Sun,
   Moon,
   Check,
+  Plus,
+  Trash2,
+  Play,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
+
+// ─── AI Provider types ────────────────────────────────────────────────────────
+
+type AiProviderType = "anthropic" | "openai" | "google" | "lmstudio" | "ollama" | "vllm" | "openai_compat";
+
+interface AiProvider {
+  id: string;
+  name: string;
+  type: AiProviderType;
+  baseUrl?: string | null;
+  model: string;
+  temperature: number;
+  maxTokens: number;
+  isActive: boolean;
+  hasApiKey?: boolean;
+  lastTestedAt?: string | null;
+  lastTestedOk?: boolean | null;
+}
+
+const PROVIDER_LABELS: Record<AiProviderType, string> = {
+  anthropic: "Anthropic",
+  openai: "OpenAI",
+  google: "Google AI",
+  lmstudio: "LM Studio",
+  ollama: "Ollama",
+  vllm: "vLLM",
+  openai_compat: "OpenAI 호환",
+};
+
+const DEFAULT_MODELS: Record<AiProviderType, string> = {
+  anthropic: "claude-sonnet-4-6",
+  openai: "gpt-4o",
+  google: "gemini-1.5-pro",
+  lmstudio: "local-model",
+  ollama: "llama3",
+  vllm: "local-model",
+  openai_compat: "local-model",
+};
 
 // ─── Sidebar nav ─────────────────────────────────────────────────────────────
 
@@ -141,12 +185,94 @@ const THEMES: {
   { id: "slate", label: "Slate", accent: "#64748b" },
 ];
 
+// ─── AI Provider add form ────────────────────────────────────────────────────
+
+function AddProviderForm({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
+  const [type, setType] = useState<AiProviderType>("anthropic");
+  const [name, setName] = useState("");
+  const [baseUrl, setBaseUrl] = useState("");
+  const [apiKey, setApiKey] = useState("");
+  const [model, setModel] = useState(DEFAULT_MODELS.anthropic);
+  const [isActive, setIsActive] = useState(false);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  function handleTypeChange(t: AiProviderType) {
+    setType(t);
+    setModel(DEFAULT_MODELS[t]);
+    setBaseUrl("");
+  }
+
+  async function handleSave() {
+    if (!name.trim() || !model.trim()) { setError("이름과 모델명은 필수입니다."); return; }
+    setSaving(true); setError("");
+    try {
+      const res = await fetch("/api/ai-providers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), type, baseUrl: baseUrl || undefined, apiKey: apiKey || undefined, model, temperature: 0.3, maxTokens: 2048, isActive }),
+      });
+      const json = await res.json() as { error?: string };
+      if (!res.ok) { setError(json.error ?? "저장 실패"); return; }
+      onAdded();
+    } catch { setError("네트워크 오류"); } finally { setSaving(false); }
+  }
+
+  const needsBaseUrl = ["lmstudio", "ollama", "vllm", "openai_compat"].includes(type);
+
+  return (
+    <div style={{ border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-4)", background: "var(--ds-fill)", marginTop: "var(--ds-sp-3)" }}>
+      <div style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-3)" }}>새 AI 프로바이더 추가</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ds-sp-3)", marginBottom: "var(--ds-sp-3)" }}>
+        <div>
+          <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: 4 }}>종류</div>
+          <select value={type} onChange={(e) => handleTypeChange(e.target.value as AiProviderType)} style={{ width: "100%", padding: "var(--ds-sp-1) var(--ds-sp-2)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", color: "var(--ds-text)", fontSize: "var(--ds-fs-12)", fontFamily: "var(--ds-font-sans)", outline: "none" }}>
+            {(Object.keys(PROVIDER_LABELS) as AiProviderType[]).map((t) => (
+              <option key={t} value={t}>{PROVIDER_LABELS[t]}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: 4 }}>이름</div>
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="프로바이더 이름" style={{ width: "100%", padding: "var(--ds-sp-1) var(--ds-sp-2)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", color: "var(--ds-text)", fontSize: "var(--ds-fs-12)", fontFamily: "var(--ds-font-sans)", outline: "none" }} />
+        </div>
+        <div>
+          <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: 4 }}>모델</div>
+          <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="모델 ID" style={{ width: "100%", padding: "var(--ds-sp-1) var(--ds-sp-2)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", color: "var(--ds-text)", fontSize: "var(--ds-fs-12)", fontFamily: "var(--ds-font-mono)", outline: "none" }} />
+        </div>
+        <div>
+          <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: 4 }}>API 키 (선택)</div>
+          <input type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="sk-..." style={{ width: "100%", padding: "var(--ds-sp-1) var(--ds-sp-2)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", color: "var(--ds-text)", fontSize: "var(--ds-fs-12)", fontFamily: "var(--ds-font-mono)", outline: "none" }} />
+        </div>
+        {needsBaseUrl && (
+          <div style={{ gridColumn: "1/-1" }}>
+            <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: 4 }}>Base URL</div>
+            <input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder="http://localhost:1234" style={{ width: "100%", padding: "var(--ds-sp-1) var(--ds-sp-2)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", color: "var(--ds-text)", fontSize: "var(--ds-fs-12)", fontFamily: "var(--ds-font-mono)", outline: "none" }} />
+          </div>
+        )}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-3)" }}>
+        <input type="checkbox" id="isActive" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
+        <label htmlFor="isActive" style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-text-mute)", cursor: "pointer" }}>기본 AI로 활성화</label>
+      </div>
+      {error && <div style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-danger)", marginBottom: "var(--ds-sp-2)" }}>{error}</div>}
+      <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+        <Button variant="accent" size="sm" loading={saving} onClick={handleSave}>저장</Button>
+        <Button variant="ghost" size="sm" onClick={onClose}>취소</Button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState<Section>("appearance");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [showAddProvider, setShowAddProvider] = useState(false);
+  const [testingId, setTestingId] = useState<string | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const queryClient = useQueryClient();
   const {
     theme, mode, density,
     dialect, temperature, alwaysExplain,
@@ -173,6 +299,36 @@ export default function SettingsPage() {
       .catch(() => { /* DB not configured — use localStorage only */ });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // AI Providers
+  const { data: providers = [], isLoading: providersLoading } = useQuery<AiProvider[]>({
+    queryKey: ["ai-providers"],
+    queryFn: async () => {
+      const res = await fetch("/api/ai-providers");
+      if (!res.ok) return [];
+      const j = await res.json() as { data: AiProvider[] };
+      return Array.isArray(j.data) ? j.data : [];
+    },
+    staleTime: 30_000,
+    enabled: activeSection === "ai",
+  });
+
+  const deleteProviderMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const r = await fetch(`/api/ai-providers/${id}`, { method: "DELETE" });
+      if (!r.ok) throw new Error("삭제 실패");
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ai-providers"] }),
+  });
+
+  async function handleTestProvider(id: string) {
+    setTestingId(id);
+    try {
+      const r = await fetch(`/api/ai-providers/${id}/test`, { method: "POST" });
+      await r.json();
+      queryClient.invalidateQueries({ queryKey: ["ai-providers"] });
+    } finally { setTestingId(null); }
+  }
 
   // Debounced save to DB whenever settings change
   function persistSettings() {
@@ -440,82 +596,104 @@ export default function SettingsPage() {
 
           {/* ── AI SETTINGS ────────────────────────────────────────────────── */}
           {activeSection === "ai" && (
-            <Card>
-              <CardHead title="AI 설정" />
+            <>
+              <Card>
+                <CardHead title="AI 설정" />
 
-              <SettingRow label="기본 SQL 방언" description="AI가 생성하는 SQL의 기본 방언">
-                <select
-                  value={dialect}
-                  onChange={(e) => {
-                    setDialect(e.target.value as "postgresql" | "mysql" | "sqlite" | "mssql");
-                    persistSettings();
-                  }}
-                  style={{
-                    padding: "var(--ds-sp-1) var(--ds-sp-3)",
-                    border: "1px solid var(--ds-border)",
-                    borderRadius: "var(--ds-r-6)",
-                    background: "var(--ds-surface)",
-                    color: "var(--ds-text)",
-                    fontSize: "var(--ds-fs-12)",
-                    fontFamily: "var(--ds-font-sans)",
-                    cursor: "pointer",
-                    outline: "none",
-                    minWidth: 130,
-                  }}
-                >
-                  <option value="postgresql">PostgreSQL</option>
-                  <option value="mysql">MySQL</option>
-                  <option value="sqlite">SQLite</option>
-                  <option value="mssql">MS SQL Server</option>
-                </select>
-              </SettingRow>
-
-              <SettingRow
-                label="SQL 생성 온도"
-                description={`창의성 수준을 조정합니다 — 현재: ${temperature.toFixed(1)}`}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
-                  <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>0.0</span>
-                  <input
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.1}
-                    value={temperature}
-                    onChange={(e) => { setTemperature(Number(e.target.value)); persistSettings(); }}
-                    style={{
-                      accentColor: "var(--ds-accent)",
-                      width: 120,
-                      cursor: "pointer",
+                <SettingRow label="기본 SQL 방언" description="AI가 생성하는 SQL의 기본 방언">
+                  <select
+                    value={dialect}
+                    onChange={(e) => {
+                      setDialect(e.target.value as "postgresql" | "mysql" | "sqlite" | "mssql" | "oracle");
+                      persistSettings();
                     }}
-                  />
-                  <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>1.0</span>
-                  <span
-                    className="ds-num"
-                    style={{
-                      fontSize: "var(--ds-fs-12)",
-                      color: "var(--ds-accent)",
-                      fontWeight: "var(--ds-fw-semibold)",
-                      minWidth: 24,
-                      textAlign: "right",
-                    }}
+                    style={{ padding: "var(--ds-sp-1) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", color: "var(--ds-text)", fontSize: "var(--ds-fs-12)", fontFamily: "var(--ds-font-sans)", cursor: "pointer", outline: "none", minWidth: 130 }}
                   >
-                    {temperature.toFixed(1)}
-                  </span>
-                </div>
-              </SettingRow>
+                    <option value="postgresql">PostgreSQL</option>
+                    <option value="mysql">MySQL</option>
+                    <option value="sqlite">SQLite</option>
+                    <option value="mssql">MS SQL Server</option>
+                    <option value="oracle">Oracle</option>
+                  </select>
+                </SettingRow>
 
-              <SettingRow
-                label="항상 결과 설명 포함"
-                description="AI가 쿼리 결과를 자동으로 설명합니다"
-                last
-              >
-                <Toggle
-                  checked={alwaysExplain}
-                  onChange={() => { toggle("alwaysExplain"); persistSettings(); }}
+                <SettingRow label="SQL 생성 온도" description={`창의성 수준을 조정합니다 — 현재: ${temperature.toFixed(1)}`}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
+                    <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>0.0</span>
+                    <input type="range" min={0} max={1} step={0.1} value={temperature} onChange={(e) => { setTemperature(Number(e.target.value)); persistSettings(); }} style={{ accentColor: "var(--ds-accent)", width: 120, cursor: "pointer" }} />
+                    <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>1.0</span>
+                    <span className="ds-num" style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-accent)", fontWeight: "var(--ds-fw-semibold)", minWidth: 24, textAlign: "right" }}>{temperature.toFixed(1)}</span>
+                  </div>
+                </SettingRow>
+
+                <SettingRow label="항상 결과 설명 포함" description="AI가 쿼리 결과를 자동으로 설명합니다" last>
+                  <Toggle checked={alwaysExplain} onChange={() => { toggle("alwaysExplain"); persistSettings(); }} />
+                </SettingRow>
+              </Card>
+
+              {/* AI Providers */}
+              <Card>
+                <CardHead
+                  title="AI 프로바이더"
+                  meta={`${providers.length}개`}
+                  actions={
+                    <Button variant="accent" size="sm" icon={<Plus size={12} />} onClick={() => setShowAddProvider((v) => !v)}>
+                      {showAddProvider ? "취소" : "추가"}
+                    </Button>
+                  }
                 />
-              </SettingRow>
-            </Card>
+                {showAddProvider && (
+                  <AddProviderForm
+                    onClose={() => setShowAddProvider(false)}
+                    onAdded={() => { setShowAddProvider(false); queryClient.invalidateQueries({ queryKey: ["ai-providers"] }); }}
+                  />
+                )}
+                {providersLoading && (
+                  <div style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)", padding: "var(--ds-sp-2)" }}>불러오는 중...</div>
+                )}
+                {!providersLoading && providers.length === 0 && !showAddProvider && (
+                  <div style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)", padding: "var(--ds-sp-2) 0" }}>
+                    AI 프로바이더가 없습니다. Anthropic, OpenAI, Ollama 등을 추가하세요.
+                  </div>
+                )}
+                {providers.map((p) => (
+                  <div key={p.id} style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-3)", padding: "var(--ds-sp-3) 0", borderTop: "1px solid var(--ds-border)" }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: 2 }}>
+                        <span style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>{p.name}</span>
+                        {p.isActive && <Pill variant="success">활성</Pill>}
+                      </div>
+                      <div style={{ display: "flex", gap: "var(--ds-sp-2)", alignItems: "center" }}>
+                        <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)" }}>{PROVIDER_LABELS[p.type]}</span>
+                        <span className="ds-mono" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>{p.model}</span>
+                        {p.lastTestedOk === true && <Pill variant="success" dot="ok">테스트 성공</Pill>}
+                        {p.lastTestedOk === false && <Pill variant="danger" dot="err">테스트 실패</Pill>}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: "var(--ds-sp-1)", flexShrink: 0 }}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={testingId === p.id ? <Loader2 size={11} style={{ animation: "spin 1s linear infinite" }} /> : <Play size={11} />}
+                        disabled={testingId === p.id}
+                        onClick={() => handleTestProvider(p.id)}
+                      >
+                        테스트
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        icon={<Trash2 size={11} />}
+                        disabled={deleteProviderMutation.isPending && deleteProviderMutation.variables === p.id}
+                        onClick={() => { if (confirm(`"${p.name}" 프로바이더를 삭제할까요?`)) deleteProviderMutation.mutate(p.id); }}
+                      >
+                        삭제
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </Card>
+            </>
           )}
 
           {/* ── SECURITY ───────────────────────────────────────────────────── */}
@@ -611,6 +789,7 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
