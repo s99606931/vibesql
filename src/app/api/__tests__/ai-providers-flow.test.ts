@@ -11,6 +11,20 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+// Shared mutable array so the same reference is kept even when modules are re-imported
+const _providers: unknown[] = [];
+
+// Isolate tests from on-disk state
+vi.mock("@/lib/db/mem-ai-providers", () => ({
+  memAiProviders: _providers,
+  persistAiProviders: vi.fn(),
+}));
+
+// Clear the array before every test so each test starts clean
+beforeEach(() => {
+  _providers.length = 0;
+});
+
 type ApiResponse = { _body: unknown; status: number; json: () => Promise<unknown> };
 
 function body(res: ApiResponse) {
@@ -199,6 +213,7 @@ describe("[수정] PATCH /api/ai-providers/{id}", () => {
     const id = (body(created)["data"] as Record<string, unknown>)["id"] as string;
 
     vi.resetModules();
+    _providers.length = 0; // simulate fresh empty state after module reset
     delete process.env.DATABASE_URL;
     // 모듈 리셋 후에도 memProviders가 공유되므로 dev-user 소유의 항목 접근 불가 케이스는
     // 같은 userId로 작동 — 실제 다중 사용자는 DB 환경에서 검증됨

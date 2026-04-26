@@ -97,7 +97,22 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       const { prisma } = await import("@/lib/db/prisma");
       const row = await prisma.aiProvider.findFirst({ where: { id, userId } });
       if (!row) return NextResponse.json({ error: "찾을 수 없습니다." }, { status: 404 });
-      provider = row as unknown as AiProvider;
+      provider = {
+        id: row.id,
+        userId: row.userId,
+        name: row.name,
+        type: row.type as AiProvider["type"],
+        baseUrl: row.baseUrl ?? null,
+        apiKey: row.apiKey ?? null,
+        model: row.model,
+        temperature: row.temperature,
+        maxTokens: row.maxTokens,
+        isActive: row.isActive,
+        lastTestedAt: row.lastTestedAt?.toISOString() ?? null,
+        lastTestedOk: row.lastTestedOk ?? null,
+        createdAt: row.createdAt.toISOString(),
+        updatedAt: row.updatedAt.toISOString(),
+      };
     } catch { /* fall through */ }
   }
 
