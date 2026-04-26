@@ -315,6 +315,7 @@ export default function HomePage() {
     queryKey: ["connections"],
     queryFn: async () => {
       const r = await fetch("/api/connections");
+      if (!r.ok) throw new Error("Failed to fetch connections");
       const j = await r.json() as { data?: unknown[] };
       return j.data ?? [];
     },
@@ -325,6 +326,7 @@ export default function HomePage() {
     queryKey: ["ai-providers"],
     queryFn: async () => {
       const r = await fetch("/api/ai-providers");
+      if (!r.ok) throw new Error("Failed to fetch AI providers");
       const j = await r.json() as { data?: unknown[] };
       return j.data ?? [];
     },
@@ -463,7 +465,7 @@ export default function HomePage() {
                       alignItems: "center",
                       gap: "var(--ds-sp-4)",
                       padding: "var(--ds-sp-4)",
-                      border: `1px solid ${done ? "var(--ds-border)" : "var(--ds-border)"}`,
+                      border: `1px solid ${done ? "var(--ds-accent-soft)" : "var(--ds-border)"}`,
                       borderRadius: "var(--ds-r-8)",
                       background: done ? "var(--ds-surface)" : "var(--ds-bg)",
                       opacity: loading ? 0.7 : 1,
@@ -698,6 +700,7 @@ function StatsSection() {
     queryKey: ["stats"],
     queryFn: async () => {
       const r = await fetch("/api/stats");
+      if (!r.ok) throw new Error("Failed to fetch stats");
       const j = await r.json() as { data?: StatsData };
       return j.data ?? null;
     },
@@ -708,6 +711,7 @@ function StatsSection() {
     queryKey: ["history-recent"],
     queryFn: async () => {
       const r = await fetch("/api/history?limit=3");
+      if (!r.ok) throw new Error("Failed to fetch history");
       const j = await r.json() as { data?: HistoryItem[] };
       return j.data ?? [];
     },

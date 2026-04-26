@@ -95,6 +95,7 @@ export default function WorkspacePage() {
   const [activeTab, setActiveTab] = useState<ResultTab>("table");
   const [isEdited, setIsEdited] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
+  const [explanationFetching, setExplanationFetching] = useState(false);
   const [confidence, setConfidence] = useState<"high" | "medium" | "low" | null>(null);
   const [savedOk, setSavedOk] = useState(false);
   const savedOkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -611,7 +612,23 @@ export default function WorkspacePage() {
               ].map((tab) => (
                 <button
                   key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
+                  onClick={async () => {
+                    setActiveTab(tab.key);
+                    if (tab.key === "explain" && sql.trim() && (isEdited || !explanation) && !explanationFetching) {
+                      setExplanationFetching(true);
+                      try {
+                        const r = await fetch("/api/queries/explain", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ sql, dialect }),
+                        });
+                        const j = await r.json() as { data?: { explanation: string }; error?: string };
+                        if (j.data?.explanation) setExplanation(j.data.explanation);
+                      } catch { /* keep existing explanation */ } finally {
+                        setExplanationFetching(false);
+                      }
+                    }
+                  }}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -649,7 +666,7 @@ export default function WorkspacePage() {
                 size="sm"
                 icon={<LayoutDashboard size={12} />}
                 loading={addToDashboardMutation.isPending}
-                onClick={handleAddToDashboard}
+                onClick={() => { void handleAddToDashboard(); }}
               >
                 대시보드 추가
               </Button>
@@ -666,7 +683,9 @@ export default function WorkspacePage() {
             {activeTab === "explain" && (
               <div style={{ padding: "var(--ds-sp-4)" }}>
                 <AICallout label="◆ AI · SQL 설명">
-                  {explanation ?? "이 쿼리는 요청하신 데이터를 조회합니다."}
+                  {explanationFetching
+                    ? "SQL 설명을 불러오는 중..."
+                    : explanation ?? "이 쿼리는 요청하신 데이터를 조회합니다."}
                 </AICallout>
               </div>
             )}

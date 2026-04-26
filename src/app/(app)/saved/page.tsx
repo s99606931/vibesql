@@ -20,8 +20,11 @@ import {
   Save,
   ExternalLink,
   Plus,
+  History,
+  RotateCcw,
+  X,
 } from "lucide-react";
-import type { SavedQuery } from "@/types";
+import type { SavedQuery, QueryVersion } from "@/types";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 interface FolderGroup {
@@ -49,8 +52,181 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString("ko-KR");
 }
 
+// ─── Version history panel ────────────────────────────────────────────────────
+
+function VersionPanel({
+  queryId,
+  queryName,
+  onClose,
+  onRestore,
+}: {
+  queryId: string;
+  queryName: string;
+  onClose: () => void;
+  onRestore: (sql: string) => void;
+}) {
+  const { data: versions = [], isLoading } = useQuery({
+    queryKey: ["versions", queryId],
+    queryFn: async () => {
+      const r = await fetch(`/api/saved/${queryId}/versions`);
+      if (!r.ok) throw new Error("Failed to fetch versions");
+      const j = (await r.json()) as { data?: QueryVersion[] };
+      return j.data ?? [];
+    },
+    staleTime: 10_000,
+  });
+
+  const [restoring, setRestoring] = useState<string | null>(null);
+
+  async function handleRestore(version: QueryVersion) {
+    setRestoring(version.id);
+    try {
+      const res = await fetch(`/api/saved/${queryId}/versions/${version.id}/restore`, { method: "POST" });
+      if (!res.ok) throw new Error("복원 실패");
+      onRestore(version.sql);
+      onClose();
+    } catch (e) {
+      console.error("[versions] restore failed:", e instanceof Error ? e.message : e);
+    } finally {
+      setRestoring(null);
+    }
+  }
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 900,
+        display: "flex",
+        justifyContent: "flex-end",
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 380,
+          background: "var(--ds-surface)",
+          borderLeft: "1px solid var(--ds-border)",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: "var(--ds-shadow-modal)",
+        }}
+      >
+        <div
+          style={{
+            padding: "var(--ds-sp-4)",
+            borderBottom: "1px solid var(--ds-border)",
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--ds-sp-2)",
+          }}
+        >
+          <History size={16} style={{ color: "var(--ds-accent)" }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>
+              버전 히스토리
+            </div>
+            <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>{queryName}</div>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="닫기"
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "var(--ds-text-faint)",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-2)" }}>
+          {isLoading && (
+            <div style={{ padding: "var(--ds-sp-4)", textAlign: "center", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-12)" }}>
+              불러오는 중...
+            </div>
+          )}
+
+          {!isLoading && versions.length === 0 && (
+            <div style={{ padding: "var(--ds-sp-5)", textAlign: "center", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-12)" }}>
+              저장된 버전이 없습니다.
+              <br />
+              쿼리를 수정할 때 버전이 자동으로 기록됩니다.
+            </div>
+          )}
+
+          {!isLoading && versions.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
+              {versions.map((v) => (
+                <div
+                  key={v.id}
+                  style={{
+                    border: "1px solid var(--ds-border)",
+                    borderRadius: "var(--ds-r-8)",
+                    padding: "var(--ds-sp-3)",
+                    background: "var(--ds-fill)",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-1)" }}>
+                    <Pill variant="info">v{v.versionNo}</Pill>
+                    <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", flex: 1 }}>
+                      {new Date(v.createdAt).toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={<RotateCcw size={11} />}
+                      loading={restoring === v.id}
+                      onClick={() => { void handleRestore(v); }}
+                    >
+                      복원
+                    </Button>
+                  </div>
+                  {v.note && (
+                    <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-1)" }}>
+                      {v.note}
+                    </div>
+                  )}
+                  <pre
+                    style={{
+                      fontSize: "var(--ds-fs-10)",
+                      fontFamily: "var(--ds-font-mono)",
+                      color: "var(--ds-text-mute)",
+                      background: "var(--ds-surface)",
+                      border: "1px solid var(--ds-border)",
+                      borderRadius: "var(--ds-r-6)",
+                      padding: "var(--ds-sp-2)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      margin: 0,
+                      maxHeight: 48,
+                    }}
+                  >
+                    {v.sql.slice(0, 120)}
+                  </pre>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+
 export default function SavedPage() {
   const [search, setSearch] = useState("");
+  const [versionPanel, setVersionPanel] = useState<{ queryId: string; queryName: string } | null>(null);
   const queryClient = useQueryClient();
   const router = useRouter();
   const { setSql, setStatus } = useWorkspaceStore();
@@ -89,15 +265,19 @@ export default function SavedPage() {
       queryClient.setQueryData<SavedQuery[]>(["saved"], (old) => old ?? []);
       return;
     }
-    await Promise.all(
+    const results = await Promise.allSettled(
       unclassified.map((q) =>
         fetch(`/api/saved/${q.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ folder: name }),
+        }).then(async (r) => {
+          if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error ?? "PATCH 실패");
         })
       )
     );
+    const failures = results.filter((r) => r.status === "rejected");
+    if (failures.length > 0) console.error("[saved] folder move partial failure:", failures);
     queryClient.invalidateQueries({ queryKey: ["saved"] });
   }
 
@@ -117,7 +297,7 @@ export default function SavedPage() {
         title="저장된 쿼리"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "저장된 쿼리" }]}
         actions={
-          <Button variant="ghost" size="sm" icon={<Plus size={13} />} onClick={handleNewFolder}>
+          <Button variant="ghost" size="sm" icon={<Plus size={13} />} onClick={() => { void handleNewFolder(); }}>
             새 폴더
           </Button>
         }
@@ -180,6 +360,20 @@ export default function SavedPage() {
               <Skeleton key={i} className="h-16 w-full rounded-lg" />
             ))}
           </div>
+        )}
+
+        {/* Version history panel */}
+        {versionPanel && (
+          <VersionPanel
+            queryId={versionPanel.queryId}
+            queryName={versionPanel.queryName}
+            onClose={() => setVersionPanel(null)}
+            onRestore={(sql) => {
+              setSql(sql);
+              setStatus("ready");
+              router.push("/workspace");
+            }}
+          />
         )}
 
         {/* Folder groups */}
@@ -401,6 +595,17 @@ export default function SavedPage() {
                           }}
                         >
                           편집
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={<History size={12} />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setVersionPanel({ queryId: query.id, queryName: query.name });
+                          }}
+                        >
+                          버전
                         </Button>
                         <Button
                           variant="danger"

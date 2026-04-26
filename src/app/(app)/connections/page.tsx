@@ -55,8 +55,8 @@ function EditConnectionForm({
     setForm((p) => ({ ...p, [key]: value }));
   }
 
-  async function handleSave() {
-    await update.mutateAsync({
+  function handleSave() {
+    update.mutate({
       id: conn.id,
       config: {
         name: form.name || undefined,
