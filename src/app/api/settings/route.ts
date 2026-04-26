@@ -16,6 +16,10 @@ const PatchSchema = z.object({
   showSqlPreview: z.boolean().optional(),
   showExplanation: z.boolean().optional(),
   enableGlossary: z.boolean().optional(),
+  notifySuccess: z.boolean().optional(),
+  notifyError: z.boolean().optional(),
+  notifyLong: z.boolean().optional(),
+  sessionTimeout: z.number().int().min(5).max(480).optional(),
 });
 
 export async function GET() {

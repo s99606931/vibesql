@@ -190,6 +190,9 @@ export default function SettingsPage() {
             showExplanation: alwaysExplain,
             sessionTimeout,
             showSqlPreview: true,
+            notifySuccess,
+            notifyError,
+            notifyLong,
           }),
         });
         setSaveStatus("saved");
@@ -563,24 +566,8 @@ export default function SettingsPage() {
                 </div>
               </SettingRow>
 
-              <SettingRow label="API 키" description="현재 세션에 사용 중인 API 키" last>
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
-                  <code
-                    className="ds-mono"
-                    style={{
-                      fontSize: "var(--ds-fs-12)",
-                      background: "var(--ds-fill)",
-                      border: "1px solid var(--ds-border)",
-                      borderRadius: "var(--ds-r-4)",
-                      padding: "2px 8px",
-                      color: "var(--ds-text-mute)",
-                      letterSpacing: "0.08em",
-                    }}
-                  >
-                    sk-••••••••••••••••••••3f9a
-                  </code>
-                  <Button variant="ghost" size="sm" onClick={() => navigator.clipboard.writeText("sk-3f9a").then(() => alert("API 키가 클립보드에 복사되었습니다."))}>복사</Button>
-                </div>
+              <SettingRow label="API 키" description="Anthropic API 키는 서버 환경변수(ANTHROPIC_API_KEY)로 관리됩니다" last>
+                <Pill variant="default">서버 환경변수로 설정됨</Pill>
               </SettingRow>
             </Card>
           )}

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui-vs/Button";
 import { Card, CardHead } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, BarChart2, TrendingUp, Table2, Pencil, Trash2, Clock, Globe, Lock } from "lucide-react";
+import { ArrowLeft, BarChart2, TrendingUp, Table2, Pencil, Trash2, Clock, Globe, Lock, X } from "lucide-react";
 
 interface Widget {
   type: string;
@@ -71,6 +71,37 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
     onSuccess: (updated) => {
       queryClient.setQueryData(["dashboard", id], updated);
       queryClient.invalidateQueries({ queryKey: ["dashboards"] });
+    },
+  });
+
+  const togglePublicMutation = useMutation({
+    mutationFn: async () => {
+      const r = await fetch(`/api/dashboards/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPublic: !dashboard?.isPublic }),
+      });
+      if (!r.ok) throw new Error("공유 설정 변경 실패");
+      return (await r.json() as { data: Dashboard }).data;
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["dashboard", id], updated);
+    },
+  });
+
+  const removeWidgetMutation = useMutation({
+    mutationFn: async (widgetIndex: number) => {
+      const widgets = (dashboard?.widgets ?? []).filter((_, i) => i !== widgetIndex);
+      const r = await fetch(`/api/dashboards/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ widgets }),
+      });
+      if (!r.ok) throw new Error("위젯 삭제 실패");
+      return (await r.json() as { data: Dashboard }).data;
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["dashboard", id], updated);
     },
   });
 
@@ -159,12 +190,19 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                   </div>
                 )}
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
-                  <Pill variant={dashboard.isPublic ? "success" : "default"}>
-                    {dashboard.isPublic
-                      ? <><Globe size={10} style={{ marginRight: 3 }} />공유됨</>
-                      : <><Lock size={10} style={{ marginRight: 3 }} />비공개</>
-                    }
-                  </Pill>
+                  <button
+                    onClick={() => togglePublicMutation.mutate()}
+                    disabled={togglePublicMutation.isPending}
+                    style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                    title={dashboard.isPublic ? "비공개로 전환" : "공유로 전환"}
+                  >
+                    <Pill variant={dashboard.isPublic ? "success" : "default"}>
+                      {dashboard.isPublic
+                        ? <><Globe size={10} style={{ marginRight: 3 }} />공유됨</>
+                        : <><Lock size={10} style={{ marginRight: 3 }} />비공개</>
+                      }
+                    </Pill>
+                  </button>
                   <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
                     <Clock size={11} />
                     {new Date(dashboard.updatedAt).toLocaleString("ko-KR")}
@@ -206,12 +244,23 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                       display: "flex",
                       alignItems: "center",
                       gap: "var(--ds-sp-2)",
+                      justifyContent: "space-between",
                     }}
                   >
-                    <div style={{ color: "var(--ds-accent)" }}>
-                      <WidgetTypeIcon type={w.type} />
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
+                      <div style={{ color: "var(--ds-accent)" }}>
+                        <WidgetTypeIcon type={w.type} />
+                      </div>
+                      <span style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)" }}>{w.label}</span>
                     </div>
-                    <span style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)" }}>{w.label}</span>
+                    <button
+                      onClick={() => removeWidgetMutation.mutate(i)}
+                      disabled={removeWidgetMutation.isPending}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", padding: 2, display: "flex", alignItems: "center" }}
+                      title="위젯 삭제"
+                    >
+                      <X size={12} />
+                    </button>
                   </div>
                 ))}
               </div>

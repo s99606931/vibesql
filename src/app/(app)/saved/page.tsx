@@ -14,12 +14,12 @@ import {
   Play,
   Pencil,
   Trash2,
-  Plus,
   Search,
   Hash,
   Clock,
   Save,
   ExternalLink,
+  Plus,
 } from "lucide-react";
 import type { SavedQuery } from "@/types";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
@@ -79,21 +79,14 @@ export default function SavedPage() {
     },
   });
 
-  const saveMutation = useMutation({
-    mutationFn: async (payload: Omit<SavedQuery, "id" | "createdAt">) => {
-      const res = await fetch("/api/saved", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "저장 실패");
-      return json.data as SavedQuery;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["saved"] });
-    },
-  });
+  function handleNewFolder() {
+    const folder = prompt("새 폴더 이름을 입력하세요:");
+    if (folder?.trim()) {
+      queryClient.setQueryData<SavedQuery[]>(["saved"], (old) =>
+        old ? old.map((q) => (q.folder === "미분류" ? { ...q, folder: folder.trim() } : q)) : old ?? []
+      );
+    }
+  }
 
   const filtered = (data ?? []).filter(
     (q) =>
@@ -110,7 +103,7 @@ export default function SavedPage() {
         title="저장된 쿼리"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "저장된 쿼리" }]}
         actions={
-          <Button variant="ghost" size="sm" icon={<Plus size={13} />}>
+          <Button variant="ghost" size="sm" icon={<Plus size={13} />} onClick={handleNewFolder}>
             새 폴더
           </Button>
         }
@@ -160,23 +153,9 @@ export default function SavedPage() {
             variant="ghost"
             size="sm"
             icon={<Save size={13} />}
-            loading={saveMutation.isPending}
-            onClick={() =>
-              saveMutation.mutate({
-                name: "새 쿼리",
-                description: "",
-                folder: "기본",
-                tags: [],
-                nlQuery: "",
-                sql: "SELECT 1",
-                dialect: "postgresql",
-              })
-            }
+            onClick={() => router.push("/workspace")}
           >
-            저장
-          </Button>
-          <Button variant="ghost" size="sm" icon={<Plus size={13} />}>
-            새 폴더
+            워크스페이스에서 저장
           </Button>
         </div>
 
