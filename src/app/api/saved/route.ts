@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import type { SavedQuery, DbDialect } from "@/types";
+import { requireUserId } from "@/lib/auth/require-user";
 
 const MAX_ITEMS = 200;
 const items: SavedQuery[] = [];
@@ -20,10 +21,15 @@ const SaveSchema = z.object({
 });
 
 export async function GET() {
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
+
   if (process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
       const rows = await prisma.savedQuery.findMany({
+        where: { userId },
         orderBy: { createdAt: "desc" },
       });
       return NextResponse.json({ data: rows });
@@ -35,6 +41,10 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
+
   const body = await req.json();
   const parsed = SaveSchema.safeParse(body);
   if (!parsed.success) {
@@ -50,7 +60,7 @@ export async function POST(req: Request) {
       // connectionId is not in the Prisma SavedQuery model; omit it
       const { connectionId: _cid, ...prismaData } = parsed.data;
       const row = await prisma.savedQuery.create({
-        data: { ...prismaData, userId: "system" },
+        data: { ...prismaData, userId },
       });
       return NextResponse.json({ data: row }, { status: 201 });
     } catch {
