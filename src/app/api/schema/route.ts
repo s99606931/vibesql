@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { getConnection } from "@/lib/connections/store";
+import { Pool } from "pg";
+import { getConnection, type StoredConnection } from "@/lib/connections/store";
+import { requireUserId } from "@/lib/auth/require-user";
 
 interface TableMeta {
   name: string;
@@ -11,71 +13,179 @@ interface TableMeta {
   pii: boolean;
 }
 
+// ---------------------------------------------------------------------------
+// Pool cache — module-level singleton per connection (mirrors run route)
+// ---------------------------------------------------------------------------
+const poolCache = new Map<string, Pool>();
+
+function getPool(conn: StoredConnection): Pool {
+  const existing = poolCache.get(conn.id);
+  if (existing) return existing;
+
+  const pool = new Pool({
+    host: conn.host ?? "localhost",
+    port: conn.port ?? 5432,
+    database: conn.database,
+    user: conn.username,
+    password: conn.passwordBase64
+      ? Buffer.from(conn.passwordBase64, "base64").toString()
+      : undefined,
+    ssl: conn.ssl ? { rejectUnauthorized: false } : false,
+    max: 3,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 5_000,
+  });
+
+  poolCache.set(conn.id, pool);
+  return pool;
+}
+
+/** Evict cached schema pool for a specific connection (call on connection delete/update). */
+export function evictSchemaPool(connectionId: string): void {
+  const pool = poolCache.get(connectionId);
+  if (pool) { pool.end().catch(() => undefined); poolCache.delete(connectionId); }
+}
+
+// Drain all pools on process exit
+function drainSchemaPools(): void {
+  for (const pool of poolCache.values()) pool.end().catch(() => undefined);
+  poolCache.clear();
+}
+process.once("exit", drainSchemaPools);
+process.once("SIGINT", () => { drainSchemaPools(); process.exit(0); });
+process.once("SIGTERM", () => { drainSchemaPools(); process.exit(0); });
+
+// ---------------------------------------------------------------------------
+// Real introspection query
+// ---------------------------------------------------------------------------
+
+interface ColumnsRow {
+  table_name: string;
+  column_name: string;
+}
+
+interface RowCountRow {
+  table_name: string;
+  approx_rows: number;
+}
+
+function formatRowCount(count: number): string {
+  if (count < 0) return "—";
+  if (count < 1_000) return `${count}`;
+  if (count < 1_000_000) return `${(count / 1_000).toFixed(1)}K`;
+  return `${(count / 1_000_000).toFixed(1)}M`;
+}
+
+async function introspectPostgres(conn: StoredConnection): Promise<TableMeta[]> {
+  const pool = getPool(conn);
+  const client = await pool.connect();
+  try {
+    const columnsResult = await client.query<ColumnsRow>(
+      `SELECT table_name, column_name
+         FROM information_schema.columns
+        WHERE table_schema = 'public'
+        ORDER BY table_name, ordinal_position`
+    );
+
+    const rowCountResult = await client.query<RowCountRow>(
+      `SELECT relname AS table_name, reltuples::bigint AS approx_rows
+         FROM pg_class
+         JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
+        WHERE pg_namespace.nspname = 'public' AND pg_class.relkind = 'r'`
+    );
+
+    const rowCountMap = new Map<string, number>();
+    for (const row of rowCountResult.rows) {
+      rowCountMap.set(row.table_name, row.approx_rows);
+    }
+
+    // Group rows by table name, preserving insertion order
+    const tableMap = new Map<string, string[]>();
+    for (const row of columnsResult.rows) {
+      const cols = tableMap.get(row.table_name);
+      if (cols) {
+        cols.push(row.column_name);
+      } else {
+        tableMap.set(row.table_name, [row.column_name]);
+      }
+    }
+
+    const tables: TableMeta[] = [];
+    for (const [tableName, cols] of tableMap) {
+      const approxRows = rowCountMap.get(tableName);
+      const rows =
+        approxRows === undefined || approxRows === -1
+          ? "—"
+          : formatRowCount(approxRows);
+      tables.push({
+        name: tableName,
+        rows,
+        columns: cols.length,
+        description: "",
+        cols,
+        fks: [],
+        pii: false,
+      });
+    }
+    return tables;
+  } finally {
+    client.release();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// No-connection fallback (shown in schema browser before a connection is selected)
+// ---------------------------------------------------------------------------
+
 const mockTables: TableMeta[] = [
-  {
-    name: "orders",
-    rows: "8.4M",
-    columns: 18,
-    description: "주문 트랜잭션 테이블.",
-    cols: ["id", "user_id", "status", "amount", "created_at", "updated_at"],
-    fks: ["customers", "products"],
-    pii: true,
-  },
-  {
-    name: "customers",
-    rows: "1.2M",
-    columns: 12,
-    description: "고객 계정 정보.",
-    cols: ["id", "email", "name", "country", "plan", "created_at"],
-    fks: [],
-    pii: true,
-  },
-  {
-    name: "products",
-    rows: "4,832",
-    columns: 9,
-    description: "상품 카탈로그.",
-    cols: ["id", "name", "category", "price", "stock", "active"],
-    fks: [],
-    pii: false,
-  },
-  {
-    name: "payments",
-    rows: "9.1M",
-    columns: 14,
-    description: "결제 처리 이력.",
-    cols: ["id", "order_id", "method", "status", "amount", "processed_at"],
-    fks: ["orders"],
-    pii: true,
-  },
-  {
-    name: "audit_logs",
-    rows: "22.3M",
-    columns: 7,
-    description: "쿼리 실행 감사 로그.",
-    cols: ["id", "user_id", "query", "rows_affected", "duration_ms", "created_at"],
-    fks: ["customers"],
-    pii: false,
-  },
-  {
-    name: "glossary_terms",
-    rows: "143",
-    columns: 6,
-    description: "회사 용어 사전.",
-    cols: ["id", "term", "definition", "mapped_columns", "category", "created_by"],
-    fks: [],
-    pii: false,
-  },
+  { name: "users", rows: "12.4K", columns: 5, description: "", cols: ["id", "email", "name", "created_at", "updated_at"], fks: [], pii: true },
+  { name: "orders", rows: "84.3K", columns: 6, description: "", cols: ["id", "user_id", "amount", "status", "created_at", "updated_at"], fks: ["user_id → users.id"], pii: false },
+  { name: "products", rows: "1.2K", columns: 5, description: "", cols: ["id", "name", "price", "stock", "category"], fks: [], pii: false },
+  { name: "sessions", rows: "5.8K", columns: 4, description: "", cols: ["id", "user_id", "token", "expires_at"], fks: ["user_id → users.id"], pii: true },
 ];
 
+// ---------------------------------------------------------------------------
+// Route handler
+// ---------------------------------------------------------------------------
+
 export async function GET(req: Request) {
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
+
   const { searchParams } = new URL(req.url);
   const connectionId = searchParams.get("connectionId");
 
   if (connectionId) {
-    const conn = getConnection(connectionId);
+    let conn = getConnection(connectionId);
+    if (!conn && process.env.DATABASE_URL) {
+      try {
+        const { prisma } = await import("@/lib/db/prisma");
+        const row = await prisma.connection.findUnique({ where: { id: connectionId, userId } });
+        if (row) {
+          conn = {
+            id: row.id,
+            name: row.name,
+            type: row.type as StoredConnection["type"],
+            host: row.host ?? undefined,
+            port: row.port ?? undefined,
+            database: row.database,
+            username: row.username ?? undefined,
+            passwordBase64: row.passwordHash ?? undefined,
+            ssl: row.ssl,
+            isActive: row.isActive,
+            createdAt: row.createdAt.toISOString(),
+          };
+        }
+      } catch { /* fall through */ }
+    }
     if (conn && conn.type === "postgresql") {
-      // Real scan would go here — fall through to mock for now
+      try {
+        const tables = await introspectPostgres(conn);
+        return NextResponse.json({ data: tables });
+      } catch {
+        // DB unreachable — return empty list
+      }
     }
   }
 

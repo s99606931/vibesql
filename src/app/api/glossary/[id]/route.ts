@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireUserId } from "@/lib/auth/require-user";
 
 // Re-use the same module-scoped terms array from the parent route via dynamic import.
 // Because Next.js compiles each route file as a separate module, we rely on the
@@ -13,16 +14,7 @@ const PatchSchema = z.object({
   sql: z.string().optional(),
 });
 
-// Local mirror for the in-memory case — shares the array reference from the
-// parent route module once it is imported.
-interface GlossaryTerm {
-  id: string;
-  term: string;
-  category: string;
-  definition: string;
-  sql?: string;
-  createdAt: string;
-}
+import type { GlossaryTerm } from "@/types";
 
 async function getTermsArray(): Promise<GlossaryTerm[]> {
   try {
@@ -38,6 +30,9 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+
   const { id } = await params;
 
   if (process.env.DATABASE_URL) {
@@ -75,8 +70,16 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+
   const { id } = await params;
-  const body = await req.json();
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "요청 본문이 올바른 JSON이 아닙니다." }, { status: 400 });
+  }
   const parsed = PatchSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

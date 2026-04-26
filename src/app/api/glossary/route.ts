@@ -1,14 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-interface GlossaryTerm {
-  id: string;
-  term: string;
-  category: string;
-  definition: string;
-  sql?: string;
-  createdAt: string;
-}
+import type { GlossaryTerm } from "@/types";
+import { requireUserId } from "@/lib/auth/require-user";
 
 const MAX_TERMS = 200;
 
@@ -69,7 +62,16 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body = await req.json();
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
+
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "요청 본문이 올바른 JSON이 아닙니다." }, { status: 400 });
+  }
   const parsed = CreateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
@@ -83,7 +85,7 @@ export async function POST(req: Request) {
       const { prisma } = await import("@/lib/db/prisma");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const row = await (prisma as any).glossaryTerm.create({
-        data: parsed.data,
+        data: { ...parsed.data, createdBy: userId },
       });
       return NextResponse.json({ data: row }, { status: 201 });
     } catch {
