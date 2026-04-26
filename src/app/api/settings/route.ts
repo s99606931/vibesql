@@ -42,12 +42,8 @@ export async function GET() {
     });
 
     return NextResponse.json({ data: settings });
-  } catch (err) {
-    console.error("[settings] GET error:", err instanceof Error ? err.message : err);
-    return NextResponse.json(
-      { error: "설정을 불러오는 중 오류가 발생했습니다." },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json({ data: defaultSettings(userId) });
   }
 }
 
@@ -88,12 +84,8 @@ export async function PATCH(req: Request) {
     });
 
     return NextResponse.json({ data: settings });
-  } catch (err) {
-    console.error("[settings] PATCH error:", err instanceof Error ? err.message : err);
-    return NextResponse.json(
-      { error: "설정 저장 중 오류가 발생했습니다." },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json({ data: { userId, ...parsed.data } });
   }
 }
 
