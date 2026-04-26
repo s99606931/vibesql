@@ -8,6 +8,7 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
+  clerkId   String?  @unique @map("clerk_id")
   email     String   @unique
   name      String?
   avatarUrl String?
@@ -19,8 +20,39 @@ model User {
   queries      SavedQuery[]
   historyItems QueryHistory[]
   dashboards   Dashboard[]
+  settings     UserSettings?
 
   @@map("users")
+}
+
+model UserSettings {
+  id     String @id @default(cuid())
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 외관
+  theme   String @default("system")        // "light" | "dark" | "system"
+  density String @default("comfortable")   // "compact" | "comfortable" | "spacious"
+
+  // AI 설정
+  aiModel       String @default("claude-sonnet-4-6")
+  aiTemperature Float  @default(0.3)
+  maxTokens     Int    @default(2048) @map("max_tokens")
+
+  // SQL 설정
+  defaultDialect String  @default("postgresql") @map("default_dialect")
+  autoRunQuery   Boolean @default(false) @map("auto_run_query")
+  resultPageSize Int     @default(50) @map("result_page_size")
+
+  // 기능 토글
+  showSqlPreview  Boolean @default(true) @map("show_sql_preview")
+  showExplanation Boolean @default(true) @map("show_explanation")
+  enableGlossary  Boolean @default(true) @map("enable_glossary")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("user_settings")
 }
 
 enum Role {

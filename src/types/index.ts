@@ -64,8 +64,8 @@ export interface GlossaryTerm {
   term: string;
   category: string;
   definition: string;
-  columns: Array<{ table: string; column: string }>;
-  examples: string[];
+  sql?: string;
+  createdAt: string;
 }
 
 export interface ApiResponse<T> {
