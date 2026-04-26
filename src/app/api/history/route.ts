@@ -4,6 +4,7 @@ import { requireUserId } from "@/lib/auth/require-user";
 
 interface HistoryItem {
   id: string;
+  userId: string;
   nlQuery?: string;
   sql: string;
   dialect: string;
@@ -31,25 +32,62 @@ const SaveSchema = z.object({
   connectionId: z.string().optional(),
 });
 
-export async function GET() {
+export async function GET(req: Request) {
   const authResult = await requireUserId();
   if (authResult instanceof NextResponse) return authResult;
   const userId = authResult;
 
+  const { searchParams } = new URL(req.url);
+  const search = searchParams.get("search")?.trim() ?? "";
+  const status = searchParams.get("status") as "SUCCESS" | "ERROR" | "BLOCKED" | null;
+  const starred = searchParams.get("starred") === "true";
+  const limit = Math.min(parseInt(searchParams.get("limit") ?? "50", 10), 200);
+  const offset = parseInt(searchParams.get("offset") ?? "0", 10);
+
   if (process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
-      const rows = await prisma.queryHistory.findMany({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: 50,
-      });
-      return NextResponse.json({ data: rows });
+      const where = {
+        userId,
+        ...(search ? { OR: [
+          { sql: { contains: search } },
+          { nlQuery: { contains: search } },
+        ] } : {}),
+        ...(status ? { status } : {}),
+        ...(starred ? { starred: true } : {}),
+      };
+      const [rows, total] = await Promise.all([
+        prisma.queryHistory.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          take: limit,
+          skip: offset,
+          include: { connection: { select: { name: true } } },
+        }),
+        prisma.queryHistory.count({ where }),
+      ]);
+      const mapped = rows.map(({ connection, ...r }) => ({
+        ...r,
+        connectionName: connection?.name ?? undefined,
+      }));
+      return NextResponse.json({ data: mapped, meta: { total, limit, offset } });
     } catch {
       /* fall through */
     }
   }
-  return NextResponse.json({ data: [...items].slice(0, 50) });
+
+  let filtered = items.filter((i) => i.userId === userId);
+  if (search) filtered = filtered.filter((i) =>
+    i.sql.toLowerCase().includes(search.toLowerCase()) ||
+    (i.nlQuery ?? "").toLowerCase().includes(search.toLowerCase())
+  );
+  if (status) filtered = filtered.filter((i) => i.status === status);
+  if (starred) filtered = filtered.filter((i) => i.starred);
+
+  return NextResponse.json({
+    data: filtered.slice(offset, offset + limit),
+    meta: { total: filtered.length, limit, offset },
+  });
 }
 
 export async function POST(req: Request) {
@@ -66,9 +104,14 @@ export async function POST(req: Request) {
   if (process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
-      const { connectionName: _cn, connectionId: _cid, ...rest } = parsed.data;
+      const { connectionName: _cn, connectionId, ...rest } = parsed.data;
       const row = await prisma.queryHistory.create({
-        data: { ...rest, starred: false, userId },
+        data: {
+          ...rest,
+          starred: false,
+          userId,
+          ...(connectionId ? { connectionId } : {}),
+        },
       });
       return NextResponse.json({ data: row }, { status: 201 });
     } catch {
@@ -78,6 +121,7 @@ export async function POST(req: Request) {
 
   const item: HistoryItem = {
     id: crypto.randomUUID(),
+    userId,
     ...parsed.data,
     starred: false,
     createdAt: new Date().toISOString(),

@@ -20,6 +20,7 @@ const PatchSchema = z.object({
   notifyError: z.boolean().optional(),
   notifyLong: z.boolean().optional(),
   sessionTimeout: z.number().int().min(5).max(480).optional(),
+  lastConnectionId: z.string().nullable().optional(),
 });
 
 export async function GET() {
@@ -42,9 +43,9 @@ export async function GET() {
 
     return NextResponse.json({ data: settings });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    console.error("[settings] GET error:", err instanceof Error ? err.message : err);
     return NextResponse.json(
-      { error: "설정을 불러오는 중 오류가 발생했습니다.", detail: message },
+      { error: "설정을 불러오는 중 오류가 발생했습니다." },
       { status: 500 }
     );
   }
@@ -88,9 +89,9 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json({ data: settings });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    console.error("[settings] PATCH error:", err instanceof Error ? err.message : err);
     return NextResponse.json(
-      { error: "설정 저장 중 오류가 발생했습니다.", detail: message },
+      { error: "설정 저장 중 오류가 발생했습니다." },
       { status: 500 }
     );
   }

@@ -61,7 +61,7 @@ export async function GET(req: Request) {
     // history/route.ts does not export items, so we call its GET handler
     // and derive counts from the response payload.
     const mod = await import("@/app/api/history/route");
-    const res = await mod.GET();
+    const res = await mod.GET(new Request("http://localhost/api/history?limit=200"));
     const json = (await res.json()) as { data: Array<{ status: string; durationMs?: number }> };
     const rows = json.data;
     totalQueries = rows.length;

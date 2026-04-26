@@ -7,10 +7,10 @@ import { TopBar } from "@/components/shell/TopBar";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { Card, CardHead } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
-import { AICallout, AIBadge } from "@/components/ui-vs/AICallout";
+import { AIBadge } from "@/components/ui-vs/AICallout";
 import { Button } from "@/components/ui-vs/Button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Database } from "lucide-react";
+import { Search, Database, Copy, Play } from "lucide-react";
 
 interface TableMeta {
   name: string;
@@ -22,10 +22,13 @@ interface TableMeta {
   pii: boolean;
 }
 
+type SchemaFilter = "all" | "pii" | "public";
 
 export default function SchemaPage() {
   const [search, setSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState<SchemaFilter>("all");
   const activeConnectionId = useWorkspaceStore((s) => s.activeConnectionId);
+  const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
   const router = useRouter();
 
   const { data, isLoading } = useQuery({
@@ -42,9 +45,34 @@ export default function SchemaPage() {
     staleTime: 30_000,
   });
 
-  const tables = (data ?? []).filter(
-    (t) => !search || t.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const tables = (data ?? []).filter((t) => {
+    const matchSearch = !search || t.name.toLowerCase().includes(search.toLowerCase());
+    const matchFilter =
+      activeFilter === "all" ||
+      (activeFilter === "pii" && t.pii) ||
+      (activeFilter === "public" && !t.pii);
+    return matchSearch && matchFilter;
+  });
+
+  function handleTableClick(table: TableMeta) {
+    const sql = `SELECT *\nFROM ${table.name}\nLIMIT 100;`;
+    setSql(sql);
+    setNlQuery(`${table.name} 테이블 전체 조회`);
+    setStatus("ready");
+    router.push("/workspace");
+  }
+
+  function handleCopyTable(e: React.MouseEvent, table: TableMeta) {
+    e.stopPropagation();
+    navigator.clipboard.writeText(table.name)
+      .then(() => alert(`"${table.name}" 테이블명 복사됨`))
+      .catch(() => {});
+  }
+
+  function handleRunSelect(e: React.MouseEvent, table: TableMeta) {
+    e.stopPropagation();
+    handleTableClick(table);
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
@@ -92,9 +120,27 @@ export default function SchemaPage() {
               }}
             />
           </div>
-          <Pill variant="accent">public</Pill>
-          <Pill>PII 포함</Pill>
-          <Pill>최근 변경</Pill>
+          <button
+            onClick={() => setActiveFilter("all")}
+            style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+          >
+            <Pill variant={activeFilter === "all" ? "accent" : "default"}>전체</Pill>
+          </button>
+          <button
+            onClick={() => setActiveFilter("public")}
+            style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+          >
+            <Pill variant={activeFilter === "public" ? "accent" : "default"}>public</Pill>
+          </button>
+          <button
+            onClick={() => setActiveFilter("pii")}
+            style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+          >
+            <Pill variant={activeFilter === "pii" ? "warn" : "default"}>PII 포함</Pill>
+          </button>
+          <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
+            {tables.length}개 테이블
+          </span>
         </div>
 
         {/* No connection callout */}
@@ -146,14 +192,32 @@ export default function SchemaPage() {
             }}
           >
             {tables.map((table) => (
-              <Card key={table.name} hoverable style={{ cursor: "pointer" }}>
+              <Card
+                key={table.name}
+                hoverable
+                style={{ cursor: "pointer" }}
+                onClick={() => handleTableClick(table)}
+              >
                 <CardHead
                   title={table.name}
                   meta={`${table.rows}행 · ${table.columns}컬럼`}
                   actions={
-                    <div style={{ display: "flex", gap: "var(--ds-sp-1)" }}>
+                    <div style={{ display: "flex", gap: "var(--ds-sp-1)", alignItems: "center" }}>
                       {table.pii && <Pill variant="warn">PII</Pill>}
-                      <Pill variant="default">{table.rows}</Pill>
+                      <button
+                        onClick={(e) => handleCopyTable(e, table)}
+                        title="테이블명 복사"
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2 }}
+                      >
+                        <Copy size={11} />
+                      </button>
+                      <button
+                        onClick={(e) => handleRunSelect(e, table)}
+                        title="워크스페이스에서 SELECT 실행"
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-accent)", display: "flex", alignItems: "center", padding: 2 }}
+                      >
+                        <Play size={11} />
+                      </button>
                     </div>
                   }
                 />
@@ -253,7 +317,11 @@ export default function SchemaPage() {
                   fontSize: "var(--ds-fs-13)",
                 }}
               >
-                &ldquo;{search}&rdquo;와 일치하는 테이블이 없습니다.
+                {search
+                  ? `"${search}"와 일치하는 테이블이 없습니다.`
+                  : activeFilter === "pii"
+                  ? "PII 포함 테이블이 없습니다."
+                  : "표시할 테이블이 없습니다."}
               </div>
             )}
           </div>

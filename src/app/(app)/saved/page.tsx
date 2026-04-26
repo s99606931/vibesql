@@ -79,13 +79,27 @@ export default function SavedPage() {
     },
   });
 
-  function handleNewFolder() {
+  async function handleNewFolder() {
     const folder = prompt("새 폴더 이름을 입력하세요:");
-    if (folder?.trim()) {
-      queryClient.setQueryData<SavedQuery[]>(["saved"], (old) =>
-        old ? old.map((q) => (q.folder === "미분류" ? { ...q, folder: folder.trim() } : q)) : old ?? []
-      );
+    if (!folder?.trim()) return;
+    const name = folder.trim();
+    const unclassified = (queryClient.getQueryData<SavedQuery[]>(["saved"]) ?? []).filter(
+      (q) => (q.folder ?? "미분류") === "미분류"
+    );
+    if (unclassified.length === 0) {
+      queryClient.setQueryData<SavedQuery[]>(["saved"], (old) => old ?? []);
+      return;
     }
+    await Promise.all(
+      unclassified.map((q) =>
+        fetch(`/api/saved/${q.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ folder: name }),
+        })
+      )
+    );
+    queryClient.invalidateQueries({ queryKey: ["saved"] });
   }
 
   const filtered = (data ?? []).filter(
@@ -392,7 +406,7 @@ export default function SavedPage() {
                           variant="danger"
                           size="sm"
                           icon={<Trash2 size={12} />}
-                          loading={deleteMutation.isPending}
+                          loading={deleteMutation.isPending && deleteMutation.variables === query.id}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (confirm(`"${query.name}" 쿼리를 삭제할까요?`)) {

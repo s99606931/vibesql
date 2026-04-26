@@ -82,30 +82,34 @@ export default function HistoryPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["history"] }),
   });
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["history"],
+  const [limit, setLimit] = useState(50);
+
+  const statusParam =
+    activeFilter === "성공" ? "SUCCESS" :
+    activeFilter === "실패" ? "ERROR" :
+    activeFilter === "즐겨찾기" ? undefined : undefined;
+  const starredParam = activeFilter === "즐겨찾기";
+
+  const { data: historyResponse, isLoading } = useQuery({
+    queryKey: ["history", search, activeFilter, limit],
     queryFn: async () => {
-      const res = await fetch("/api/history");
-      const json = await res.json() as { data: HistoryItem[]; error?: string };
+      const params = new URLSearchParams({ limit: String(limit) });
+      if (search) params.set("search", search);
+      if (statusParam) params.set("status", statusParam);
+      if (starredParam) params.set("starred", "true");
+      const res = await fetch(`/api/history?${params.toString()}`);
+      const json = await res.json() as { data: HistoryItem[]; meta?: { total: number }; error?: string };
       if (!res.ok) throw new Error(json.error ?? "히스토리를 불러오지 못했습니다.");
-      return json.data;
+      return json;
     },
-    initialData: [],
     staleTime: 10_000,
   });
 
-  const filtered = (data ?? []).filter((item) => {
-    if (activeFilter === "성공" && item.status !== "SUCCESS") return false;
+  const data = historyResponse?.data ?? [];
+  const totalCount = historyResponse?.meta?.total ?? data.length;
+
+  const filtered = data.filter((item) => {
     if (activeFilter === "실패" && item.status !== "ERROR" && item.status !== "BLOCKED") return false;
-    if (activeFilter === "즐겨찾기" && !item.starred) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return (
-        item.nlQuery?.toLowerCase().includes(q) ||
-        item.sql.toLowerCase().includes(q) ||
-        item.connectionName?.toLowerCase().includes(q)
-      );
-    }
     return true;
   });
 
@@ -322,6 +326,19 @@ export default function HistoryPage() {
               </Card>
             </div>
           ))}
+
+        {/* Load more */}
+        {data.length > 0 && data.length < totalCount && (
+          <div style={{ textAlign: "center", paddingTop: "var(--ds-sp-4)" }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLimit((prev) => prev + 50)}
+            >
+              더 보기 ({data.length}/{totalCount}개)
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -18,10 +18,11 @@ import {
   TriangleAlert,
   Check,
   Save,
+  LayoutDashboard,
 } from "lucide-react";
 import { useState, useRef, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ResultTable } from "@/components/workspace/ResultTable";
 import ResultChart from "@/components/workspace/ResultChart";
 import { SqlEditor } from "@/components/workspace/SqlEditor";
@@ -56,15 +57,14 @@ function exportToCsv(rows: Record<string, unknown>[], columns: string[]): void {
 
 function SqlParamLoader() {
   const searchParams = useSearchParams();
-  const { setSql, setStatus, sql } = useWorkspaceStore();
+  const { setSql, setStatus } = useWorkspaceStore();
   useEffect(() => {
     const sqlParam = searchParams.get("sql");
-    if (sqlParam && !sql) {
+    if (sqlParam && !useWorkspaceStore.getState().sql) {
       setSql(decodeURIComponent(sqlParam));
       setStatus("ready");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams, setSql, setStatus]);
   return null;
 }
 
@@ -129,6 +129,53 @@ export default function WorkspacePage() {
       savedOkTimer.current = setTimeout(() => setSavedOk(false), 1500);
     },
   });
+
+  const { data: dashboards } = useQuery<Array<{ id: string; name: string; widgets: unknown[] }>>({
+    queryKey: ["dashboards"],
+    queryFn: async () => {
+      const r = await fetch("/api/dashboards");
+      const j = await r.json() as { data?: Array<{ id: string; name: string; widgets: unknown[] }> };
+      return Array.isArray(j.data) ? j.data : [];
+    },
+    staleTime: 30_000,
+    enabled: false,
+  });
+
+  const addToDashboardMutation = useMutation({
+    mutationFn: async ({ dashId, label }: { dashId: string; label: string }) => {
+      const dash = (dashboards ?? []).find((d) => d.id === dashId);
+      const existingWidgets = Array.isArray(dash?.widgets) ? dash!.widgets : [];
+      const newWidget = { type: "table", label, sql, createdAt: new Date().toISOString() };
+      const r = await fetch(`/api/dashboards/${dashId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ widgets: [...existingWidgets, newWidget] }),
+      });
+      if (!r.ok) throw new Error("대시보드 추가 실패");
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboards"] }),
+  });
+
+  async function handleAddToDashboard() {
+    const fresh = await queryClient.fetchQuery<Array<{ id: string; name: string; widgets: unknown[] }>>({
+      queryKey: ["dashboards"],
+      queryFn: async () => {
+        const r = await fetch("/api/dashboards");
+        const j = await r.json() as { data?: Array<{ id: string; name: string; widgets: unknown[] }> };
+        return Array.isArray(j.data) ? j.data : [];
+      },
+    });
+    if (!fresh || fresh.length === 0) {
+      alert("대시보드가 없습니다. 먼저 대시보드를 생성하세요.");
+      return;
+    }
+    const opts = fresh.map((d, i) => `${i + 1}. ${d.name}`).join("\n");
+    const input = prompt(`어느 대시보드에 추가할까요?\n\n${opts}\n\n번호를 입력하세요:`);
+    const idx = parseInt(input ?? "", 10) - 1;
+    if (isNaN(idx) || idx < 0 || idx >= fresh.length) return;
+    const label = prompt("위젯 이름:", nlQuery || "쿼리 결과") ?? "쿼리 결과";
+    addToDashboardMutation.mutate({ dashId: fresh[idx].id, label });
+  }
 
   async function handleGenerate() {
     if (!nlQuery.trim()) return;
@@ -217,14 +264,14 @@ export default function WorkspacePage() {
             dialect,
             status: histStatus,
             errorMsg: json.error ?? "실행에 실패했습니다",
+            ...(activeConnectionId ? { connectionId: activeConnectionId } : {}),
             ...(activeConnection ? { connectionName: activeConnection.name } : {}),
           }),
         }).then(() => queryClient.invalidateQueries({ queryKey: ["history"] })).catch(() => undefined);
         throw new Error(json.error ?? "Query execution failed");
       }
       const { rows, rowCount: rc, durationMs } = json.data;
-      setResults(rows, rc, durationMs);
-      setStatus("success");
+      setResults(rows, rc, durationMs); // setResults already sets status → "success"
       // Save to history + invalidate cache (non-blocking)
       fetch("/api/history", {
         method: "POST",
@@ -236,6 +283,7 @@ export default function WorkspacePage() {
           status: "SUCCESS",
           rowCount: rc,
           durationMs,
+          ...(activeConnectionId ? { connectionId: activeConnectionId } : {}),
           ...(activeConnection ? { connectionName: activeConnection.name } : {}),
         }),
       }).then(async (r) => {
@@ -265,7 +313,15 @@ export default function WorkspacePage() {
             {/* Connection selector */}
             <select
               value={activeConnectionId ?? ""}
-              onChange={(e) => setActiveConnection(e.target.value || null)}
+              onChange={(e) => {
+                const id = e.target.value || null;
+                setActiveConnection(id);
+                fetch("/api/settings", {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ lastConnectionId: id }),
+                }).catch(() => {});
+              }}
               style={{
                 border: "1px solid var(--ds-border)",
                 borderRadius: "var(--ds-r-6)",
@@ -309,7 +365,9 @@ export default function WorkspacePage() {
                   icon={<Share2 size={13} />}
                   onClick={() => {
                     const url = `${window.location.origin}/workspace?sql=${encodeURIComponent(sql)}`;
-                    navigator.clipboard.writeText(url).then(() => alert("공유 링크가 클립보드에 복사되었습니다."));
+                    navigator.clipboard.writeText(url)
+                      .then(() => alert("공유 링크가 클립보드에 복사되었습니다."))
+                      .catch(() => alert("클립보드 복사에 실패했습니다. URL을 수동으로 복사하세요:\n" + url));
                   }}
                 >공유</Button>
               </>
@@ -540,6 +598,15 @@ export default function WorkspacePage() {
                 onClick={() => results && exportToCsv(results, columns)}
               >
                 CSV
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<LayoutDashboard size={12} />}
+                loading={addToDashboardMutation.isPending}
+                onClick={handleAddToDashboard}
+              >
+                대시보드 추가
               </Button>
             </div>
 
