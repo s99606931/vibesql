@@ -173,16 +173,13 @@ describe("[연결 테스트] POST /api/connections/{id}/test", () => {
     delete process.env.DATABASE_URL;
   });
 
-  it("미등록 연결 → mock 성공 응답", async () => {
-    // 연결 스토어에 없는 id → 폴백 mock 반환
+  it("미등록 연결 → 404", async () => {
+    // 연결 스토어에 없는 id → 404 (보안: 미존재 연결로 mock 성공 응답하지 않음)
     const { POST } = await import("../connections/[id]/test/route");
     const res = (await POST(new Request("http://localhost"), {
       params: Promise.resolve({ id: "unknown-conn-id" }),
     })) as unknown as ApiResponse;
-    expect(res.status).toBe(200);
-    const data = body(res)["data"] as Record<string, unknown>;
-    expect(data["success"]).toBe(true);
-    expect(typeof data["latencyMs"]).toBe("number");
+    expect(res.status).toBe(404);
   });
 
   it("sqlite 연결(미지원 driver) → mock 성공 응답", async () => {
