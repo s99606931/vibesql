@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUserId } from "@/lib/auth/require-user";
 import { memProviders } from "../../route";
+import { persistAiProviders } from "@/lib/db/mem-ai-providers";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -27,5 +28,6 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   memProviders.forEach((p) => { if (p.userId === userId) p.isActive = false; });
   target.isActive = true;
   target.updatedAt = new Date().toISOString();
+  persistAiProviders();
   return NextResponse.json({ data: target });
 }

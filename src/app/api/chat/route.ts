@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { memAiProviders } from "@/lib/db/mem-ai-providers";
 
 const MessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
@@ -27,20 +28,14 @@ async function getActiveProvider(userId?: string) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
       const where = userId ? { userId, isActive: true } : { isActive: true };
-      return await prisma.aiProvider.findFirst({ where });
-    } catch {
-      return null;
-    }
+      const row = await prisma.aiProvider.findFirst({ where });
+      if (row) return row;
+    } catch { /* fall through to in-memory */ }
   }
-  try {
-    const { memProviders } = await import("@/app/api/ai-providers/route");
-    const p = userId
-      ? memProviders.find((x) => x.userId === userId && x.isActive)
-      : memProviders.find((x) => x.isActive);
-    return p ?? null;
-  } catch {
-    return null;
-  }
+  const p = userId
+    ? memAiProviders.find((x) => x.userId === userId && x.isActive)
+    : memAiProviders.find((x) => x.isActive);
+  return p ?? null;
 }
 
 function validateUrl(rawUrl: string) {

@@ -6,6 +6,7 @@
  *
  * DB-configured provider takes priority when DATABASE_URL is set.
  */
+import { memAiProviders } from "@/lib/db/mem-ai-providers";
 
 export interface Nl2SqlOptions {
   nl: string;
@@ -223,17 +224,27 @@ interface DbProvider {
 }
 
 async function getActiveProvider(userId?: string): Promise<DbProvider | null> {
-  if (!process.env.DATABASE_URL) return null;
-  try {
-    const { prisma } = await import("@/lib/db/prisma");
-    const where = userId
-      ? { userId, isActive: true }
-      : { isActive: true };
-    const provider = await prisma.aiProvider.findFirst({ where });
-    return provider as DbProvider | null;
-  } catch {
-    return null;
+  if (process.env.DATABASE_URL) {
+    try {
+      const { prisma } = await import("@/lib/db/prisma");
+      const where = userId ? { userId, isActive: true } : { isActive: true };
+      const provider = await prisma.aiProvider.findFirst({ where });
+      if (provider) return provider as DbProvider;
+    } catch { /* fall through to in-memory */ }
   }
+
+  const provider = userId
+    ? memAiProviders.find((p) => p.userId === userId && p.isActive)
+    : memAiProviders.find((p) => p.isActive);
+  if (!provider) return null;
+  return {
+    type: provider.type,
+    baseUrl: provider.baseUrl,
+    apiKey: provider.apiKey,
+    model: provider.model,
+    temperature: provider.temperature,
+    maxTokens: provider.maxTokens,
+  };
 }
 
 // ── Public API ──────────────────────────────────────────────────────────────

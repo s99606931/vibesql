@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUserId } from "@/lib/auth/require-user";
+import { memAiProviders, persistAiProviders } from "@/lib/db/mem-ai-providers";
 
 export type AiProviderType = "anthropic" | "openai" | "google" | "lmstudio" | "ollama" | "vllm" | "openai_compat";
 
@@ -32,9 +33,9 @@ const CreateSchema = z.object({
   isActive: z.boolean().default(false),
 });
 
-// ─── in-memory fallback ───────────────────────────────────────────────────────
+// ─── in-memory fallback (shared singleton) ────────────────────────────────────
 
-export const memProviders: AiProvider[] = [];
+export const memProviders = memAiProviders as AiProvider[];
 
 // ─── GET /api/ai-providers ────────────────────────────────────────────────────
 
@@ -103,6 +104,7 @@ export async function POST(req: Request) {
     updatedAt: new Date().toISOString(),
   };
   memProviders.push(provider);
+  persistAiProviders();
   return NextResponse.json({ data: sanitize(provider) }, { status: 201 });
 }
 

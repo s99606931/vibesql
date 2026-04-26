@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUserId } from "@/lib/auth/require-user";
 import { memProviders, type AiProvider } from "../route";
+import { persistAiProviders } from "@/lib/db/mem-ai-providers";
 
 function sanitize(p: AiProvider | Record<string, unknown>) {
   const { apiKey: _k, ...safe } = p as AiProvider;
@@ -74,6 +75,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const idx = memProviders.findIndex((x) => x.id === id && x.userId === userId);
   if (idx === -1) return NextResponse.json({ error: "찾을 수 없습니다." }, { status: 404 });
   Object.assign(memProviders[idx], data, { updatedAt: new Date().toISOString() });
+  persistAiProviders();
   return NextResponse.json({ data: memProviders[idx] });
 }
 
@@ -98,5 +100,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const idx = memProviders.findIndex((x) => x.id === id && x.userId === userId);
   if (idx === -1) return NextResponse.json({ error: "찾을 수 없습니다." }, { status: 404 });
   memProviders.splice(idx, 1);
+  persistAiProviders();
   return NextResponse.json({ data: { id } });
 }
