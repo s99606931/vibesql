@@ -1,14 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { MockNextResponse } from "@/test/mocks/next-server";
 
-// Mock Next.js server module
-vi.mock("next/server", () => ({
-  NextResponse: {
-    json: vi.fn((body: unknown, init?: ResponseInit) => ({
-      json: async () => body,
-      status: init?.status ?? 200,
-    })),
-  },
-}));
+// next/server is aliased to @/test/mocks/next-server in vitest.config.ts
 
 // Isolate the in-memory store between tests by re-importing the module
 // fresh each time via vi.resetModules().
