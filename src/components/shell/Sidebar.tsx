@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useConnections } from "@/hooks/useConnections";
 import {
-  Home,
   SquareTerminal,
   Table2,
   BookOpen,
@@ -19,22 +20,65 @@ import {
   AlertTriangle,
   Settings,
   ChevronDown,
+  ChevronRight,
   Zap,
 } from "lucide-react";
 
-const navItems = [
-  { href: "/home", icon: Home, label: "홈" },
-  { href: "/workspace", icon: SquareTerminal, label: "워크스페이스" },
-  { href: "/schema", icon: Table2, label: "스키마" },
-  { href: "/glossary", icon: BookOpen, label: "용어 사전" },
-  { href: "/charts", icon: BarChart2, label: "결과 · 차트" },
-  { href: "/dashboards", icon: LayoutDashboard, label: "대시보드" },
-  { href: "/history", icon: History, label: "히스토리" },
-  { href: "/saved", icon: Star, label: "저장됨", countKey: "saved" as const },
-  { href: "/connections", icon: Plug, label: "연결" },
-  { href: "/profile", icon: User, label: "프로필" },
-  { href: "/errors", icon: AlertTriangle, label: "상태 · 에러" },
-  { href: "/settings", icon: Settings, label: "설정" },
+type NavItem = {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+  countKey?: "saved";
+};
+
+type NavGroup = {
+  id: string;
+  label: string;
+  items: NavItem[];
+};
+
+const navGroups: NavGroup[] = [
+  {
+    id: "workspace",
+    label: "워크스페이스",
+    items: [
+      { href: "/workspace", icon: SquareTerminal, label: "워크스페이스" },
+      { href: "/history", icon: History, label: "히스토리" },
+      { href: "/saved", icon: Star, label: "저장됨", countKey: "saved" },
+    ],
+  },
+  {
+    id: "insights",
+    label: "인사이트",
+    items: [
+      { href: "/dashboards", icon: LayoutDashboard, label: "대시보드" },
+      { href: "/charts", icon: BarChart2, label: "차트" },
+    ],
+  },
+  {
+    id: "knowledge",
+    label: "지식베이스",
+    items: [
+      { href: "/schema", icon: Table2, label: "스키마" },
+      { href: "/glossary", icon: BookOpen, label: "용어 사전" },
+    ],
+  },
+  {
+    id: "sources",
+    label: "데이터 소스",
+    items: [
+      { href: "/connections", icon: Plug, label: "연결" },
+      { href: "/errors", icon: AlertTriangle, label: "상태 · 에러" },
+    ],
+  },
+  {
+    id: "account",
+    label: "계정",
+    items: [
+      { href: "/profile", icon: User, label: "프로필" },
+      { href: "/settings", icon: Settings, label: "설정" },
+    ],
+  },
 ];
 
 interface SidebarProps {
@@ -45,28 +89,41 @@ export function Sidebar({ onOpenCommandPalette }: SidebarProps) {
   const pathname = usePathname();
   const activeConnectionId = useWorkspaceStore((s) => s.activeConnectionId);
 
+  // All groups open by default
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    workspace: true,
+    insights: true,
+    knowledge: true,
+    sources: true,
+    account: true,
+  });
+
   const { data: savedCount } = useQuery({
     queryKey: ["saved"],
     queryFn: async () => {
       const res = await fetch("/api/saved");
       const json = await res.json() as { data?: unknown[] };
-      return Array.isArray(json.data) ? json.data.length : 0;
+      return Array.isArray(json.data) ? json.data : [];
     },
     staleTime: 30_000,
-    select: (data) => (typeof data === "number" ? data : 0),
+    select: (data) => (Array.isArray(data) ? data.length : 0),
   });
 
-  const { data: connections } = useQuery({
-    queryKey: ["connections"],
-    queryFn: async () => {
-      const res = await fetch("/api/connections");
-      const json = await res.json() as { data?: Array<{ id: string; name: string }> };
-      return json.data ?? [];
-    },
-    staleTime: 30_000,
-  });
+  const { data: connections } = useConnections();
 
   const activeConnection = (connections ?? []).find((c) => c.id === activeConnectionId);
+
+  function isGroupActive(group: NavGroup): boolean {
+    return group.items.some(
+      (item) => pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
+    );
+  }
+
+  function toggleGroup(groupId: string, hasActiveItem: boolean) {
+    // Groups with an active item stay open
+    if (hasActiveItem) return;
+    setOpenGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
+  }
 
   return (
     <aside
@@ -84,34 +141,34 @@ export function Sidebar({ onOpenCommandPalette }: SidebarProps) {
         flexShrink: 0,
       }}
     >
-      {/* Workspace selector */}
+      {/* Logo / home link */}
       <div
         style={{
           padding: "var(--ds-sp-2) var(--ds-sp-3)",
           borderBottom: "1px solid var(--ds-border)",
         }}
       >
-        <button
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--ds-sp-2)",
-            width: "100%",
-            padding: "var(--ds-sp-1) var(--ds-sp-2)",
-            borderRadius: "var(--ds-r-6)",
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            color: "var(--ds-text)",
-            fontSize: "var(--ds-fs-13)",
-            fontWeight: "var(--ds-fw-medium)",
-          }}
-          className="hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
-        >
-          <Zap size={14} style={{ color: "var(--ds-accent)" }} />
-          <span style={{ flex: 1, textAlign: "left" }}>vibeSQL</span>
-          <ChevronDown size={12} style={{ color: "var(--ds-text-faint)" }} />
-        </button>
+        <Link href="/" style={{ textDecoration: "none" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--ds-sp-2)",
+              width: "100%",
+              padding: "var(--ds-sp-1) var(--ds-sp-2)",
+              borderRadius: "var(--ds-r-6)",
+              color: "var(--ds-text)",
+              fontSize: "var(--ds-fs-13)",
+              fontWeight: "var(--ds-fw-medium)",
+              cursor: "pointer",
+            }}
+            className="hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
+          >
+            <Zap size={14} style={{ color: "var(--ds-accent)" }} />
+            <span style={{ flex: 1 }}>vibeSQL</span>
+            <ChevronDown size={12} style={{ color: "var(--ds-text-faint)" }} />
+          </div>
+        </Link>
 
         {/* Active connection chip */}
         <div
@@ -149,46 +206,99 @@ export function Sidebar({ onOpenCommandPalette }: SidebarProps) {
 
       {/* Navigation */}
       <nav style={{ flex: 1, padding: "var(--ds-sp-2)", overflowY: "auto" }}>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/home" && pathname.startsWith(item.href));
-          const count = "countKey" in item && item.countKey === "saved" ? savedCount : undefined;
+        {navGroups.map((group) => {
+          const hasActiveItem = isGroupActive(group);
+          const isOpen = hasActiveItem || (openGroups[group.id] ?? true);
+
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "var(--ds-sp-2)",
-                padding: "var(--ds-sp-1) var(--ds-sp-3)",
-                borderRadius: "var(--ds-r-6)",
-                fontSize: "var(--ds-fs-12)",
-                color: isActive ? "var(--ds-text)" : "var(--ds-text-mute)",
-                background: isActive ? "var(--ds-fill)" : "transparent",
-                borderLeft: isActive ? "2px solid var(--ds-accent)" : "2px solid transparent",
-                textDecoration: "none",
-                marginBottom: "1px",
-                transition: `background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)`,
-              }}
-              className={cn("group", !isActive && "hover:bg-fill hover:text-text")}
-            >
-              <item.icon size={14} style={{ flexShrink: 0 }} />
-              <span style={{ flex: 1 }}>{item.label}</span>
-              {count != null && count > 0 && (
-                <span
-                  style={{
-                    fontSize: "var(--ds-fs-9)",
-                    fontFamily: "var(--ds-font-mono)",
-                    color: "var(--ds-text-faint)",
-                    background: "var(--ds-fill)",
-                    borderRadius: "var(--ds-r-full)",
-                    padding: "1px 5px",
-                  }}
-                >
-                  {count}
-                </span>
+            <div key={group.id} style={{ marginBottom: "var(--ds-sp-2)" }}>
+              {/* Group header */}
+              <button
+                onClick={() => toggleGroup(group.id, hasActiveItem)}
+                aria-expanded={isOpen}
+                aria-label={group.label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "var(--ds-sp-1)",
+                  width: "100%",
+                  padding: "2px var(--ds-sp-2)",
+                  background: "transparent",
+                  border: "none",
+                  cursor: hasActiveItem ? "default" : "pointer",
+                  color: "var(--ds-text-faint)",
+                  fontSize: "var(--ds-fs-10)",
+                  fontWeight: "var(--ds-fw-semibold)",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  borderRadius: "var(--ds-r-6)",
+                  userSelect: "none",
+                  marginBottom: 2,
+                }}
+                className={cn(
+                  !hasActiveItem && "hover:text-mute transition-colors duration-[var(--ds-dur-fast)]"
+                )}
+              >
+                <span style={{ flex: 1, textAlign: "left" }}>{group.label}</span>
+                {isOpen
+                  ? <ChevronDown size={9} />
+                  : <ChevronRight size={9} />
+                }
+              </button>
+
+              {/* Group items */}
+              {isOpen && (
+                <div>
+                  {group.items.map((item) => {
+                    const isActive =
+                      pathname === item.href ||
+                      (item.href !== "/" && pathname.startsWith(item.href));
+                    const count = item.countKey === "saved" ? savedCount : undefined;
+
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "var(--ds-sp-2)",
+                          padding: "var(--ds-sp-1) var(--ds-sp-3)",
+                          borderRadius: "var(--ds-r-6)",
+                          fontSize: "var(--ds-fs-12)",
+                          color: isActive ? "var(--ds-text)" : "var(--ds-text-mute)",
+                          background: isActive ? "var(--ds-fill)" : "transparent",
+                          borderLeft: isActive
+                            ? "2px solid var(--ds-accent)"
+                            : "2px solid transparent",
+                          textDecoration: "none",
+                          marginBottom: 1,
+                          transition: `background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)`,
+                        }}
+                        className={cn("group", !isActive && "hover:bg-fill hover:text-text")}
+                      >
+                        <item.icon size={14} style={{ flexShrink: 0 }} />
+                        <span style={{ flex: 1 }}>{item.label}</span>
+                        {count != null && count > 0 && (
+                          <span
+                            style={{
+                              fontSize: "var(--ds-fs-9)",
+                              fontFamily: "var(--ds-font-mono)",
+                              color: "var(--ds-text-faint)",
+                              background: "var(--ds-fill)",
+                              borderRadius: "var(--ds-r-full)",
+                              padding: "1px 5px",
+                            }}
+                          >
+                            {count}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
               )}
-            </Link>
+            </div>
           );
         })}
       </nav>
