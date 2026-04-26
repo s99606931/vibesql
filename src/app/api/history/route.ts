@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireUserId } from "@/lib/auth/require-user";
 
 interface HistoryItem {
   id: string;
@@ -16,7 +17,7 @@ interface HistoryItem {
 }
 
 const MAX_ITEMS = 100;
-const items: HistoryItem[] = [];
+export const items: HistoryItem[] = [];
 
 const SaveSchema = z.object({
   nlQuery: z.string().optional(),
@@ -31,10 +32,15 @@ const SaveSchema = z.object({
 });
 
 export async function GET() {
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
+
   if (process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
       const rows = await prisma.queryHistory.findMany({
+        where: { userId },
         orderBy: { createdAt: "desc" },
         take: 50,
       });
@@ -47,6 +53,10 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
+
   const body = await req.json();
   const parsed = SaveSchema.safeParse(body);
   if (!parsed.success) {
@@ -56,9 +66,9 @@ export async function POST(req: Request) {
   if (process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
-      const { connectionName: _cn, connectionId, ...rest } = parsed.data;
+      const { connectionName: _cn, connectionId: _cid, ...rest } = parsed.data;
       const row = await prisma.queryHistory.create({
-        data: { ...rest, starred: false, userId: "system", connectionId },
+        data: { ...rest, starred: false, userId },
       });
       return NextResponse.json({ data: row }, { status: 201 });
     } catch {
