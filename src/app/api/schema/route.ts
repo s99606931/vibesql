@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Pool } from "pg";
 import { getConnection, type StoredConnection } from "@/lib/connections/store";
 import { requireUserId } from "@/lib/auth/require-user";
+import { decryptPassword } from "@/lib/connections/encrypt";
 
 interface TableMeta {
   name: string;
@@ -28,7 +29,7 @@ function getPool(conn: StoredConnection): Pool {
     database: conn.database,
     user: conn.username,
     password: conn.passwordBase64
-      ? Buffer.from(conn.passwordBase64, "base64").toString()
+      ? decryptPassword(conn.passwordBase64)
       : undefined,
     ssl: conn.ssl ? { rejectUnauthorized: false } : false,
     max: 3,

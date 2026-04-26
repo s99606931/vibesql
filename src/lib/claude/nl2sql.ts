@@ -8,12 +8,19 @@
  */
 import { memAiProviders } from "@/lib/db/mem-ai-providers";
 
+export interface AiContextRuleSnippet {
+  ruleType: string;
+  key: string;
+  value: string;
+}
+
 export interface Nl2SqlOptions {
   nl: string;
   dialect: "postgresql" | "mysql" | "sqlite" | "mssql" | "oracle";
   schemaContext: string;
   glossary?: string;
   userId?: string;
+  aiContextRules?: AiContextRuleSnippet[];
 }
 
 export interface Nl2SqlResult {
@@ -42,7 +49,26 @@ function isNl2SqlResult(value: unknown): value is Nl2SqlResult {
 }
 
 export function buildPrompts(options: Nl2SqlOptions): { system: string; user: string } {
-  const { nl, dialect, schemaContext, glossary } = options;
+  const { nl, dialect, schemaContext, glossary, aiContextRules = [] } = options;
+
+  const fewShots = aiContextRules.filter((r) => r.ruleType === "few_shot");
+  const forbidden = aiContextRules.filter((r) => r.ruleType === "forbidden");
+  const aliases = aiContextRules.filter((r) => r.ruleType === "alias");
+
+  const fewShotBlock =
+    fewShots.length > 0
+      ? `\nFew-shot examples:\n${fewShots.map((r) => `Q: ${r.key}\nSQL: ${r.value}`).join("\n\n")}`
+      : "";
+
+  const forbiddenBlock =
+    forbidden.length > 0
+      ? `\nForbidden patterns (never generate these):\n${forbidden.map((r) => `- ${r.value}`).join("\n")}`
+      : "";
+
+  const aliasBlock =
+    aliases.length > 0
+      ? `\nTable/column aliases: ${aliases.map((r) => `"${r.key}" → ${r.value}`).join(", ")}`
+      : "";
 
   const system = `You are an expert SQL generator for ${dialect} databases.
 ${DIALECT_HINTS[dialect] ?? ""}
@@ -56,7 +82,7 @@ Rules:
 
 Available schema:
 ${schemaContext}
-${glossary ? `\nBusiness terms:\n${glossary}` : ""}`;
+${glossary ? `\nBusiness terms:\n${glossary}` : ""}${aliasBlock}${forbiddenBlock}${fewShotBlock}`;
 
   const user = `Convert this natural language request to ${dialect} SQL:
 <query>${nl.replace(/<\/?query>/g, "")}</query>

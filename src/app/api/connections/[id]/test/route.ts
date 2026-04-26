@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getConnection, updateConnection } from "@/lib/connections/store";
 import { requireUserId } from "@/lib/auth/require-user";
 import type { StoredConnection } from "@/lib/connections/store";
+import { decryptPassword } from "@/lib/connections/encrypt";
 
 export async function POST(
   _req: Request,
@@ -64,9 +65,7 @@ export async function POST(
         port: conn.port || 5432,
         database: conn.database,
         user: conn.username,
-        password: conn.passwordBase64
-          ? Buffer.from(conn.passwordBase64, "base64").toString()
-          : undefined,
+        password: conn.passwordBase64 ? decryptPassword(conn.passwordBase64) : undefined,
         ssl: conn.ssl ? { rejectUnauthorized: false } : false,
         connectionTimeoutMillis: 5000,
       });

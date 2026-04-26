@@ -6,6 +6,8 @@ import {
   type StoredConnection,
 } from "@/lib/connections/store";
 import { requireUserId } from "@/lib/auth/require-user";
+import { encryptPassword } from "@/lib/connections/encrypt";
+import { logAction } from "@/lib/audit/log-action";
 
 const ConnectionSchema = z.object({
   name: z.string().min(1).max(100),
@@ -81,9 +83,7 @@ export async function POST(req: Request) {
       const conn = await prisma.connection.create({
         data: {
           ...rest,
-          passwordHash: password
-            ? Buffer.from(password).toString("base64")
-            : undefined,
+          passwordHash: password ? encryptPassword(password) : undefined,
           userId,
         },
         select: {
@@ -99,6 +99,11 @@ export async function POST(req: Request) {
           createdAt: true,
         },
       });
+      void logAction({
+        action: "connection.created",
+        userId,
+        metadata: { connectionId: conn.id, name: conn.name },
+      });
       return NextResponse.json({ data: conn }, { status: 201 });
     } catch {
       /* fall through */
@@ -110,14 +115,17 @@ export async function POST(req: Request) {
     createdAt: new Date().toISOString(),
     isActive: true,
     ...rest,
-    passwordBase64: password
-      ? Buffer.from(password).toString("base64")
-      : undefined,
+    passwordBase64: password ? encryptPassword(password) : undefined,
     userId,
   };
   addConnection(conn);
 
   // Return without sensitive fields
   const { passwordBase64: _pw, ...safeConn } = conn;
+  void logAction({
+    action: "connection.created",
+    userId,
+    metadata: { connectionId: safeConn.id, name: safeConn.name },
+  });
   return NextResponse.json({ data: safeConn }, { status: 201 });
 }

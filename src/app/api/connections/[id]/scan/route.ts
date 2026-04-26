@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getConnection } from "@/lib/connections/store";
 import { requireUserId } from "@/lib/auth/require-user";
 import type { StoredConnection } from "@/lib/connections/store";
+import { decryptPassword } from "@/lib/connections/encrypt";
 
 interface TableInfo {
   name: string;
@@ -85,7 +86,7 @@ export async function POST(
         database: conn.database,
         user: conn.username,
         password: conn.passwordBase64
-          ? Buffer.from(conn.passwordBase64, "base64").toString()
+          ? decryptPassword(conn.passwordBase64)
           : undefined,
         ssl: conn.ssl ? { rejectUnauthorized: false } : false,
         connectionTimeoutMillis: 5000,

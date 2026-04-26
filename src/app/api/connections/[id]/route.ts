@@ -4,6 +4,37 @@ import { getConnection, updateConnection, deleteConnection } from "@/lib/connect
 import { requireUserId } from "@/lib/auth/require-user";
 import { evictRunPools } from "@/app/api/queries/run/route";
 import { evictSchemaPool } from "@/app/api/schema/route";
+import { encryptPassword } from "@/lib/connections/encrypt";
+
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
+
+  if (process.env.DATABASE_URL) {
+    try {
+      const { prisma } = await import("@/lib/db/prisma");
+      const conn = await prisma.connection.findFirst({
+        where: { id, userId },
+        select: { id: true, name: true, type: true, host: true, port: true, database: true, username: true, ssl: true, isActive: true, createdAt: true },
+      });
+      if (!conn) return NextResponse.json({ error: "연결을 찾을 수 없습니다." }, { status: 404 });
+      return NextResponse.json({ data: conn });
+    } catch { /* fall through */ }
+  }
+
+  const conn = getConnection(id);
+  if (!conn || (conn.userId !== undefined && conn.userId !== userId)) {
+    return NextResponse.json({ error: "연결을 찾을 수 없습니다." }, { status: 404 });
+  }
+  const { passwordBase64: _pw, ...safeConn } = conn;
+  void _pw;
+  return NextResponse.json({ data: safeConn });
+}
 
 const PatchSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -41,7 +72,7 @@ export async function PATCH(
         where: { id },
         data: {
           ...rest,
-          ...(password ? { passwordHash: Buffer.from(password).toString("base64") } : {}),
+          ...(password ? { passwordHash: encryptPassword(password) } : {}),
         },
         select: { id: true, name: true, type: true, host: true, port: true, database: true, username: true, ssl: true, isActive: true, createdAt: true },
       });
@@ -57,7 +88,7 @@ export async function PATCH(
   }
   updateConnection(id, {
     ...rest,
-    ...(password ? { passwordBase64: Buffer.from(password).toString("base64") } : {}),
+    ...(password ? { passwordBase64: encryptPassword(password) } : {}),
   });
   evictRunPools(id);
   evictSchemaPool(id);
