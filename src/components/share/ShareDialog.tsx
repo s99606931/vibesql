@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { X, Copy, Check, Link } from "lucide-react";
 import { Button } from "@/components/ui-vs/Button";
 
@@ -27,6 +27,13 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
   const [error, setError] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
 
   if (!open) return null;
 
@@ -63,7 +70,8 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 1500);
     } catch {
       // fallback: select text for manual copy
     }
@@ -87,7 +95,7 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
         position: "fixed",
         inset: 0,
         zIndex: 1000,
-        background: "rgba(0,0,0,0.5)",
+        background: "var(--ds-overlay-bg, color-mix(in srgb, var(--ds-bg) 40%, black))",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -107,7 +115,7 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
           display: "flex",
           flexDirection: "column",
           gap: "var(--ds-sp-4)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+          boxShadow: "var(--ds-shadow-modal)",
         }}
       >
         {/* Header */}
