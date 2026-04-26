@@ -22,6 +22,8 @@ import {
   ChevronDown,
   ChevronRight,
   Zap,
+  Home,
+  Bot,
 } from "lucide-react";
 
 type NavItem = {
@@ -42,6 +44,7 @@ const navGroups: NavGroup[] = [
     id: "workspace",
     label: "워크스페이스",
     items: [
+      { href: "/home", icon: Home, label: "홈" },
       { href: "/workspace", icon: SquareTerminal, label: "워크스페이스" },
       { href: "/history", icon: History, label: "히스토리" },
       { href: "/saved", icon: Star, label: "저장됨", countKey: "saved" },
@@ -83,9 +86,11 @@ const navGroups: NavGroup[] = [
 
 interface SidebarProps {
   onOpenCommandPalette?: () => void;
+  onOpenChat?: () => void;
+  chatOpen?: boolean;
 }
 
-export function Sidebar({ onOpenCommandPalette }: SidebarProps) {
+export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen }: SidebarProps) {
   const pathname = usePathname();
   const activeConnectionId = useWorkspaceStore((s) => s.activeConnectionId);
 
@@ -370,6 +375,38 @@ export function Sidebar({ onOpenCommandPalette }: SidebarProps) {
           className="hover:bg-fill hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
         >
           ⌘K 명령 팔레트
+        </button>
+        <button
+          onClick={onOpenChat}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--ds-sp-2)",
+            width: "100%",
+            padding: "var(--ds-sp-1) var(--ds-sp-2)",
+            borderRadius: "var(--ds-r-6)",
+            background: chatOpen ? "var(--ds-accent-soft)" : "transparent",
+            border: "none",
+            cursor: "pointer",
+            color: chatOpen ? "var(--ds-accent)" : "var(--ds-text-faint)",
+            fontSize: "var(--ds-fs-11)",
+            marginTop: 2,
+            transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
+          }}
+          className={cn(!chatOpen && "hover:bg-fill hover:text-text-mute")}
+        >
+          <Bot size={12} style={{ flexShrink: 0 }} />
+          <span>AI 어시스턴트</span>
+          <span
+            style={{
+              marginLeft: "auto",
+              fontSize: "var(--ds-fs-10)",
+              fontFamily: "var(--ds-font-mono)",
+              opacity: 0.6,
+            }}
+          >
+            ⌘I
+          </span>
         </button>
       </div>
     </aside>
