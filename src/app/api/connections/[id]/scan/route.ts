@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getConnection } from "@/lib/connections/store";
+import { requireUserId } from "@/lib/auth/require-user";
+import type { StoredConnection } from "@/lib/connections/store";
 
 interface TableInfo {
   name: string;
@@ -42,8 +44,34 @@ export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
+
   const { id } = await params;
-  const conn = getConnection(id);
+
+  let conn: StoredConnection | undefined = getConnection(id);
+  if (!conn && process.env.DATABASE_URL) {
+    try {
+      const { prisma } = await import("@/lib/db/prisma");
+      const row = await prisma.connection.findUnique({ where: { id, userId } });
+      if (row) {
+        conn = {
+          id: row.id,
+          name: row.name,
+          type: row.type as StoredConnection["type"],
+          host: row.host ?? undefined,
+          port: row.port ?? undefined,
+          database: row.database,
+          username: row.username ?? undefined,
+          passwordBase64: row.passwordHash ?? undefined,
+          ssl: row.ssl,
+          isActive: row.isActive,
+          createdAt: row.createdAt.toISOString(),
+        };
+      }
+    } catch { /* fall through */ }
+  }
 
   if (conn && conn.type === "postgresql") {
     try {
@@ -61,8 +89,12 @@ export async function POST(
       });
 
       await client.connect();
-      const result = await client.query<ScanRow>(SCAN_SQL);
-      await client.end();
+      let result;
+      try {
+        result = await client.query<ScanRow>(SCAN_SQL);
+      } finally {
+        await client.end().catch(() => undefined);
+      }
 
       // Group rows by table name
       const tableMap = new Map<string, TableInfo>();
@@ -90,9 +122,9 @@ export async function POST(
         },
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "스키마 스캔 실패";
+      console.error("[scan] error:", err instanceof Error ? err.message : err);
       return NextResponse.json(
-        { error: `스키마 스캔에 실패했습니다: ${msg}` },
+        { error: "스키마 스캔에 실패했습니다." },
         { status: 400 }
       );
     }

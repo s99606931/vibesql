@@ -15,6 +15,7 @@ export interface StoredConnection {
   lastTestedAt?: string;
   lastTestedOk?: boolean;
   createdAt: string;
+  userId?: string;
 }
 
 const store = new Map<string, StoredConnection>();
@@ -37,4 +38,8 @@ export function updateConnection(
 ): void {
   const existing = store.get(id);
   if (existing) store.set(id, { ...existing, ...patch });
+}
+
+export function deleteConnection(id: string): void {
+  store.delete(id);
 }
