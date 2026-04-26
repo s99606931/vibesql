@@ -1,0 +1,269 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import { TopBar } from "@/components/shell/TopBar";
+import { Card, CardHead } from "@/components/ui-vs/Card";
+import { Button } from "@/components/ui-vs/Button";
+import { Pill } from "@/components/ui-vs/Pill";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import {
+  Database,
+  BookMarked,
+  LayoutDashboard,
+  Activity,
+  RotateCcw,
+  KeyRound,
+  Download,
+  Trash2,
+} from "lucide-react";
+
+interface HistoryItem {
+  id: string;
+  nlQuery?: string;
+  sql: string;
+  status: "SUCCESS" | "ERROR" | "BLOCKED";
+  rowCount?: number;
+  durationMs?: number;
+  errorMsg?: string;
+  connectionName?: string;
+  createdAt: string;
+}
+
+async function fetchHistory(): Promise<HistoryItem[]> {
+  const res = await fetch("/api/history");
+  const json = (await res.json()) as { data?: HistoryItem[] };
+  return json.data ?? [];
+}
+
+async function fetchConnections(): Promise<unknown[]> {
+  const res = await fetch("/api/connections");
+  const json = (await res.json()) as { data?: unknown[] };
+  return json.data ?? [];
+}
+
+async function fetchSaved(): Promise<unknown[]> {
+  const res = await fetch("/api/saved");
+  const json = (await res.json()) as { data?: unknown[] };
+  return json.data ?? [];
+}
+
+function formatDuration(ms?: number): string {
+  if (!ms) return "—";
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
+function formatTime(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffDays = Math.floor(diffMs / 86400000);
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  if (diffDays === 0) return `${hh}:${mm}`;
+  if (diffDays === 1) return `어제 ${hh}:${mm}`;
+  return `${diffDays}일 전`;
+}
+
+export default function ProfilePage() {
+  const dialect = useSettingsStore((s) => s.dialect);
+
+  const { data: history = [] } = useQuery({
+    queryKey: ["history"],
+    queryFn: fetchHistory,
+    staleTime: 10_000,
+  });
+  const { data: connections = [] } = useQuery({
+    queryKey: ["connections"],
+    queryFn: fetchConnections,
+    staleTime: 30_000,
+  });
+  const { data: saved = [] } = useQuery({
+    queryKey: ["saved"],
+    queryFn: fetchSaved,
+    staleTime: 30_000,
+  });
+
+  const thisMonth = history.filter((h) => {
+    const d = new Date(h.createdAt);
+    const now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+
+  const STATS = [
+    { label: "이번 달 쿼리", value: thisMonth.length.toLocaleString(), icon: <Activity size={16} /> },
+    { label: "연결된 DB", value: String(connections.length), icon: <Database size={16} /> },
+    { label: "저장된 쿼리", value: String(saved.length), icon: <BookMarked size={16} /> },
+    { label: "대시보드", value: "0", icon: <LayoutDashboard size={16} /> },
+  ];
+
+  const recentItems = history.slice(0, 5);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+      <TopBar
+        title="프로필"
+        breadcrumbs={[{ label: "vibeSQL" }, { label: "프로필" }]}
+      />
+
+      <div style={{ flex: 1, overflowY: "auto", padding: "var(--ds-sp-6)" }}>
+        <div
+          style={{
+            maxWidth: 720,
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--ds-sp-4)",
+          }}
+        >
+          {/* User hero */}
+          <Card>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-4)" }}>
+              <div
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: "var(--ds-r-full)",
+                  background: "var(--ds-accent-soft)",
+                  border: "2px solid var(--ds-accent)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "var(--ds-fs-22)",
+                  fontWeight: "var(--ds-fw-semibold)",
+                  color: "var(--ds-accent)",
+                  flexShrink: 0,
+                }}
+              >
+                V
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: "var(--ds-fs-18)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: 2 }}>
+                  vibeSQL 사용자
+                </div>
+                <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>
+                  {dialect.toUpperCase()} 모드
+                </div>
+                <Pill variant="accent">일반 사용자</Pill>
+              </div>
+              <Button variant="default" size="sm">프로필 편집</Button>
+            </div>
+          </Card>
+
+          {/* Usage stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--ds-sp-3)" }}>
+            {STATS.map((stat) => (
+              <Card key={stat.label}>
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>
+                  {stat.icon}
+                  <span style={{ fontSize: "var(--ds-fs-11)" }}>{stat.label}</span>
+                </div>
+                <div
+                  className="ds-num"
+                  style={{ fontSize: "var(--ds-fs-22)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}
+                >
+                  {stat.value}
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Recent activity */}
+          <Card>
+            <CardHead title="최근 활동" meta={`최근 ${recentItems.length}개 쿼리`} />
+
+            {recentItems.length === 0 && (
+              <div style={{ padding: "var(--ds-sp-4)", textAlign: "center", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
+                아직 실행한 쿼리가 없습니다.
+              </div>
+            )}
+
+            {recentItems.map((item, i) => (
+              <div
+                key={item.id}
+                className="group"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "var(--ds-sp-3)",
+                  padding: "var(--ds-sp-3) 0",
+                  borderBottom: i < recentItems.length - 1 ? "1px solid var(--ds-border)" : "none",
+                  cursor: "pointer",
+                }}
+              >
+                <span
+                  className="ds-mono"
+                  style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", width: 68, flexShrink: 0 }}
+                >
+                  {formatTime(item.createdAt)}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {item.nlQuery ?? item.sql.slice(0, 60)}
+                  </div>
+                  <div style={{ display: "flex", gap: "var(--ds-sp-2)", marginTop: 2, alignItems: "center" }}>
+                    {item.connectionName && (
+                      <span className="ds-mono" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
+                        {item.connectionName}
+                      </span>
+                    )}
+                    {(item.rowCount ?? 0) > 0 && (
+                      <span className="ds-num" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
+                        {item.rowCount?.toLocaleString()}행
+                      </span>
+                    )}
+                    <span className="ds-mono" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
+                      {formatDuration(item.durationMs)}
+                    </span>
+                  </div>
+                </div>
+                {item.status === "SUCCESS"
+                  ? <Pill variant="success" dot="ok">성공</Pill>
+                  : item.status === "BLOCKED"
+                  ? <Pill variant="info">차단됨</Pill>
+                  : <Pill variant="danger" dot="err">실패</Pill>
+                }
+                <div style={{ opacity: 0, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }} className="group-hover:opacity-100">
+                  <Button variant="ghost" size="sm" icon={<RotateCcw size={12} />}>재실행</Button>
+                </div>
+              </div>
+            ))}
+          </Card>
+
+          {/* Account management */}
+          <Card>
+            <CardHead title="계정 관리" />
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--ds-sp-4)", paddingBottom: "var(--ds-sp-3)", borderBottom: "1px solid var(--ds-border)" }}>
+                <div>
+                  <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>비밀번호 변경</div>
+                  <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>마지막 변경: 90일 전</div>
+                </div>
+                <Button variant="default" size="sm" icon={<KeyRound size={12} />}>변경하기</Button>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--ds-sp-4)", paddingBottom: "var(--ds-sp-3)", borderBottom: "1px solid var(--ds-border)" }}>
+                <div>
+                  <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>데이터 내보내기</div>
+                  <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>저장된 쿼리, 히스토리, 설정을 JSON으로 다운로드</div>
+                </div>
+                <Button variant="default" size="sm" icon={<Download size={12} />}>내보내기</Button>
+              </div>
+              <div style={{ border: "1px solid var(--ds-danger)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-4)" }}>
+                <div style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-danger)", marginBottom: "var(--ds-sp-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  위험 구역
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--ds-sp-4)" }}>
+                  <div>
+                    <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>계정 삭제</div>
+                    <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>계정과 모든 데이터가 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</div>
+                  </div>
+                  <Button variant="danger" size="sm" icon={<Trash2 size={12} />}>계정 삭제</Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
