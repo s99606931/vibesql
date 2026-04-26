@@ -35,7 +35,11 @@ const navItems = [
   { href: "/settings", icon: Settings, label: "설정" },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  onOpenCommandPalette?: () => void;
+}
+
+export function Sidebar({ onOpenCommandPalette }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -201,6 +205,7 @@ export function Sidebar() {
           </div>
         </div>
         <button
+          onClick={onOpenCommandPalette}
           style={{
             display: "flex",
             alignItems: "center",
