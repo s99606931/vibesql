@@ -52,8 +52,7 @@ export async function GET() {
   if (process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const rows = await (prisma as any).glossaryTerm.findMany({
+      const rows = await prisma.glossaryTerm.findMany({
         where: { createdBy: userId },
         orderBy: { createdAt: "desc" },
       });
@@ -92,11 +91,12 @@ export async function POST(req: Request) {
   if (process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const row = await (prisma as any).glossaryTerm.create({
-        data: { ...parsed.data, createdBy: userId },
+      // Strip `sql` — not a Prisma schema field; store via in-memory path when needed
+      const { sql: _sql, ...prismaData } = parsed.data;
+      const row = await prisma.glossaryTerm.create({
+        data: { ...prismaData, createdBy: userId },
       });
-      return NextResponse.json({ data: row }, { status: 201 });
+      return NextResponse.json({ data: { ...row, sql: _sql ?? null } }, { status: 201 });
     } catch {
       /* fall through to in-memory */
     }

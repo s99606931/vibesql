@@ -24,6 +24,7 @@ const GENERATE_WINDOW_MS = 60_000;
 export async function POST(req: Request) {
   const authResult = await requireUserId();
   if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
 
   const ip = getClientIp(req.headers);
   const rl = rateLimit(ip, GENERATE_LIMIT, GENERATE_WINDOW_MS);
@@ -51,7 +52,26 @@ export async function POST(req: Request) {
       );
     }
 
-    const result = await generateSql(parsed.data);
+    // Fetch active AI context rules for this user
+    let aiContextRules: { ruleType: string; key: string; value: string }[] = [];
+    try {
+      if (process.env.DATABASE_URL) {
+        const { prisma } = await import("@/lib/db/prisma");
+        aiContextRules = await prisma.aiContextRule.findMany({
+          where: { userId, isActive: true },
+          orderBy: [{ priority: "desc" }, { createdAt: "asc" }],
+          select: { ruleType: true, key: true, value: true },
+        });
+      } else {
+        const { memAiContextRules } = await import("@/lib/db/mem-ai-context");
+        aiContextRules = memAiContextRules
+          .filter((r) => r.userId === userId && r.isActive)
+          .sort((a, b) => b.priority - a.priority)
+          .map(({ ruleType, key, value }) => ({ ruleType, key, value }));
+      }
+    } catch { /* non-fatal — proceed without context rules */ }
+
+    const result = await generateSql({ ...parsed.data, userId, aiContextRules });
 
     // Validate generated SQL is safe
     const guard = guardSql(result.sql);
@@ -64,7 +84,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ data: result });
   } catch (error) {
-    console.error("[generate] error:", error instanceof Error ? error.message : error);
-    return NextResponse.json({ error: "SQL 생성에 실패했습니다." }, { status: 500 });
+    const message = error instanceof Error ? error.message : "SQL 생성에 실패했습니다.";
+    console.error("[generate] error:", message);
+    const status = message.includes("설정되지 않았습니다") ? 503 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

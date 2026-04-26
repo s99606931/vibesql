@@ -39,21 +39,17 @@ export async function DELETE(
   if (process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const existing = await (prisma as any).glossaryTerm.findFirst({ where: { id, createdBy: userId } });
-      if (!existing) return NextResponse.json({ error: "용어를 찾을 수 없습니다." }, { status: 404 });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (prisma as any).glossaryTerm.delete({ where: { id } });
-      return NextResponse.json({ data: { id } });
+      const existing = await prisma.glossaryTerm.findFirst({ where: { id, createdBy: userId } });
+      if (existing) {
+        await prisma.glossaryTerm.delete({ where: { id } });
+        return NextResponse.json({ data: { id } });
+      }
+      // Not found in DB — may be in-memory fallback; fall through
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      if (message.includes("Record to delete does not exist")) {
-        return NextResponse.json(
-          { error: "용어를 찾을 수 없습니다." },
-          { status: 404 }
-        );
+      if (!message.includes("Record to delete does not exist")) {
+        /* fall through for other errors */
       }
-      /* fall through */
     }
   }
 
@@ -96,15 +92,12 @@ export async function PATCH(
   if (process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const existing = await (prisma as any).glossaryTerm.findFirst({ where: { id, createdBy: userId } });
+      const existing = await prisma.glossaryTerm.findFirst({ where: { id, createdBy: userId } });
       if (!existing) return NextResponse.json({ error: "용어를 찾을 수 없습니다." }, { status: 404 });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const updated = await (prisma as any).glossaryTerm.update({
-        where: { id },
-        data: parsed.data,
-      });
-      return NextResponse.json({ data: updated });
+      // Strip `sql` — not a Prisma schema field
+      const { sql: _sql, ...prismaData } = parsed.data;
+      const updated = await prisma.glossaryTerm.update({ where: { id }, data: prismaData });
+      return NextResponse.json({ data: { ...updated, sql: _sql ?? null } });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       if (message.includes("Record to update does not exist")) {

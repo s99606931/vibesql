@@ -6,6 +6,8 @@ import { Pool } from "pg";
 import type { Pool as MySQLPool } from "mysql2/promise";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { requireUserId } from "@/lib/auth/require-user";
+import { decryptPassword } from "@/lib/connections/encrypt";
+import { logAction } from "@/lib/audit/log-action";
 
 const RunSchema = z.object({
   sql: z.string().min(1),
@@ -28,9 +30,7 @@ function getPgPool(conn: StoredConnection): Pool {
     port: conn.port ?? 5432,
     database: conn.database,
     user: conn.username,
-    password: conn.passwordBase64
-      ? Buffer.from(conn.passwordBase64, "base64").toString()
-      : undefined,
+    password: conn.passwordBase64 ? decryptPassword(conn.passwordBase64) : undefined,
     ssl: conn.ssl ? { rejectUnauthorized: false } : false,
     max: 3,
     idleTimeoutMillis: 30_000,
@@ -52,9 +52,7 @@ async function getMysqlPool(conn: StoredConnection): Promise<MySQLPool> {
     port: conn.port ?? 3306,
     database: conn.database,
     user: conn.username,
-    password: conn.passwordBase64
-      ? Buffer.from(conn.passwordBase64, "base64").toString()
-      : undefined,
+    password: conn.passwordBase64 ? decryptPassword(conn.passwordBase64) : undefined,
     ssl: conn.ssl ? {} : undefined,
     connectionLimit: 3,
     connectTimeout: 5_000,
@@ -180,12 +178,19 @@ export async function POST(req: Request) {
         await pgClient.query("SET statement_timeout = '10000'");
         const limitedSql = wrapWithLimit(normalizedSql, parsed.data.limit);
         const result = await pgClient.query(limitedSql);
+        const durationMs = Date.now() - startMs;
+        void logAction({
+          action: "query.run",
+          userId,
+          ipAddress: ip,
+          metadata: { rowCount: result.rowCount ?? result.rows.length, durationMs },
+        });
         return NextResponse.json({
           data: {
             columns: result.fields.map((f) => f.name),
             rows: result.rows as Record<string, unknown>[],
             rowCount: result.rowCount ?? result.rows.length,
-            durationMs: Date.now() - startMs,
+            durationMs,
             sql: normalizedSql,
           },
         });
@@ -202,12 +207,19 @@ export async function POST(req: Request) {
         const limitedSql = wrapWithLimit(normalizedSql, parsed.data.limit);
         const [rows, fields] = await mysqlConn.execute(limitedSql);
         const rowsArr = rows as Record<string, unknown>[];
+        const durationMs = Date.now() - startMs;
+        void logAction({
+          action: "query.run",
+          userId,
+          ipAddress: ip,
+          metadata: { rowCount: rowsArr.length, durationMs },
+        });
         return NextResponse.json({
           data: {
             columns: (fields as Array<{ name: string }>).map((f) => f.name),
             rows: rowsArr,
             rowCount: rowsArr.length,
-            durationMs: Date.now() - startMs,
+            durationMs,
             sql: normalizedSql,
           },
         });

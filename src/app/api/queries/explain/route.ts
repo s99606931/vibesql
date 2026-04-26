@@ -5,7 +5,7 @@ import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 const BodySchema = z.object({
   sql: z.string().min(1).max(5000),
-  dialect: z.string().optional().default("postgresql"),
+  dialect: z.enum(["postgresql", "mysql", "sqlite", "mssql"]).optional().default("postgresql"),
 });
 
 // 20 requests per minute per IP (same as /api/queries/generate)
