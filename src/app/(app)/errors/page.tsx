@@ -214,9 +214,9 @@ export default function ErrorsPage() {
         {/* ── Tab: 오류 이력 ── */}
         {activeTab === "errors" && (
           <div id="errors-tabpanel-errors" role="tabpanel" aria-labelledby="errors-tab-errors">
-            <div style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "var(--ds-sp-2)" }}>
+            <h3 style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 var(--ds-sp-2)" }}>
               최근 오류 로그
-            </div>
+            </h3>
 
             {historyLoading && (
               <Card padding={0}>

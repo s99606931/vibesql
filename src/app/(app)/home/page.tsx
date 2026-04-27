@@ -445,19 +445,19 @@ export default function HomePage() {
 
           {/* ── 워크플로 3단계 ────────────────────────────────────────────── */}
           <div>
-            <div
+            <h3
               style={{
                 fontSize: "var(--ds-fs-12)",
                 fontWeight: "var(--ds-fw-semibold)",
                 color: "var(--ds-text-mute)",
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
-                marginBottom: "var(--ds-sp-3)",
+                margin: "0 0 var(--ds-sp-3)",
                 fontFamily: "var(--ds-font-sans)",
               }}
             >
               시작 단계
-            </div>
+            </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}>
               {WORKFLOW_STEPS.map((s) => {
                 const Icon = s.icon;
@@ -606,19 +606,19 @@ export default function HomePage() {
 
           {/* ── 메뉴별 사용 가이드 ────────────────────────────────────────── */}
           <div>
-            <div
+            <h3
               style={{
                 fontSize: "var(--ds-fs-12)",
                 fontWeight: "var(--ds-fw-semibold)",
                 color: "var(--ds-text-mute)",
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
-                marginBottom: "var(--ds-sp-3)",
+                margin: "0 0 var(--ds-sp-3)",
                 fontFamily: "var(--ds-font-sans)",
               }}
             >
               메뉴별 사용 가이드
-            </div>
+            </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}>
               {MENU_GUIDES.map((item, idx) => (
                 <GuideItem key={item.href} item={item} defaultOpen={idx === 0} />
@@ -786,7 +786,7 @@ function StatsSection() {
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }}>
       {/* 통계 카드 2×2 */}
       <div>
-        <div style={sectionHeaderStyle}>사용 통계</div>
+        <h3 style={{ ...sectionHeaderStyle, margin: "0 0 var(--ds-sp-3)" }}>사용 통계</h3>
         <div
           style={{
             display: "grid",
@@ -860,7 +860,7 @@ function StatsSection() {
             marginBottom: "var(--ds-sp-3)",
           }}
         >
-          <div style={sectionHeaderStyle as React.CSSProperties}>최근 쿼리</div>
+          <h3 style={{ ...(sectionHeaderStyle as React.CSSProperties), margin: "0 0 var(--ds-sp-3)" }}>최근 쿼리</h3>
           <Link
             href="/history"
             style={{

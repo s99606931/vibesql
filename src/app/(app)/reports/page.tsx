@@ -64,18 +64,18 @@ export default function ReportsPage() {
 
           {/* Related features */}
           <div>
-            <div
+            <h2
               style={{
                 fontSize: "var(--ds-fs-11)",
                 fontWeight: "var(--ds-fw-semibold)",
                 color: "var(--ds-text-mute)",
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
-                marginBottom: "var(--ds-sp-3)",
+                margin: "0 0 var(--ds-sp-3)",
               }}
             >
               지금 사용할 수 있는 기능
-            </div>
+            </h2>
             <Card padding={0}>
               {RELATED.map((item, i) => {
                 const Icon = item.icon;
