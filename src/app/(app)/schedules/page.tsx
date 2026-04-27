@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
@@ -352,6 +352,15 @@ export default function SchedulesPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [expandedSqlId, setExpandedSqlId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const { data: schedules = [], isLoading } = useQuery({
     queryKey: ["schedules"],
@@ -529,9 +538,10 @@ export default function SchedulesPage() {
               <div style={{ position: "relative", flex: 1, maxWidth: 320 }}>
                 <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
                 <input
+                  ref={searchRef}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="스케줄 검색..."
+                  placeholder="스케줄 검색... (⌘F)"
                   style={{ width: "100%", paddingLeft: 30, paddingRight: "var(--ds-sp-3)", paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)" }}
                 />
               </div>

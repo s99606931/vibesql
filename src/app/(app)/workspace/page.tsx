@@ -810,9 +810,18 @@ export default function WorkspacePage() {
               </button>
             ))}
             {nlQuery.length > 0 && (
-              <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", fontFamily: "var(--ds-font-mono)" }}>
-                {nlQuery.length}자
-              </span>
+              <>
+                <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", fontFamily: "var(--ds-font-mono)" }}>
+                  {nlQuery.length}자
+                </span>
+                <button
+                  title="입력 지우기"
+                  onClick={() => setNlQuery("")}
+                  style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)" }}
+                >
+                  <X size={12} />
+                </button>
+              </>
             )}
             <div style={{ flex: 1 }} />
             <Button

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
@@ -20,6 +20,8 @@ import {
   KeyRound,
   Download,
   Trash2,
+  Copy,
+  Check,
 } from "lucide-react";
 
 interface HistoryItem {
@@ -66,15 +68,14 @@ function formatDuration(ms?: number): string {
 }
 
 function formatTime(iso: string): string {
-  const d = new Date(iso);
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffDays = Math.floor(diffMs / 86400000);
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  if (diffDays === 0) return `${hh}:${mm}`;
-  if (diffDays === 1) return `어제 ${hh}:${mm}`;
-  return `${diffDays}일 전`;
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 60_000) return "방금 전";
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMs / 3_600_000);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffMs / 86_400_000);
+  return `${diffDay}일 전`;
 }
 
 export default function ProfilePage() {
@@ -83,6 +84,14 @@ export default function ProfilePage() {
   const { data: currentUser } = useCurrentUser();
   const router = useRouter();
   const [deleteAccountModal, setDeleteAccountModal] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+
+  const handleCopyEmail = useCallback(() => {
+    if (!currentUser?.email) return;
+    void navigator.clipboard.writeText(currentUser.email);
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 1500);
+  }, [currentUser?.email]);
 
   const { data: history = [], isLoading: historyLoading } = useQuery({
     queryKey: ["history"],
@@ -217,8 +226,19 @@ export default function ProfilePage() {
                 <div style={{ fontSize: "var(--ds-fs-18)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: 2 }}>
                   {currentUser?.name ?? currentUser?.email ?? "vibeSQL 사용자"}
                 </div>
-                <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>
-                  {currentUser?.email ? currentUser.email : dialect.toUpperCase() + " 모드"}
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-2)" }}>
+                  <span style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>
+                    {currentUser?.email ? currentUser.email : dialect.toUpperCase() + " 모드"}
+                  </span>
+                  {currentUser?.email && (
+                    <button
+                      title="이메일 복사"
+                      onClick={handleCopyEmail}
+                      style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: copiedEmail ? "var(--ds-success)" : "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)" }}
+                    >
+                      {copiedEmail ? <Check size={12} /> : <Copy size={12} />}
+                    </button>
+                  )}
                 </div>
                 {currentUser?.role === "ADMIN"
                   ? <Pill variant="warn">관리자</Pill>
