@@ -148,8 +148,9 @@ function ProviderModal({
 
         {/* Type */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>프로바이더 유형</label>
+          <label htmlFor="prov-type" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>프로바이더 유형</label>
           <select
+            id="prov-type"
             aria-label="프로바이더 유형"
             value={form.type}
             onChange={(e) => onTypeChange(e.target.value as AiProviderType)}
@@ -187,7 +188,7 @@ function ProviderModal({
         {/* API Key */}
         {meta.needsKey && (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
+            <label htmlFor="prov-apikey" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
               API 키 {editId && <span style={{ color: "var(--ds-text-faint)", fontWeight: "normal" }}>(변경 시에만 입력)</span>}
             </label>
             <div style={{ position: "relative" }}>
@@ -231,8 +232,9 @@ function ProviderModal({
         {/* Temperature + MaxTokens */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ds-sp-3)" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Temperature</label>
+            <label htmlFor="prov-temp" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Temperature</label>
             <input
+              id="prov-temp"
               aria-label="Temperature"
               type="number" min={0} max={2} step={0.1}
               value={form.temperature}
@@ -241,8 +243,9 @@ function ProviderModal({
             />
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Max Tokens</label>
+            <label htmlFor="prov-maxtokens" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Max Tokens</label>
             <input
+              id="prov-maxtokens"
               aria-label="Max Tokens"
               type="number" min={256} max={32768} step={256}
               value={form.maxTokens}

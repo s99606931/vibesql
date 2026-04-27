@@ -181,7 +181,7 @@ export default function SignInPage() {
         <form id="signin-form" role="tabpanel" aria-labelledby={`signin-tab-${tab}`} onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
           {tab === "register" && (
             <div>
-              <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
+              <label htmlFor="signin-name" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
                 이름
               </label>
               <input
@@ -209,7 +209,7 @@ export default function SignInPage() {
           )}
 
           <div>
-            <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
+            <label htmlFor="signin-email" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
               이메일
             </label>
             <input
@@ -238,7 +238,7 @@ export default function SignInPage() {
           </div>
 
           <div>
-            <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
+            <label htmlFor="signin-password" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
               비밀번호
             </label>
             <div style={{ position: "relative" }}>

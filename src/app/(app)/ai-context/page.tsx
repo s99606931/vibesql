@@ -253,8 +253,9 @@ function RuleModal({
             />
           </div>
           <div style={{ width: 80, display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>우선순위</label>
+            <label htmlFor="ctx-priority" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>우선순위</label>
             <input
+              id="ctx-priority"
               aria-label="우선순위"
               type="number"
               min={0}
