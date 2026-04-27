@@ -160,7 +160,7 @@ function TemplatePicker({
             borderBottom: "1px solid var(--ds-border)",
           }}
         >
-          <FileText size={16} style={{ color: "var(--ds-accent)", flexShrink: 0 }} />
+          <FileText aria-hidden="true" size={16} style={{ color: "var(--ds-accent)", flexShrink: 0 }} />
           <span
             style={{
               fontSize: "var(--ds-fs-16)",
@@ -190,7 +190,7 @@ function TemplatePicker({
               transition: "color var(--ds-dur-fast) var(--ds-ease)",
             }}
           >
-            <X size={16} />
+            <X aria-hidden="true" size={16} />
           </button>
         </div>
 
@@ -214,7 +214,7 @@ function TemplatePicker({
               padding: "var(--ds-sp-1) var(--ds-sp-2)",
             }}
           >
-            <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+            <Search aria-hidden="true" size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <input
               autoFocus
               type="search"
@@ -826,7 +826,7 @@ export default function WorkspacePage() {
                   onClick={() => setNlQuery("")}
                   style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)", transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
                 >
-                  <X size={12} />
+                  <X aria-hidden="true" size={12} />
                 </button>
               </>
             )}
@@ -861,7 +861,7 @@ export default function WorkspacePage() {
         {status === "error" && errorMessage && (
           <AICallout tone="danger" label="◆ 오류">
             <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
-              <TriangleAlert size={13} />
+              <TriangleAlert aria-hidden="true" size={13} />
               {errorMessage}
             </div>
           </AICallout>
@@ -1053,7 +1053,7 @@ export default function WorkspacePage() {
                     transition: "color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                   }}
                 >
-                  <tab.icon size={13} />
+                  <tab.icon aria-hidden="true" size={13} />
                   {tab.label}
                 </button>
               ))}
