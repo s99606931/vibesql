@@ -635,6 +635,7 @@ export function AiChatPanel({
           >
             <textarea
               ref={inputRef}
+              aria-label="AI 채팅 메시지 입력"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}

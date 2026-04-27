@@ -162,7 +162,7 @@ function ProviderForm({
       {/* Provider Type */}
       <div style={fieldStyle}>
         <label style={labelStyle}>프로바이더 유형</label>
-        <select value={form.type} onChange={(e) => set("type", e.target.value)} style={inputStyle}>
+        <select aria-label="프로바이더 유형" value={form.type} onChange={(e) => set("type", e.target.value)} style={inputStyle}>
           {(Object.entries(PROVIDER_META) as [AiProviderType, typeof PROVIDER_META[AiProviderType]][]).map(([k, v]) => (
             <option key={k} value={k}>{v.label}</option>
           ))}
