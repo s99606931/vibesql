@@ -304,7 +304,7 @@ export default function ProfilePage() {
             {!isLoading && recentItems.map((item, i) => (
               <div
                 key={item.id}
-                className="group"
+                className="group hover:bg-fill transition-colors"
                 style={{
                   display: "flex",
                   alignItems: "center",

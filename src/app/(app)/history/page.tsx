@@ -235,7 +235,7 @@ export default function HistoryPage() {
               }}
             />
             {search && (
-              <button onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0 }}>
+              <button aria-label="검색 지우기" onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0 }}>
                 <X size={13} />
               </button>
             )}
@@ -294,7 +294,7 @@ export default function HistoryPage() {
                 {items.map((item, i) => (
                   <div key={item.id}>
                   <div
-                    className="group"
+                    className="group hover:bg-fill transition-colors"
                     style={{
                       display: "flex",
                       alignItems: "center",

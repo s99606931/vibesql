@@ -428,6 +428,7 @@ export default function DashboardsPage() {
                     dash.widgets.map((w, i) => (
                       <div
                         key={i}
+                        title={w.label}
                         style={{
                           display: "flex",
                           alignItems: "center",
