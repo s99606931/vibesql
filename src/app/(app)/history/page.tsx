@@ -9,7 +9,7 @@ import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Button } from "@/components/ui-vs/Button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RotateCcw, Star, MoreHorizontal, Trash2, Download } from "lucide-react";
+import { RotateCcw, Star, MoreHorizontal, Trash2, Download, ChevronDown, ChevronRight } from "lucide-react";
 
 type HistoryFilter = "전체" | "성공" | "실패" | "즐겨찾기";
 const HISTORY_FILTERS: HistoryFilter[] = ["전체", "성공", "실패", "즐겨찾기"];
@@ -256,15 +256,18 @@ export default function HistoryPage() {
                       gap: "var(--ds-sp-3)",
                       padding: "var(--ds-sp-3) var(--ds-sp-4)",
                       borderBottom: (i < items.length - 1 && expandedErrorId !== item.id) ? "1px solid var(--ds-border)" : undefined,
-                      cursor: item.status === "ERROR" && item.errorMsg ? "pointer" : "default",
+                      cursor: "pointer",
                       transition: "background var(--ds-dur-fast) var(--ds-ease)",
                     }}
                     onClick={() => {
-                      if (item.status === "ERROR" && item.errorMsg) {
-                        setExpandedErrorId((prev) => prev === item.id ? null : item.id);
-                      }
+                      setExpandedErrorId((prev) => prev === item.id ? null : item.id);
                     }}
                   >
+                    {/* Expand chevron */}
+                    <span style={{ color: "var(--ds-text-faint)", flexShrink: 0, display: "flex" }}>
+                      {expandedErrorId === item.id ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                    </span>
+
                     {/* Time */}
                     <span
                       className="ds-mono"
@@ -375,20 +378,21 @@ export default function HistoryPage() {
                       >삭제</Button>
                     </div>
                   </div>
-                  {expandedErrorId === item.id && item.errorMsg && (
+                  {expandedErrorId === item.id && (
                     <div
                       style={{
                         padding: "var(--ds-sp-2) var(--ds-sp-4)",
-                        background: "var(--ds-danger-soft, #fff1f0)",
-                        borderTop: "1px solid var(--ds-danger-border, #fca5a5)",
+                        background: item.errorMsg ? "var(--ds-danger-soft, #fff1f0)" : "var(--ds-fill)",
+                        borderTop: `1px solid ${item.errorMsg ? "var(--ds-danger-border, #fca5a5)" : "var(--ds-border)"}`,
                         borderBottom: i < items.length - 1 ? "1px solid var(--ds-border)" : undefined,
                         fontSize: "var(--ds-fs-12)",
                         fontFamily: "var(--ds-font-mono)",
-                        color: "var(--ds-danger, #e53e3e)",
+                        color: item.errorMsg ? "var(--ds-danger, #e53e3e)" : "var(--ds-text-mute)",
                         wordBreak: "break-all",
+                        whiteSpace: "pre-wrap",
                       }}
                     >
-                      {item.errorMsg}
+                      {item.errorMsg ?? item.sql}
                     </div>
                   )}
                   </div>

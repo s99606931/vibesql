@@ -342,12 +342,15 @@ export default function SavedPage() {
   }
 
   const savedList = Array.isArray(data) ? data : [];
-  const filtered = savedList.filter(
-    (q) =>
-      !search ||
-      q.name.toLowerCase().includes(search.toLowerCase()) ||
-      q.nlQuery.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = savedList.filter((q) => {
+    if (!search) return true;
+    const lc = search.toLowerCase();
+    return (
+      q.name.toLowerCase().includes(lc) ||
+      q.nlQuery.toLowerCase().includes(lc) ||
+      q.tags.some((t) => t.toLowerCase().includes(lc))
+    );
+  });
 
   const baseFolders = groupByFolder(filtered);
   const existingNames = new Set(baseFolders.map((f) => f.name));

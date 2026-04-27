@@ -6,7 +6,7 @@ import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
-import { Plus, Trash2, Pencil, Lightbulb, ShieldX, Tag, ToggleLeft, ToggleRight, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Trash2, Pencil, Lightbulb, ShieldX, Tag, ToggleLeft, ToggleRight, ChevronDown, ChevronRight, Copy, Check } from "lucide-react";
 import type { AiContextRule, AiContextRuleType } from "@/types";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -281,6 +281,7 @@ export default function AiContextPage() {
   const [modal, setModal] = useState<{ open: boolean; editing: AiContextRule | null }>({ open: false, editing: null });
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const [copiedRuleId, setCopiedRuleId] = useState<string | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
   const { data: rules = [], isLoading } = useQuery({
@@ -514,6 +515,17 @@ export default function AiContextPage() {
                                 P{rule.priority}
                               </span>
                             )}
+                            <button
+                              title="값 복사"
+                              onClick={() => {
+                                navigator.clipboard.writeText(rule.value);
+                                setCopiedRuleId(rule.id);
+                                setTimeout(() => setCopiedRuleId((prev) => prev === rule.id ? null : prev), 2000);
+                              }}
+                              style={{ background: "none", border: "none", cursor: "pointer", color: copiedRuleId === rule.id ? "var(--ds-success)" : "var(--ds-text-faint)", display: "flex", alignItems: "center" }}
+                            >
+                              {copiedRuleId === rule.id ? <Check size={13} /> : <Copy size={13} />}
+                            </button>
                             <button
                               onClick={() => toggleMutation.mutate({ id: rule.id, isActive: !rule.isActive })}
                               title={rule.isActive ? "비활성화" : "활성화"}

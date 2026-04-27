@@ -7,7 +7,7 @@ import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Card } from "@/components/ui-vs/Card";
 import { AICallout } from "@/components/ui-vs/AICallout";
-import { Plus, Search, BookOpen, Trash2, X, Pencil } from "lucide-react";
+import { Plus, Search, BookOpen, Trash2, X, Pencil, Download } from "lucide-react";
 import type { GlossaryTerm } from "@/types";
 
 const categoryColors: Record<string, "default" | "accent" | "success" | "warn" | "info"> = {
@@ -127,15 +127,39 @@ export default function GlossaryPage() {
 
   const selected = terms.find((t) => t.id === selectedId) ?? terms[0] ?? null;
 
+  function exportGlossaryCsv() {
+    if (terms.length === 0) return;
+    const headers = ["term", "category", "definition", "sql", "createdAt"];
+    const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const csv = [
+      headers.join(","),
+      ...terms.map((t) => headers.map((h) => escape(t[h as keyof GlossaryTerm])).join(",")),
+    ].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `glossary_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <TopBar
         title="비즈니스 용어집"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "비즈니스 용어집" }]}
         actions={
-          <Button variant="accent" size="sm" icon={<Plus size={13} />} onClick={() => setShowAdd(true)}>
-            새 용어
-          </Button>
+          <>
+            {terms.length > 0 && (
+              <Button variant="ghost" size="sm" icon={<Download size={13} />} onClick={exportGlossaryCsv}>
+                CSV
+              </Button>
+            )}
+            <Button variant="accent" size="sm" icon={<Plus size={13} />} onClick={() => setShowAdd(true)}>
+              새 용어
+            </Button>
+          </>
         }
       />
 
