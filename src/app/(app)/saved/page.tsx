@@ -872,7 +872,7 @@ export default function SavedPage() {
           onKeyDown={(e) => { if (e.key === "Escape") setConfirmDeleteId(null); }}
         >
           <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
-            <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-2)" }}>쿼리 삭제</div>
+            <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-2)" }}>쿼리 삭제</h2>
             <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-4)" }}>
               <strong style={{ color: "var(--ds-text)" }}>&ldquo;{confirmDeleteName}&rdquo;</strong> 쿼리를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
             </div>
@@ -902,8 +902,9 @@ export default function SavedPage() {
           onKeyDown={(e) => { if (e.key === "Escape") setNewFolderModal(false); }}
         >
           <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
-            <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-3)" }}>새 폴더</div>
+            <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-3)" }}>새 폴더</h2>
             <input
+              aria-label="폴더 이름"
               autoFocus
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
@@ -952,8 +953,9 @@ export default function SavedPage() {
           onKeyDown={(e) => { if (e.key === "Escape") setRenameFolderModal(null); }}
         >
           <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
-            <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-3)" }}>폴더 이름 변경</div>
+            <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-3)" }}>폴더 이름 변경</h2>
             <input
+              aria-label="새 폴더 이름"
               autoFocus
               value={renameFolderValue}
               onChange={(e) => setRenameFolderValue(e.target.value)}
@@ -998,7 +1000,7 @@ export default function SavedPage() {
           onKeyDown={(e) => { if (e.key === "Escape") setMoveModal(null); }}
         >
           <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
-            <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-3)" }}>폴더 이동</div>
+            <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-3)" }}>폴더 이동</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)", marginBottom: "var(--ds-sp-4)" }}>
               {[...new Set(["미분류", ...folders.map((f) => f.name)])].map((name) => (
                 <button
@@ -1062,8 +1064,9 @@ export default function SavedPage() {
           onKeyDown={(e) => { if (e.key === "Escape") setRenameModal(null); }}
         >
           <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
-            <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-3)" }}>쿼리 이름 변경</div>
+            <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-3)" }}>쿼리 이름 변경</h2>
             <input
+              aria-label="새 쿼리 이름"
               autoFocus
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
