@@ -9,7 +9,7 @@ import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
 import {
   Plus, Trash2, ExternalLink, Search, BarChart2,
-  Wrench, FileText, Bug, Star, Tag, ChevronDown, ChevronRight,
+  Wrench, FileText, Bug, Star, Tag, ChevronDown, ChevronRight, Copy, Check,
 } from "lucide-react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import type { QueryTemplate, TemplateCategory } from "@/app/api/templates/route";
@@ -161,6 +161,7 @@ function TemplateCard({
   onTagClick?: (tag: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
   const CatIcon = CAT_META[template.category].icon;
 
   return (
@@ -182,6 +183,19 @@ function TemplateCard({
           )}
         </div>
         <div style={{ display: "flex", gap: "var(--ds-sp-1)", flexShrink: 0 }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            title="SQL 복사"
+            icon={copied ? <Check size={13} style={{ color: "var(--ds-success)" }} /> : <Copy size={13} />}
+            onClick={() => {
+              void navigator.clipboard.writeText(template.sql);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            }}
+          >
+            {copied ? "복사됨" : "SQL 복사"}
+          </Button>
           <Button variant="ghost" size="sm" onClick={onUse} title="워크스페이스에서 열기">
             <ExternalLink size={13} />
             <span style={{ marginLeft: 4 }}>사용</span>

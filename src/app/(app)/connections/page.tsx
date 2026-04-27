@@ -9,7 +9,7 @@ import { Pill } from "@/components/ui-vs/Pill";
 import { ConnectionWizard } from "@/components/connections/ConnectionWizard";
 import { useConnections, useTestConnection, useUpdateConnection } from "@/hooks/useConnections";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, RefreshCw, Loader2, Trash2, Pencil, X, Copy, Check, Search } from "lucide-react";
+import { Plus, RefreshCw, Loader2, Trash2, Pencil, X, Copy, Check, Search, Zap } from "lucide-react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import type { DbDialect, Connection } from "@/types";
 
@@ -248,14 +248,29 @@ export default function ConnectionsPage() {
         title="연결"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "연결" }]}
         actions={
-          <Button
-            variant="primary"
-            size="sm"
-            icon={<Plus size={13} />}
-            onClick={() => setShowWizard(true)}
-          >
-            새 연결
-          </Button>
+          <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+            {connections && connections.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Zap size={13} />}
+                disabled={testMutation.isPending}
+                onClick={() => {
+                  connections.forEach((conn) => handleTest(conn.id));
+                }}
+              >
+                전체 테스트
+              </Button>
+            )}
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Plus size={13} />}
+              onClick={() => setShowWizard(true)}
+            >
+              새 연결
+            </Button>
+          </div>
         }
       />
 

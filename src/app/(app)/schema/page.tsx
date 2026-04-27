@@ -190,7 +190,9 @@ export default function SchemaPage() {
             <Pill variant={activeFilter === "pii" ? "warn" : "default"}>PII 포함</Pill>
           </button>
           <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
-            {tables.length}개 테이블
+            {(search || activeFilter !== "all") && (data ?? []).length !== tables.length
+              ? `${tables.length} / ${(data ?? []).length}개 테이블`
+              : `${tables.length}개 테이블`}
           </span>
         </div>
 

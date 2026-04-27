@@ -124,6 +124,7 @@ export default function GlossaryPage() {
   const { setSql, setStatus } = useWorkspaceStore();
   const router = useRouter();
   const [copiedSqlId, setCopiedSqlId] = useState<string | null>(null);
+  const [copiedTermId, setCopiedTermId] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -327,6 +328,18 @@ export default function GlossaryPage() {
                   </div>
                 </div>
                 <Pill variant={categoryColors[term.category] ?? "default"}>{term.category}</Pill>
+                <span
+                  title="용어명 복사"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void navigator.clipboard.writeText(term.term);
+                    setCopiedTermId(term.id);
+                    setTimeout(() => setCopiedTermId(null), 1500);
+                  }}
+                  style={{ color: copiedTermId === term.id ? "var(--ds-success)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", flexShrink: 0 }}
+                >
+                  {copiedTermId === term.id ? <Check size={11} /> : <Copy size={11} />}
+                </span>
               </button>
             ))}
           </div>
