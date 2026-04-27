@@ -503,7 +503,7 @@ export default function ChartsPage() {
       </div>
 
       {addDashModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setAddDashModal(null)} onKeyDown={(e) => { if (e.key === "Escape") setAddDashModal(null); }}>
+        <div role="dialog" aria-modal="true" aria-label="대시보드에 추가" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setAddDashModal(null)} onKeyDown={(e) => { if (e.key === "Escape") setAddDashModal(null); }}>
           <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 300, maxWidth: 380, display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }} onClick={(e) => e.stopPropagation()}>
             <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>대시보드에 추가</div>
             <div style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-text-mute)" }}>"{addDashModal.chartName}"</div>
