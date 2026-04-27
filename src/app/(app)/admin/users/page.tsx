@@ -1,10 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
-import { Crown, ShieldCheck, User, Trash2, AlertTriangle } from "lucide-react";
+import { Crown, ShieldCheck, User, Trash2, AlertTriangle, Search } from "lucide-react";
 import type { UserRole } from "@/lib/auth/jwt";
+
+function formatRelativeDate(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const diffDay = Math.floor(diffMs / 86_400_000);
+  if (diffDay === 0) return "오늘";
+  if (diffDay === 1) return "어제";
+  if (diffDay < 30) return `${diffDay}일 전`;
+  const diffMonth = Math.floor(diffDay / 30);
+  if (diffMonth < 12) return `${diffMonth}개월 전`;
+  return new Date(iso).toLocaleDateString("ko-KR");
+}
 
 interface UserRow {
   id: string;
@@ -39,6 +50,16 @@ export default function AdminUsersPage() {
   const queryClient = useQueryClient();
   const [confirmDelete, setConfirmDelete] = useState<UserRow | null>(null);
   const [confirmRole, setConfirmRole] = useState<{ user: UserRow; nextRole: UserRole } | null>(null);
+  const [search, setSearch] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const { data, isLoading, error } = useQuery<UserRow[]>({
     queryKey: ["admin", "users"],
@@ -88,7 +109,7 @@ export default function AdminUsersPage() {
 
       <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-5)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-4)" }}>
           <ShieldCheck size={18} style={{ color: "var(--ds-warn)" }} />
           <h2 style={{ fontSize: "var(--ds-fs-16)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>
             사용자 목록
@@ -101,6 +122,16 @@ export default function AdminUsersPage() {
               {data.length}명
             </span>
           )}
+        </div>
+        <div style={{ position: "relative", maxWidth: 300, marginBottom: "var(--ds-sp-4)" }}>
+          <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+          <input
+            ref={searchRef}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="이름 또는 이메일 검색... (⌘F)"
+            style={{ width: "100%", paddingLeft: 32, paddingRight: "var(--ds-sp-3)", paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", color: "var(--ds-text)", fontSize: "var(--ds-fs-12)", outline: "none", fontFamily: "var(--ds-font-sans)", boxSizing: "border-box" }}
+          />
         </div>
 
         {isLoading && (
@@ -153,13 +184,21 @@ export default function AdminUsersPage() {
               <div />
             </div>
 
-            {data.length === 0 && (
+            {data.filter((u) =>
+              !search ||
+              (u.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+              u.email.toLowerCase().includes(search.toLowerCase())
+            ).length === 0 && (
               <div style={{ padding: "var(--ds-sp-8)", textAlign: "center", color: "var(--ds-text-faint)" }}>
-                사용자가 없습니다.
+                {search ? "검색 결과가 없습니다." : "사용자가 없습니다."}
               </div>
             )}
 
-            {data.map((user, idx) => (
+            {data.filter((u) =>
+              !search ||
+              (u.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+              u.email.toLowerCase().includes(search.toLowerCase())
+            ).map((user, idx, filtered) => (
               <div
                 key={user.id}
                 style={{
@@ -167,7 +206,7 @@ export default function AdminUsersPage() {
                   gridTemplateColumns: "1fr 1fr 140px 120px 60px",
                   gap: "var(--ds-sp-3)",
                   padding: "var(--ds-sp-3) var(--ds-sp-4)",
-                  borderBottom: idx < data.length - 1 ? "1px solid var(--ds-border)" : "none",
+                  borderBottom: idx < filtered.length - 1 ? "1px solid var(--ds-border)" : "none",
                   alignItems: "center",
                   fontSize: "var(--ds-fs-13)",
                 }}
@@ -200,8 +239,11 @@ export default function AdminUsersPage() {
                 </div>
 
                 {/* Joined */}
-                <div style={{ color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-12)" }}>
-                  {new Date(user.createdAt).toLocaleDateString("ko-KR")}
+                <div
+                  title={new Date(user.createdAt).toLocaleDateString("ko-KR")}
+                  style={{ color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-12)" }}
+                >
+                  {formatRelativeDate(user.createdAt)}
                 </div>
 
                 {/* Actions */}

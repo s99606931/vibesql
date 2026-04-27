@@ -29,6 +29,18 @@ import {
 import ResultChart from "@/components/workspace/ResultChart";
 import { ResultTable } from "@/components/workspace/ResultTable";
 
+function formatRelativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 60_000) return "방금 전";
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMs / 3_600_000);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffMs / 86_400_000);
+  if (diffDay < 30) return `${diffDay}일 전`;
+  return new Date(iso).toLocaleDateString("ko-KR");
+}
+
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface Widget {
@@ -648,7 +660,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                     }}
                   >
                     <Clock size={11} />
-                    {new Date(dashboard.updatedAt).toLocaleString("ko-KR")}
+                    <span title={new Date(dashboard.updatedAt).toLocaleString("ko-KR")}>{formatRelativeTime(dashboard.updatedAt)}</span>
                   </span>
                 </div>
               </div>

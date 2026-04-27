@@ -9,7 +9,7 @@ import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Button } from "@/components/ui-vs/Button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RotateCcw, Star, MoreHorizontal, Trash2, Download, ChevronDown, ChevronRight } from "lucide-react";
+import { RotateCcw, Star, MoreHorizontal, Trash2, Download, ChevronDown, ChevronRight, Copy, Check } from "lucide-react";
 
 type HistoryFilter = "전체" | "성공" | "실패" | "즐겨찾기";
 const HISTORY_FILTERS: HistoryFilter[] = ["전체", "성공", "실패", "즐겨찾기"];
@@ -64,6 +64,7 @@ export default function HistoryPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [expandedErrorId, setExpandedErrorId] = useState<string | null>(null);
   const [clearAllModal, setClearAllModal] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const router = useRouter();
   const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
@@ -399,6 +400,17 @@ export default function HistoryPage() {
                         }
                         onClick={(e) => { e.stopPropagation(); starMutation.mutate(item.id); }}
                       >저장</Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={copiedId === item.id ? <Check size={12} style={{ color: "var(--ds-success)" }} /> : <Copy size={12} />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void navigator.clipboard.writeText(item.sql);
+                          setCopiedId(item.id);
+                          setTimeout(() => setCopiedId(null), 1500);
+                        }}
+                      >{copiedId === item.id ? "복사됨" : "복사"}</Button>
                       <Button
                         variant="ghost"
                         size="sm"
