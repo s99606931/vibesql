@@ -9,7 +9,7 @@ import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Button } from "@/components/ui-vs/Button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RotateCcw, Star, MoreHorizontal } from "lucide-react";
+import { RotateCcw, Star, MoreHorizontal, Trash2 } from "lucide-react";
 
 type HistoryFilter = "전체" | "성공" | "실패" | "즐겨찾기";
 const HISTORY_FILTERS: HistoryFilter[] = ["전체", "성공", "실패", "즐겨찾기"];
@@ -63,6 +63,7 @@ export default function HistoryPage() {
   const [search, setSearch] = useState("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [expandedErrorId, setExpandedErrorId] = useState<string | null>(null);
+  const [clearAllModal, setClearAllModal] = useState(false);
   const queryClient = useQueryClient();
   const router = useRouter();
   const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
@@ -80,6 +81,14 @@ export default function HistoryPage() {
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/history/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("삭제 실패");
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["history"] }),
+  });
+
+  const clearAllMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/history", { method: "DELETE" });
+      if (!res.ok) throw new Error("전체 삭제 실패");
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["history"] }),
   });
@@ -118,6 +127,18 @@ export default function HistoryPage() {
       <TopBar
         title="히스토리"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "히스토리" }]}
+        actions={
+          data.length > 0 ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Trash2 size={13} />}
+              onClick={() => setClearAllModal(true)}
+            >
+              전체 삭제
+            </Button>
+          ) : undefined
+        }
       />
 
       <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
@@ -360,6 +381,30 @@ export default function HistoryPage() {
           </div>
         )}
       </div>
+
+      {clearAllModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setClearAllModal(false)}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 320, maxWidth: 400, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>전체 히스토리 삭제</div>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", lineHeight: 1.6 }}>
+              모든 쿼리 히스토리 ({totalCount.toLocaleString()}개)가 영구적으로 삭제됩니다.<br />
+              이 작업은 되돌릴 수 없습니다.
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button variant="ghost" size="sm" onClick={() => setClearAllModal(false)}>취소</Button>
+              <Button
+                variant="danger"
+                size="sm"
+                icon={<Trash2 size={12} />}
+                loading={clearAllMutation.isPending}
+                onClick={() => { clearAllMutation.mutate(); setClearAllModal(false); }}
+              >
+                전체 삭제
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {deleteConfirmId && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteConfirmId(null)}>

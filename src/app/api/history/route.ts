@@ -101,6 +101,26 @@ export async function GET(req: Request) {
   });
 }
 
+export async function DELETE(req: Request) {
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
+
+  if (process.env.DATABASE_URL) {
+    try {
+      const { prisma } = await import("@/lib/db/prisma");
+      const { count } = await prisma.queryHistory.deleteMany({ where: { userId } });
+      return NextResponse.json({ data: { deleted: count } });
+    } catch {
+      /* fall through */
+    }
+  }
+
+  const before = items.length;
+  items.splice(0, items.length, ...items.filter((i) => i.userId !== userId));
+  return NextResponse.json({ data: { deleted: before - items.length } });
+}
+
 export async function POST(req: Request) {
   const authResult = await requireUserId();
   if (authResult instanceof NextResponse) return authResult;

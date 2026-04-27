@@ -8,8 +8,32 @@ import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Plus, Trash2, Play, Pencil, Clock, Calendar, CheckCircle2, XCircle, Loader } from "lucide-react";
 import type { ScheduledQuery, DbDialect } from "@/types";
+import { useConnections } from "@/hooks/useConnections";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
+
+function cronToHuman(expr: string): string {
+  const presetMap: Record<string, string> = {
+    "0 * * * *": "매시간 정각",
+    "0 0 * * *": "매일 자정 (00:00)",
+    "0 9 * * *": "매일 오전 9:00",
+    "0 9 * * 1": "매주 월요일 오전 9:00",
+    "0 9 1 * *": "매월 1일 오전 9:00",
+  };
+  if (presetMap[expr.trim()]) return presetMap[expr.trim()];
+  const parts = expr.trim().split(/\s+/);
+  if (parts.length !== 5) return "";
+  const [min, hour, dom, , dow] = parts;
+  const timeStr = (hour !== "*" && min !== "*") ? `${hour.padStart(2, "0")}:${min.padStart(2, "0")}` : null;
+  if (dom !== "*" && dow === "*") return `매월 ${dom}일${timeStr ? ` ${timeStr}` : ""}`;
+  if (dow !== "*" && dom === "*") {
+    const days = ["일", "월", "화", "수", "목", "금", "토"];
+    const d = parseInt(dow, 10);
+    return `매주 ${!isNaN(d) && days[d] ? days[d] + "요일" : dow}${timeStr ? ` ${timeStr}` : ""}`;
+  }
+  if (dom === "*" && dow === "*") return `매일${timeStr ? ` ${timeStr}` : " (매시간)"}`;
+  return "";
+}
 
 const CRON_PRESETS = [
   { label: "매시간", value: "0 * * * *" },
@@ -40,6 +64,7 @@ interface ScheduleFormData {
   dialect: DbDialect;
   cronExpr: string;
   isActive: boolean;
+  connectionId?: string;
 }
 
 const DEFAULT_FORM: ScheduleFormData = {
@@ -48,6 +73,7 @@ const DEFAULT_FORM: ScheduleFormData = {
   dialect: "postgresql",
   cronExpr: "0 9 * * *",
   isActive: true,
+  connectionId: undefined,
 };
 
 function ScheduleModal({
@@ -62,6 +88,7 @@ function ScheduleModal({
   saving: boolean;
 }) {
   const [form, setForm] = useState<ScheduleFormData>(initial);
+  const { data: connections = [] } = useConnections();
 
   function set<K extends keyof ScheduleFormData>(k: K, v: ScheduleFormData[K]) {
     setForm((prev) => ({ ...prev, [k]: v }));
@@ -217,10 +244,34 @@ function ScheduleModal({
               fontFamily: "var(--ds-font-mono)",
             }}
           />
-          <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
-            형식: 분 시 일 월 요일 (예: 0 9 * * 1 = 매주 월요일 오전 9시)
-          </span>
+          <div style={{ display: "flex", gap: "var(--ds-sp-2)", alignItems: "center", flexWrap: "wrap" }}>
+            <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
+              형식: 분 시 일 월 요일 (예: 0 9 * * 1 = 매주 월요일 오전 9시)
+            </span>
+            {cronToHuman(form.cronExpr) && (
+              <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-accent)", fontWeight: "var(--ds-fw-medium)" }}>
+                → {cronToHuman(form.cronExpr)}
+              </span>
+            )}
+          </div>
         </div>
+
+        {/* Connection selector */}
+        {connections.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
+            <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>연결 (선택)</label>
+            <select
+              value={form.connectionId ?? ""}
+              onChange={(e) => set("connectionId", e.target.value || undefined)}
+              style={{ border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", padding: "var(--ds-sp-2) var(--ds-sp-3)", outline: "none", fontFamily: "var(--ds-font-sans)", cursor: "pointer" }}
+            >
+              <option value="">연결 선택 안함</option>
+              {connections.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
           <Button variant="ghost" size="md" onClick={onClose}>취소</Button>
@@ -571,6 +622,7 @@ export default function SchedulesPage() {
                   dialect: modal.editing.dialect,
                   cronExpr: modal.editing.cronExpr,
                   isActive: modal.editing.isActive,
+                  connectionId: (modal.editing as ScheduledQuery & { connectionId?: string }).connectionId,
                 }
               : DEFAULT_FORM
           }

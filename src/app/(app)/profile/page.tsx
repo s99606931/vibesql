@@ -148,6 +148,26 @@ export default function ProfilePage() {
     URL.revokeObjectURL(url);
   }
 
+  async function handleExportCsv() {
+    const savedRes = (await fetch("/api/saved").then((r) => r.json())) as { data?: Record<string, unknown>[] };
+    const rows = Array.isArray(savedRes.data) ? savedRes.data : [];
+    const headers = ["name", "description", "folder", "tags", "dialect", "nlQuery", "sql", "createdAt"];
+    const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const csv = [
+      headers.join(","),
+      ...rows.map((r) =>
+        headers.map((h) => escape(h === "tags" && Array.isArray(r[h]) ? (r[h] as string[]).join(";") : r[h])).join(",")
+      ),
+    ].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `vibesql-saved-queries-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   function handleDeleteAccount() {
     setDeleteAccountModal(true);
   }
@@ -322,9 +342,12 @@ export default function ProfilePage() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--ds-sp-4)", paddingBottom: "var(--ds-sp-3)", borderBottom: "1px solid var(--ds-border)" }}>
                 <div>
                   <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>데이터 내보내기</div>
-                  <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>저장된 쿼리, 히스토리, 설정을 JSON으로 다운로드</div>
+                  <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>저장된 쿼리와 히스토리를 JSON 또는 CSV로 다운로드</div>
                 </div>
-                <Button variant="default" size="sm" icon={<Download size={12} />} onClick={handleExport}>내보내기</Button>
+                <div style={{ display: "flex", gap: "var(--ds-sp-2)", flexShrink: 0 }}>
+                  <Button variant="ghost" size="sm" icon={<Download size={12} />} onClick={() => { void handleExportCsv(); }}>CSV</Button>
+                  <Button variant="default" size="sm" icon={<Download size={12} />} onClick={() => { void handleExport(); }}>JSON</Button>
+                </div>
               </div>
               <div style={{ border: "1px solid var(--ds-danger)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-4)" }}>
                 <div style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-danger)", marginBottom: "var(--ds-sp-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>

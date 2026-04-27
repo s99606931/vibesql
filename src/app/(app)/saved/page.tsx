@@ -23,6 +23,7 @@ import {
   History,
   RotateCcw,
   X,
+  FolderInput,
 } from "lucide-react";
 import type { SavedQuery, QueryVersion } from "@/types";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
@@ -234,6 +235,8 @@ export default function SavedPage() {
   const [extraFolders, setExtraFolders] = useState<string[]>([]);
   const [renameModal, setRenameModal] = useState<{ id: string; name: string } | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [moveModal, setMoveModal] = useState<{ id: string; currentFolder: string } | null>(null);
+  const [moveFolder, setMoveFolder] = useState("");
   const queryClient = useQueryClient();
   const router = useRouter();
   const { setSql, setStatus } = useWorkspaceStore();
@@ -269,6 +272,18 @@ export default function SavedPage() {
         body: JSON.stringify({ name }),
       });
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "편집 실패");
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved"] }),
+  });
+
+  const moveMutation = useMutation({
+    mutationFn: async ({ id, folder }: { id: string; folder: string }) => {
+      const res = await fetch(`/api/saved/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folder: folder === "미분류" ? null : folder }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "이동 실패");
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved"] }),
   });
@@ -603,6 +618,18 @@ export default function SavedPage() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          icon={<FolderInput size={12} />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMoveFolder(query.folder ?? "미분류");
+                            setMoveModal({ id: query.id, currentFolder: query.folder ?? "미분류" });
+                          }}
+                        >
+                          이동
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           icon={<Pencil size={12} />}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -709,6 +736,63 @@ export default function SavedPage() {
                 style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)" }}
               >
                 만들기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Move folder modal */}
+      {moveModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
+          onClick={() => setMoveModal(null)}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
+            <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-3)" }}>폴더 이동</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)", marginBottom: "var(--ds-sp-4)" }}>
+              {[...new Set(["미분류", ...folders.map((f) => f.name)])].map((name) => (
+                <button
+                  key={name}
+                  onClick={() => setMoveFolder(name)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--ds-sp-2)",
+                    padding: "var(--ds-sp-2) var(--ds-sp-3)",
+                    border: moveFolder === name ? "1px solid var(--ds-accent)" : "1px solid var(--ds-border)",
+                    borderRadius: "var(--ds-r-6)",
+                    background: moveFolder === name ? "var(--ds-accent-soft)" : "var(--ds-fill)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    width: "100%",
+                    fontFamily: "var(--ds-font-sans)",
+                    fontSize: "var(--ds-fs-13)",
+                    color: moveFolder === name ? "var(--ds-accent)" : "var(--ds-text)",
+                    transition: "all var(--ds-dur-fast) var(--ds-ease)",
+                  }}
+                >
+                  <FolderOpen size={13} style={{ flexShrink: 0 }} />
+                  {name}
+                  {name === moveModal.currentFolder && (
+                    <span style={{ marginLeft: "auto", fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>현재</span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button onClick={() => setMoveModal(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}>취소</button>
+              <button
+                onClick={() => {
+                  if (moveFolder !== moveModal.currentFolder) {
+                    moveMutation.mutate({ id: moveModal.id, folder: moveFolder });
+                  }
+                  setMoveModal(null);
+                }}
+                disabled={moveFolder === moveModal.currentFolder || moveMutation.isPending}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: moveFolder === moveModal.currentFolder ? "not-allowed" : "pointer", opacity: moveFolder === moveModal.currentFolder ? 0.5 : 1, fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)" }}
+              >
+                {moveMutation.isPending ? "이동 중..." : "이동"}
               </button>
             </div>
           </div>
