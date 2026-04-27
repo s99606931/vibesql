@@ -97,17 +97,19 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli@latest
 
-      - name: Query Railway services (project token scope)
+      - name: List Railway services in project
         run: |
-          echo "=== railway status ==="
-          railway status 2>&1 || true
-          echo "=== railway environment ==="
-          railway environment 2>&1 || true
-          echo "=== GraphQL: project services ==="
+          echo "=== railway service list ==="
+          railway service list 2>&1 || true
+          echo "=== railway services (alt command) ==="
+          railway services 2>&1 || true
+          echo "=== railway help (service) ==="
+          railway service --help 2>&1 | head -20 || true
+          echo "=== GraphQL: projectToken services ==="
           curl -s https://backboard.railway.com/graphql/v2 \
             -H "Authorization: Bearer $RAILWAY_TOKEN" \
             -H "Content-Type: application/json" \
-            -d '{"query":"{ project { id name services { edges { node { id name } } } } }"}' \
+            -d '{"query":"{ projectToken { environment { project { services { edges { node { id name } } } } } } }"}' \
             | python3 -m json.tool 2>&1 || echo "graphql failed"
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
