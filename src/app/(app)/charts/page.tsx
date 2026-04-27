@@ -68,6 +68,16 @@ const CHART_TYPE_VARIANTS: Record<string, "accent" | "success" | "info" | "defau
   "테이블": "default",
 };
 
+function formatRelativeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  if (diff < 60_000) return "방금 전";
+  const min = Math.floor(diff / 60_000);
+  if (min < 60) return `${min}분 전`;
+  const hr = Math.floor(diff / 3_600_000);
+  if (hr < 24) return `${hr}시간 전`;
+  return `${Math.floor(diff / 86_400_000)}일 전`;
+}
+
 function exportChartsCsv(charts: Array<{ name: string; folder: string; chartType: string; sql: string; dialect?: string; createdAt: string }>) {
   const headers = ["이름", "폴더", "차트 유형", "방언", "SQL", "생성일"];
   const esc = (v: string) => (v.includes(",") || v.includes('"') || v.includes("\n") ? `"${v.replace(/"/g, '""')}"` : v);
@@ -398,6 +408,12 @@ export default function ChartsPage() {
                     <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
                       <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", fontFamily: "var(--ds-font-mono)" }}>
                         {chart.folder}
+                      </span>
+                      <span
+                        title={new Date(chart.createdAt).toLocaleString("ko-KR")}
+                        style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", cursor: "default" }}
+                      >
+                        {formatRelativeAgo(chart.createdAt)}
                       </span>
                       {state.status === "ready" && (
                         <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)" }}>

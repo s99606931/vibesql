@@ -6,6 +6,7 @@ import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Plus, Trash2, Pencil, Zap, CheckCircle2, XCircle, Clock,
   Wifi, WifiOff, Eye, EyeOff, Copy, Check,
@@ -672,8 +673,10 @@ export default function AiProvidersPage() {
 
         {/* Provider list */}
         {isLoading ? (
-          <div style={{ color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)", padding: "var(--ds-sp-5) 0" }}>
-            불러오는 중...
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-24 w-full rounded-lg" />
+            ))}
           </div>
         ) : providers.length === 0 ? (
           <div

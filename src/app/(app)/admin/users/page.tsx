@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Crown, ShieldCheck, User, Trash2, AlertTriangle, Search, Download, X, Copy, Check } from "lucide-react";
 import type { UserRole } from "@/lib/auth/jwt";
 
@@ -163,8 +164,10 @@ export default function AdminUsersPage() {
         </div>
 
         {isLoading && (
-          <div style={{ padding: "var(--ds-sp-8)", textAlign: "center", color: "var(--ds-text-mute)" }}>
-            불러오는 중...
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-lg" />
+            ))}
           </div>
         )}
 
