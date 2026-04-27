@@ -215,6 +215,7 @@ function VersionPanel({
                     </div>
                   )}
                   <pre
+                    title={v.sql}
                     style={{
                       fontSize: "var(--ds-fs-10)",
                       fontFamily: "var(--ds-font-mono)",

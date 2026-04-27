@@ -325,9 +325,14 @@ export default function ChartsPage() {
         {/* Empty state */}
         {!isLoading && visible.length === 0 && (
           <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-mute)", fontSize: "var(--ds-fs-13)" }}>
-            {charts.length === 0
-              ? "저장된 쿼리가 없습니다. 워크스페이스에서 쿼리를 저장해보세요."
-              : "검색 결과 없음"}
+            {charts.length === 0 ? (
+              <>
+                <div>저장된 쿼리가 없습니다. 워크스페이스에서 쿼리를 저장해보세요.</div>
+                <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => router.push("/workspace")}>
+                  워크스페이스로 이동
+                </Button>
+              </>
+            ) : "검색 결과 없음"}
           </div>
         )}
 

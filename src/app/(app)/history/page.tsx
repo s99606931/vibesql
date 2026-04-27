@@ -465,7 +465,12 @@ export default function HistoryPage() {
         {/* No-results */}
         {!isLoading && filtered.length === 0 && (search || activeFilter !== "전체") && (
           <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
-            {search ? "검색 결과가 없습니다." : "해당 필터에 결과가 없습니다."}
+            <div>{search ? "검색 결과가 없습니다." : "해당 필터에 결과가 없습니다."}</div>
+            {activeFilter !== "전체" && !search && (
+              <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setActiveFilter("전체")}>
+                필터 초기화
+              </Button>
+            )}
           </div>
         )}
 

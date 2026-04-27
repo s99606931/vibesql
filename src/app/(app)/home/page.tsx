@@ -874,7 +874,10 @@ function StatsSection() {
               textAlign: "center",
             }}
           >
-            아직 실행된 쿼리가 없습니다.
+            <div>아직 실행된 쿼리가 없습니다.</div>
+            <Link href="/workspace" style={{ display: "inline-block", marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-12)", color: "var(--ds-accent)" }}>
+              워크스페이스로 이동 →
+            </Link>
           </div>
         ) : (
           <div

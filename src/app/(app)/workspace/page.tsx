@@ -337,6 +337,7 @@ function TemplatePicker({
                     whiteSpace: "nowrap",
                     margin: 0,
                   }}
+                  title={t.sql}
                 >
                   {t.sql.slice(0, 100)}{t.sql.length > 100 ? "..." : ""}
                 </pre>
