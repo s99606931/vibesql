@@ -246,7 +246,7 @@ export default function SignInPage() {
                 type={showPassword ? "text" : "password"}
                 id="signin-password"
                 aria-label="비밀번호"
-                aria-describedby={tab === "register" ? "signin-pw-hint" : undefined}
+                aria-describedby={[tab === "register" ? "signin-pw-hint" : undefined, error ? "signin-error" : undefined].filter(Boolean).join(" ") || undefined}
                 aria-invalid={error ? true : undefined}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

@@ -141,6 +141,7 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
           </div>
           <button
             type="button"
+            autoFocus
             onClick={handleClose}
             aria-label="닫기"
             style={{
