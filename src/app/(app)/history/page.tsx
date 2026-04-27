@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
@@ -94,6 +94,17 @@ export default function HistoryPage() {
   });
 
   const [limit, setLimit] = useState(50);
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const statusParam =
     activeFilter === "성공" ? "SUCCESS" :
@@ -201,9 +212,10 @@ export default function HistoryPage() {
           ))}
           <div style={{ flex: 1 }} />
           <input
+            ref={searchRef}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="히스토리 검색..."
+            placeholder="히스토리 검색... (⌘F)"
             style={{
               padding: "var(--ds-sp-1) var(--ds-sp-3)",
               border: "1px solid var(--ds-border)",

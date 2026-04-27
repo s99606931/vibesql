@@ -25,6 +25,7 @@ import {
   X,
   FolderInput,
   Copy,
+  Download,
 } from "lucide-react";
 import type { SavedQuery, QueryVersion } from "@/types";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
@@ -329,6 +330,19 @@ export default function SavedPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved"] }),
   });
 
+  function exportSavedCsv() {
+    if (filtered.length === 0) return;
+    const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const rows = [["이름", "폴더", "방언", "NL쿼리", "태그", "저장일"].map(escape).join(",")];
+    for (const q of filtered) {
+      rows.push([q.name, q.folder ?? "", q.dialect, q.nlQuery, q.tags.join("|"), q.createdAt].map(escape).join(","));
+    }
+    const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "saved-queries.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
   function handleNewFolder() {
     setNewFolderName("");
     setNewFolderModal(true);
@@ -374,9 +388,21 @@ export default function SavedPage() {
         title="저장된 쿼리"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "저장된 쿼리" }]}
         actions={
-          <Button variant="ghost" size="sm" icon={<Plus size={13} />} onClick={() => { void handleNewFolder(); }}>
-            새 폴더
-          </Button>
+          <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+            {filtered.length > 0 && (
+              <button
+                onClick={exportSavedCsv}
+                title="CSV 내보내기"
+                style={{ display: "flex", alignItems: "center", gap: 4, padding: "var(--ds-sp-1) var(--ds-sp-3)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-12)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}
+              >
+                <Download size={12} />
+                CSV
+              </button>
+            )}
+            <Button variant="ghost" size="sm" icon={<Plus size={13} />} onClick={() => { void handleNewFolder(); }}>
+              새 폴더
+            </Button>
+          </div>
         }
       />
 

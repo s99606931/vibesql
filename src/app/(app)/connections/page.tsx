@@ -9,7 +9,7 @@ import { Pill } from "@/components/ui-vs/Pill";
 import { ConnectionWizard } from "@/components/connections/ConnectionWizard";
 import { useConnections, useTestConnection, useUpdateConnection } from "@/hooks/useConnections";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, RefreshCw, Loader2, Trash2, Pencil, X } from "lucide-react";
+import { Plus, RefreshCw, Loader2, Trash2, Pencil, X, Copy, Check } from "lucide-react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import type { DbDialect, Connection } from "@/types";
 
@@ -132,6 +132,7 @@ export default function ConnectionsPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const activeConnectionId = useWorkspaceStore((s) => s.activeConnectionId);
   const [testFeedback, setTestFeedback] = useState<Record<string, ConnTestFeedback>>({});
+  const [copiedHostId, setCopiedHostId] = useState<string | null>(null);
   const { data: connections, isLoading, isError, error } = useConnections();
   const testMutation = useTestConnection();
   const queryClient = useQueryClient();
@@ -336,15 +337,30 @@ export default function ConnectionsPage() {
                           </div>
                         </td>
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
-                          <span
-                            className="ds-mono"
-                            style={{
-                              fontSize: "var(--ds-fs-12)",
-                              color: "var(--ds-text-mute)",
-                            }}
-                          >
-                            {conn.host ?? "—"}
-                          </span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <span
+                              className="ds-mono"
+                              style={{
+                                fontSize: "var(--ds-fs-12)",
+                                color: "var(--ds-text-mute)",
+                              }}
+                            >
+                              {conn.host ?? "—"}
+                            </span>
+                            {conn.host && (
+                              <button
+                                onClick={() => {
+                                  void navigator.clipboard.writeText(`${conn.host}:${conn.port ?? ""}`);
+                                  setCopiedHostId(conn.id);
+                                  setTimeout(() => setCopiedHostId((prev) => prev === conn.id ? null : prev), 1500);
+                                }}
+                                title="host:port 복사"
+                                style={{ background: "none", border: "none", cursor: "pointer", color: copiedHostId === conn.id ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2 }}
+                              >
+                                {copiedHostId === conn.id ? <Check size={10} /> : <Copy size={10} />}
+                              </button>
+                            )}
+                          </div>
                         </td>
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
                           <span

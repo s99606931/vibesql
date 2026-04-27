@@ -416,10 +416,16 @@ export default function WorkspacePage() {
         e.preventDefault();
         void handleRun();
       }
+      if ((e.metaKey || e.ctrlKey) && e.key === "s" && sql.trim() && status === "ready") {
+        e.preventDefault();
+        setSaveName(nlQuery || "쿼리");
+        setSaveFolder("기본");
+        setSaveModal(true);
+      }
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [sql, status]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sql, status, nlQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeConnection = (connections ?? []).find((c) => c.id === activeConnectionId);
 

@@ -10,7 +10,7 @@ import { Pill } from "@/components/ui-vs/Pill";
 import { AIBadge } from "@/components/ui-vs/AICallout";
 import { Button } from "@/components/ui-vs/Button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Database, Copy, Play, RefreshCw } from "lucide-react";
+import { Search, Database, Copy, Play, RefreshCw, Link2 } from "lucide-react";
 import { useConnections } from "@/hooks/useConnections";
 
 interface TableMeta {
@@ -244,6 +244,14 @@ export default function SchemaPage() {
                   meta={`${table.rows}행 · ${table.columns}컬럼`}
                   actions={
                     <div style={{ display: "flex", gap: "var(--ds-sp-1)", alignItems: "center" }}>
+                      {table.fks.length > 0 && (
+                        <Pill variant="info">
+                          <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                            <Link2 size={9} />
+                            FK {table.fks.length}
+                          </span>
+                        </Pill>
+                      )}
                       {table.pii && <Pill variant="warn">PII</Pill>}
                       <button
                         onClick={(e) => handleCopyTable(e, table)}
