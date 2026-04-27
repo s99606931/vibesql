@@ -244,6 +244,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
 
   return (
     <aside
+      aria-label="주 사이드바"
       style={{
         width: collapsed ? 48 : "var(--ds-sidebar-w)",
         background: "var(--ds-surface)",

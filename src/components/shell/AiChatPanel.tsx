@@ -313,6 +313,8 @@ export function AiChatPanel({
 
       {/* Panel */}
       <aside
+        aria-label="AI 채팅 패널"
+        aria-hidden={!open}
         style={{
           position: "fixed",
           top: 0,
@@ -330,8 +332,6 @@ export function AiChatPanel({
           willChange: "transform",
           userSelect: isResizing ? "none" : "auto",
         }}
-        aria-label="AI 챗봇"
-        aria-hidden={!open}
       >
         {/* Resize handle */}
         <div

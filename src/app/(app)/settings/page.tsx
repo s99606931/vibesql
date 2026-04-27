@@ -227,6 +227,7 @@ export default function SettingsPage() {
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         {/* Sidebar */}
         <nav
+          aria-label="설정 탐색"
           style={{
             width: 200,
             flexShrink: 0,
