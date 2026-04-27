@@ -92,7 +92,7 @@ function LogRow({ log }: { log: AuditLogItem }) {
         onClick={() => { if (log.metadata) setExpanded((v) => !v); }}
         onKeyDown={(e) => { if (log.metadata && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); setExpanded((v) => !v); } }}
       >
-        <Icon size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+        <Icon aria-hidden="true" size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", flexWrap: "wrap" }}>
           <Pill variant={meta.variant}>{meta.label}</Pill>
           <span style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text)" }}>
@@ -215,7 +215,7 @@ export default function AuditLogsPage() {
               aria-label="CSV 내보내기"
               style={{ display: "flex", alignItems: "center", gap: 4, padding: "var(--ds-sp-1) var(--ds-sp-3)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-12)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }}
             >
-              <Download size={12} />
+              <Download aria-hidden="true" size={12} />
               CSV
             </button>
           ) : undefined
@@ -250,7 +250,7 @@ export default function AuditLogsPage() {
         {/* Filter bar */}
         <div style={{ display: "flex", gap: "var(--ds-sp-3)", marginBottom: "var(--ds-sp-3)", flexWrap: "wrap" }}>
           <div role="search" aria-label="감사 로그 검색" style={{ position: "relative", flex: 1, minWidth: 180 }}>
-            <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+            <Search aria-hidden="true" size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
             <input
               ref={searchRef}
               type="search"
@@ -268,7 +268,7 @@ export default function AuditLogsPage() {
             />
             {search && (
               <button type="button" aria-label="검색 지우기" onClick={() => { setSearch(""); setPage(1); }} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
-                <X size={13} />
+                <X aria-hidden="true" size={13} />
               </button>
             )}
           </div>
@@ -352,7 +352,7 @@ export default function AuditLogsPage() {
           </div>
         ) : filtered.length === 0 ? (
           <Card style={{ padding: "var(--ds-sp-6)", textAlign: "center" }}>
-            <FileText size={24} style={{ color: "var(--ds-text-faint)", marginBottom: "var(--ds-sp-2)" }} />
+            <FileText aria-hidden="true" size={24} style={{ color: "var(--ds-text-faint)", marginBottom: "var(--ds-sp-2)" }} />
             <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>
               {logs.length === 0
                 ? "아직 활동 기록이 없습니다."

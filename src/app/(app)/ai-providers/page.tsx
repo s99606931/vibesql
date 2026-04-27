@@ -208,7 +208,7 @@ function ProviderModal({
                 style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                 className="hover:opacity-70"
               >
-                {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
+                {showKey ? <EyeOff aria-hidden="true" size={14} /> : <Eye aria-hidden="true" size={14} />}
               </button>
             </div>
           </div>
@@ -312,11 +312,11 @@ function ProviderCard({
 
   function TestIcon() {
     if (provider.lastTestedOk === null || provider.lastTestedOk === undefined) {
-      return <Clock size={12} style={{ color: "var(--ds-text-faint)" }} />;
+      return <Clock aria-hidden="true" size={12} style={{ color: "var(--ds-text-faint)" }} />;
     }
     return provider.lastTestedOk
-      ? <CheckCircle2 size={12} style={{ color: "var(--ds-success)" }} />
-      : <XCircle size={12} style={{ color: "var(--ds-danger)" }} />;
+      ? <CheckCircle2 aria-hidden="true" size={12} style={{ color: "var(--ds-success)" }} />
+      : <XCircle aria-hidden="true" size={12} style={{ color: "var(--ds-danger)" }} />;
   }
 
   function FeedbackLine() {
@@ -331,14 +331,14 @@ function ProviderCard({
     if (feedback.status === "success") {
       return (
         <div role="status" aria-live="polite" style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-success)", display: "flex", alignItems: "center", gap: "var(--ds-sp-1)" }}>
-          <CheckCircle2 size={12} />
+          <CheckCircle2 aria-hidden="true" size={12} />
           <span>연결 성공{typeof feedback.latencyMs === "number" ? ` · ${feedback.latencyMs}ms` : ""}</span>
         </div>
       );
     }
     return (
       <div role="alert" aria-live="assertive" style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-danger)", display: "flex", alignItems: "center", gap: "var(--ds-sp-1)" }}>
-        <XCircle size={12} />
+        <XCircle aria-hidden="true" size={12} />
         <span>{feedback.message ?? "연결 실패"}</span>
       </div>
     );
@@ -374,7 +374,7 @@ function ProviderCard({
                 style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)", transition: "color var(--ds-dur-fast) var(--ds-ease), opacity var(--ds-dur-fast) var(--ds-ease)" }}
                 className="hover:opacity-70"
               >
-                {copiedModel ? <Check size={11} style={{ color: "var(--ds-success)" }} /> : <Copy size={11} />}
+                {copiedModel ? <Check aria-hidden="true" size={11} style={{ color: "var(--ds-success)" }} /> : <Copy aria-hidden="true" size={11} />}
               </button>
             </span>
             {provider.baseUrl && (
@@ -410,20 +410,20 @@ function ProviderCard({
             disabled={testing}
             title="연결 테스트"
           >
-            {testing ? <WifiOff size={13} /> : <Wifi size={13} />}
+            {testing ? <WifiOff aria-hidden="true" size={13} /> : <Wifi aria-hidden="true" size={13} />}
             <span style={{ marginLeft: 4 }}>{testing ? "테스트 중" : "테스트"}</span>
           </Button>
           {!provider.isActive && (
             <Button variant="ghost" size="sm" onClick={onActivate}>
-              <Zap size={13} />
+              <Zap aria-hidden="true" size={13} />
               <span style={{ marginLeft: 4 }}>활성화</span>
             </Button>
           )}
           <Button variant="ghost" size="sm" onClick={onEdit} aria-label="수정">
-            <Pencil size={13} />
+            <Pencil aria-hidden="true" size={13} />
           </Button>
           <Button variant="ghost" size="sm" onClick={onDelete} aria-label="삭제">
-            <Trash2 size={13} style={{ color: "var(--ds-danger)" }} />
+            <Trash2 aria-hidden="true" size={13} style={{ color: "var(--ds-danger)" }} />
           </Button>
         </div>
       </div>
@@ -661,7 +661,7 @@ export default function AiProvidersPage() {
         breadcrumbs={[{ label: "vibeSQL" }, { label: "AI 설정" }, { label: "AI 프로바이더" }]}
         actions={
           <Button size="sm" onClick={openAdd}>
-            <Plus size={13} />
+            <Plus aria-hidden="true" size={13} />
             <span style={{ marginLeft: 4 }}>프로바이더 추가</span>
           </Button>
         }
@@ -710,7 +710,7 @@ export default function AiProvidersPage() {
               등록된 AI 프로바이더가 없습니다.
             </div>
             <Button size="sm" onClick={openAdd}>
-              <Plus size={13} />
+              <Plus aria-hidden="true" size={13} />
               <span style={{ marginLeft: 4 }}>첫 프로바이더 추가</span>
             </Button>
           </div>
