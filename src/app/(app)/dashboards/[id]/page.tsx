@@ -232,7 +232,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
             <button
               onClick={() => void refetch()}
               disabled={isLoading}
-              title="새로고침"
+              aria-label="새로고침"
               style={{
                 background: "none",
                 border: "none",
@@ -242,6 +242,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
                 display: "flex",
                 alignItems: "center",
                 opacity: isLoading ? 0.5 : 1,
+                transition: "opacity var(--ds-dur-fast) var(--ds-ease)",
               }}
             >
               <RefreshCw size={11} style={{ animation: isLoading ? "spin 1s linear infinite" : undefined }} />
@@ -250,7 +251,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
           <button
             onClick={() => onRemove(index)}
             disabled={isRemoving}
-            title="위젯 삭제"
+            aria-label="위젯 삭제"
             style={{
               background: "none",
               border: "none",

@@ -569,7 +569,7 @@ export default function AiContextPage() {
                               </span>
                             )}
                             <button
-                              title="값 복사"
+                              aria-label="값 복사"
                               onClick={() => {
                                 navigator.clipboard.writeText(rule.value);
                                 setCopiedRuleId(rule.id);

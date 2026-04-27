@@ -145,7 +145,7 @@ export default function SchemaPage() {
             </select>
             <button
               onClick={() => void refetch()}
-              title="스키마 새로고침"
+              aria-label="스키마 새로고침"
               style={{ display: "flex", alignItems: "center", padding: "var(--ds-sp-1)", background: "none", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", color: "var(--ds-text-mute)", transition: "color var(--ds-dur-fast) var(--ds-ease), background var(--ds-dur-fast) var(--ds-ease)" }}
               className="hover:bg-fill"
             >
@@ -296,7 +296,7 @@ export default function SchemaPage() {
                       {table.pii && <Pill variant="warn">PII</Pill>}
                       <button
                         onClick={(e) => handleCopyTable(e, table)}
-                        title="테이블명 복사"
+                        aria-label="테이블명 복사"
                         style={{ background: "none", border: "none", cursor: "pointer", color: copiedTable === table.name ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, gap: 2, transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
                       >
                         <Copy size={11} />
@@ -328,12 +328,23 @@ export default function SchemaPage() {
                   {(expandedTable === table.name ? table.cols : table.cols.slice(0, 5)).map((col) => (
                     <span
                       key={col}
-                      title="클릭하여 복사"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${col} 복사`}
                       onClick={(e) => {
                         e.stopPropagation();
                         navigator.clipboard.writeText(col);
                         setCopiedCol(col);
                         setTimeout(() => setCopiedCol((p) => p === col ? null : p), 1500);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(col);
+                          setCopiedCol(col);
+                          setTimeout(() => setCopiedCol((p) => p === col ? null : p), 1500);
+                        }
                       }}
                       style={{
                         fontFamily: "var(--ds-font-mono)",
