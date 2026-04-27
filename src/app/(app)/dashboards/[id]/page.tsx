@@ -573,7 +573,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
         }
       />
 
-      <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
         <div
           style={{
             maxWidth: 1100,
