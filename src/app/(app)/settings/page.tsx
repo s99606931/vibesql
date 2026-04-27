@@ -268,7 +268,7 @@ export default function SettingsPage() {
                   fontFamily: "var(--ds-font-sans)",
                 }}
               >
-                {item.icon}
+                <span aria-hidden="true">{item.icon}</span>
                 {item.label}
               </button>
             );

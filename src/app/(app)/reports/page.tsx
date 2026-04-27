@@ -50,7 +50,7 @@ export default function ReportsPage() {
               textAlign: "center",
             }}
           >
-            <FileText size={36} style={{ color: "var(--ds-text-faint)", opacity: 0.5 }} />
+            <FileText aria-hidden="true" size={36} style={{ color: "var(--ds-text-faint)", opacity: 0.5 }} />
             <div>
               <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-1)" }}>
                 리포트 — 개발 중
@@ -94,6 +94,7 @@ export default function ReportsPage() {
                       className="hover:bg-fill"
                     >
                       <span
+                        aria-hidden="true"
                         style={{
                           width: 32,
                           height: 32,
@@ -115,7 +116,7 @@ export default function ReportsPage() {
                           {item.desc}
                         </div>
                       </div>
-                      <ArrowRight size={14} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+                      <ArrowRight aria-hidden="true" size={14} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
                     </div>
                   </Link>
                 );
