@@ -340,7 +340,7 @@ export default function ConnectionsPage() {
           <>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-3)" }}>
               <div role="search" aria-label="연결 검색" style={{ position: "relative", maxWidth: 320, flex: 1 }}>
-                <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+                <Search aria-hidden="true" size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
                 <input
                   ref={searchRef}
                   type="search"
@@ -352,7 +352,7 @@ export default function ConnectionsPage() {
                 />
                 {search && (
                   <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
-                    <XCircle size={13} />
+                    <XCircle aria-hidden="true" size={13} />
                   </button>
                 )}
               </div>
@@ -456,7 +456,7 @@ export default function ConnectionsPage() {
                                 className="opacity-0 group-hover:opacity-100"
                                 style={{ background: "none", border: "none", cursor: "pointer", color: copiedHostId === conn.id ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                               >
-                                {copiedHostId === conn.id ? <Check size={10} /> : <Copy size={10} />}
+                                {copiedHostId === conn.id ? <Check aria-hidden="true" size={10} /> : <Copy aria-hidden="true" size={10} />}
                               </button>
                             )}
                           </div>
@@ -499,6 +499,7 @@ export default function ConnectionsPage() {
                             {isTesting ? (
                               <Pill variant="info">
                                 <Loader2
+                                  aria-hidden="true"
                                   size={10}
                                   style={{ animation: "spin 1s linear infinite" }}
                                 />
