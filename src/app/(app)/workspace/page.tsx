@@ -685,7 +685,6 @@ export default function WorkspacePage() {
                 outline: "none",
                 cursor: "pointer",
               }}
-              title="SQL 방언 선택"
             >
               {(["postgresql", "mysql", "sqlite", "mssql", "oracle"] as const).map((d) => (
                 <option key={d} value={d}>{d}</option>
@@ -696,8 +695,8 @@ export default function WorkspacePage() {
               variant="ghost"
               size="sm"
               icon={<FileText size={13} />}
+              aria-label="템플릿 불러오기"
               onClick={() => setTemplatePickerOpen(true)}
-              title="템플릿 불러오기"
             >
               템플릿
             </Button>
@@ -707,7 +706,8 @@ export default function WorkspacePage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  title="⌘S"
+                  aria-keyshortcuts="Meta+s"
+                  aria-label="저장"
                   icon={savedOk ? <Check size={13} /> : <Star size={13} />}
                   loading={saveQueryMutation.isPending}
                   onClick={() => {

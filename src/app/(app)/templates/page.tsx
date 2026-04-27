@@ -207,7 +207,7 @@ function TemplateCard({
           >
             {copied ? "복사됨" : "SQL 복사"}
           </Button>
-          <Button variant="ghost" size="sm" onClick={onUse} title="워크스페이스에서 열기">
+          <Button variant="ghost" size="sm" onClick={onUse} aria-label="워크스페이스에서 열기">
             <ExternalLink size={13} />
             <span style={{ marginLeft: 4 }}>사용</span>
           </Button>

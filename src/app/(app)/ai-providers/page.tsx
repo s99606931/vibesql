@@ -405,7 +405,7 @@ function ProviderCard({
             <span style={{ marginLeft: 4 }}>{testing ? "테스트 중" : "테스트"}</span>
           </Button>
           {!provider.isActive && (
-            <Button variant="ghost" size="sm" onClick={onActivate} title="활성화">
+            <Button variant="ghost" size="sm" onClick={onActivate}>
               <Zap size={13} />
               <span style={{ marginLeft: 4 }}>활성화</span>
             </Button>
