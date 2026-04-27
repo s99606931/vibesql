@@ -337,7 +337,14 @@ export default function ChartsPage() {
                   워크스페이스로 이동
                 </Button>
               </>
-            ) : "검색 결과 없음"}
+            ) : (
+              <>
+                <div>검색 결과 없음</div>
+                <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setSearch("")}>
+                  검색 지우기
+                </Button>
+              </>
+            )}
           </div>
         )}
 

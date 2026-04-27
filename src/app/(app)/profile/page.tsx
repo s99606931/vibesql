@@ -316,7 +316,8 @@ export default function ProfilePage() {
               >
                 <span
                   className="ds-mono"
-                  style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", width: 68, flexShrink: 0 }}
+                  title={new Date(item.createdAt).toLocaleString("ko-KR")}
+                  style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", width: 68, flexShrink: 0, cursor: "default" }}
                 >
                   {formatTime(item.createdAt)}
                 </span>

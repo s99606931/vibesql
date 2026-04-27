@@ -254,7 +254,10 @@ export default function ErrorsPage() {
                 )}
                 {search && errors.length === 0 && (
                   <div style={{ textAlign: "center", padding: "var(--ds-sp-5)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
-                    검색 결과가 없습니다.
+                    <div>검색 결과가 없습니다.</div>
+                    <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setSearch("")}>
+                      검색 지우기
+                    </Button>
                   </div>
                 )}
                 <Card padding={0}>

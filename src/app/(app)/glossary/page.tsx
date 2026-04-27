@@ -298,7 +298,12 @@ export default function GlossaryPage() {
             )}
             {!isLoading && filtered.length === 0 && (
               <div style={{ padding: "var(--ds-sp-4)", fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)", textAlign: "center" }}>
-                {search ? "검색 결과 없음" : "용어가 없습니다"}
+                <div>{search ? "검색 결과 없음" : "용어가 없습니다"}</div>
+                {search && (
+                  <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setSearch("")}>
+                    검색 지우기
+                  </Button>
+                )}
               </div>
             )}
             {filtered.map((term) => (

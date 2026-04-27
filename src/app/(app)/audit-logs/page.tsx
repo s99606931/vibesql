@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Card } from "@/components/ui-vs/Card";
+import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Activity, Shield, Database, Zap, FileText, Settings, Download, X } from "lucide-react";
@@ -339,6 +340,11 @@ export default function AuditLogsPage() {
                 ? "아직 활동 기록이 없습니다."
                 : "검색 결과가 없습니다."}
             </div>
+            {logs.length > 0 && (
+              <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => { setSearch(""); setPage(1); }}>
+                검색 지우기
+              </Button>
+            )}
           </Card>
         ) : (
           <>
