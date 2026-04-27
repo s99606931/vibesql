@@ -78,7 +78,7 @@ function SaveModal({
           <h2 style={{ flex: 1, fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>
             내 템플릿 저장
           </h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", fontSize: 18, lineHeight: 1, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">×</button>
+          <button onClick={onClose} aria-label="닫기" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", fontSize: 18, lineHeight: 1, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">×</button>
         </div>
 
         {[

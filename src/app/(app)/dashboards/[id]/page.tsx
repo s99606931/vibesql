@@ -616,8 +616,9 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                   <button
                     onClick={() => togglePublicMutation.mutate()}
                     disabled={togglePublicMutation.isPending}
-                    style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-                    title={dashboard.isPublic ? "비공개로 전환" : "공유로 전환"}
+                    aria-label={dashboard.isPublic ? "비공개로 전환" : "공유로 전환"}
+                    style={{ background: "none", border: "none", padding: 0, cursor: "pointer", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+                    className="hover:opacity-70"
                   >
                     <Pill variant={dashboard.isPublic ? "success" : "default"}>
                       {dashboard.isPublic
@@ -789,6 +790,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                       <button
                         onClick={() => removeWidgetMutation.mutate(i)}
                         disabled={removeWidgetMutation.isPending}
+                        aria-label="위젯 삭제"
                         style={{
                           background: "none",
                           border: "none",
@@ -797,8 +799,8 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                           padding: 2,
                           display: "flex",
                           alignItems: "center",
+                          transition: "color var(--ds-dur-fast) var(--ds-ease)",
                         }}
-                        title="위젯 삭제"
                       >
                         <X size={12} />
                       </button>
@@ -850,6 +852,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
         <div
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
           onClick={() => setRenameModal(false)}
+          onKeyDown={(e) => { if (e.key === "Escape") setRenameModal(false); }}
         >
           <div
             style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 320, maxWidth: 400, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }}
