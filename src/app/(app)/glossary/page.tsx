@@ -418,12 +418,13 @@ export default function GlossaryPage() {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
                 <div>
-                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>용어</label>
-                  <input style={inputStyle} value={newTerm.term} onChange={(e) => setNewTerm((p) => ({ ...p, term: e.target.value }))} placeholder="예: 결제율" />
+                  <label htmlFor="new-term-name" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>용어</label>
+                  <input id="new-term-name" style={inputStyle} value={newTerm.term} onChange={(e) => setNewTerm((p) => ({ ...p, term: e.target.value }))} placeholder="예: 결제율" />
                 </div>
                 <div>
-                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>카테고리</label>
+                  <label htmlFor="new-term-category" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>카테고리</label>
                   <input
+                    id="new-term-category"
                     style={inputStyle}
                     list="glossary-categories"
                     value={newTerm.category}
@@ -437,8 +438,9 @@ export default function GlossaryPage() {
                   </datalist>
                 </div>
                 <div>
-                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>정의</label>
+                  <label htmlFor="new-term-definition" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>정의</label>
                   <textarea
+                    id="new-term-definition"
                     style={{ ...inputStyle, minHeight: 72, resize: "vertical" }}
                     value={newTerm.definition}
                     onChange={(e) => setNewTerm((p) => ({ ...p, definition: e.target.value }))}
@@ -446,8 +448,9 @@ export default function GlossaryPage() {
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>SQL 힌트 (선택)</label>
+                  <label htmlFor="new-term-sql" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>SQL 힌트 (선택)</label>
                   <input
+                    id="new-term-sql"
                     style={{ ...inputStyle, fontFamily: "var(--ds-font-mono)" }}
                     value={newTerm.sql}
                     onChange={(e) => setNewTerm((p) => ({ ...p, sql: e.target.value }))}
@@ -559,8 +562,9 @@ export default function GlossaryPage() {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
                 <div>
-                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>용어</label>
+                  <label htmlFor="edit-term-name" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>용어</label>
                   <input
+                    id="edit-term-name"
                     style={inputStyle}
                     value={editForm.term}
                     onChange={(e) => setEditForm((p) => ({ ...p, term: e.target.value }))}
@@ -568,8 +572,9 @@ export default function GlossaryPage() {
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>카테고리</label>
+                  <label htmlFor="edit-term-category" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>카테고리</label>
                   <input
+                    id="edit-term-category"
                     style={inputStyle}
                     list="glossary-categories"
                     value={editForm.category}
@@ -578,8 +583,9 @@ export default function GlossaryPage() {
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>정의</label>
+                  <label htmlFor="edit-term-definition" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>정의</label>
                   <textarea
+                    id="edit-term-definition"
                     style={{ ...inputStyle, minHeight: 72, resize: "vertical" }}
                     value={editForm.definition}
                     onChange={(e) => setEditForm((p) => ({ ...p, definition: e.target.value }))}
@@ -587,8 +593,9 @@ export default function GlossaryPage() {
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>SQL 힌트 (선택)</label>
+                  <label htmlFor="edit-term-sql" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>SQL 힌트 (선택)</label>
                   <textarea
+                    id="edit-term-sql"
                     style={{ ...inputStyle, minHeight: 56, resize: "vertical", fontFamily: "var(--ds-font-mono)" }}
                     value={editForm.sql}
                     onChange={(e) => setEditForm((p) => ({ ...p, sql: e.target.value }))}

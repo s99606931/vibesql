@@ -92,28 +92,28 @@ function EditConnectionForm({
       />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ds-sp-3)", marginTop: "var(--ds-sp-3)" }}>
         <div>
-          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>이름</label>
-          <input style={inputStyle} value={form.name} onChange={(e) => set("name", e.target.value)} />
+          <label htmlFor="conn-name" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>이름</label>
+          <input id="conn-name" style={inputStyle} value={form.name} onChange={(e) => set("name", e.target.value)} />
         </div>
         <div>
-          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>호스트</label>
-          <input style={inputStyle} value={form.host} onChange={(e) => set("host", e.target.value)} placeholder="db.example.com" />
+          <label htmlFor="conn-host" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>호스트</label>
+          <input id="conn-host" style={inputStyle} value={form.host} onChange={(e) => set("host", e.target.value)} placeholder="db.example.com" />
         </div>
         <div>
-          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>포트</label>
-          <input style={{ ...inputStyle, fontFamily: "var(--ds-font-mono)" }} value={form.port} onChange={(e) => set("port", e.target.value)} placeholder="5432" />
+          <label htmlFor="conn-port" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>포트</label>
+          <input id="conn-port" style={{ ...inputStyle, fontFamily: "var(--ds-font-mono)" }} value={form.port} onChange={(e) => set("port", e.target.value)} placeholder="5432" />
         </div>
         <div>
-          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>데이터베이스</label>
-          <input style={inputStyle} value={form.database} onChange={(e) => set("database", e.target.value)} />
+          <label htmlFor="conn-database" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>데이터베이스</label>
+          <input id="conn-database" style={inputStyle} value={form.database} onChange={(e) => set("database", e.target.value)} />
         </div>
         <div>
-          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>사용자명</label>
-          <input style={inputStyle} value={form.username} onChange={(e) => set("username", e.target.value)} />
+          <label htmlFor="conn-username" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>사용자명</label>
+          <input id="conn-username" style={inputStyle} value={form.username} onChange={(e) => set("username", e.target.value)} />
         </div>
         <div>
-          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>비밀번호 (변경 시만 입력)</label>
-          <input style={inputStyle} type="password" value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="••••••••" />
+          <label htmlFor="conn-password" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>비밀번호 (변경 시만 입력)</label>
+          <input id="conn-password" style={inputStyle} type="password" value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="••••••••" />
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-3)", marginTop: "var(--ds-sp-3)" }}>

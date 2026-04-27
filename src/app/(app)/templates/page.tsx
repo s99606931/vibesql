@@ -91,8 +91,9 @@ function SaveModal({
           { label: "태그 (쉼표 구분)", key: "tags" as const, placeholder: "monthly, sales, aggregation" },
         ].map(({ label, key, placeholder }) => (
           <div key={key} style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>{label}</label>
+            <label htmlFor={`tmpl-${key}`} style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>{label}</label>
             <input
+              id={`tmpl-${key}`}
               value={form[key]}
               onChange={(e) => set(key, e.target.value)}
               placeholder={placeholder}
@@ -102,8 +103,9 @@ function SaveModal({
         ))}
 
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>SQL 쿼리</label>
+          <label htmlFor="tmpl-sql" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>SQL 쿼리</label>
           <textarea
+            id="tmpl-sql"
             value={form.sql}
             onChange={(e) => set("sql", e.target.value)}
             placeholder="SELECT ..."
@@ -114,8 +116,9 @@ function SaveModal({
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ds-sp-3)" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>카테고리</label>
+            <label htmlFor="tmpl-category" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>카테고리</label>
             <select
+              id="tmpl-category"
               aria-label="카테고리"
               value={form.category}
               onChange={(e) => set("category", e.target.value as TemplateCategory)}
@@ -127,8 +130,9 @@ function SaveModal({
             </select>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>방언</label>
+            <label htmlFor="tmpl-dialect" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>방언</label>
             <select
+              id="tmpl-dialect"
               aria-label="방언"
               value={form.dialect}
               onChange={(e) => set("dialect", e.target.value)}
