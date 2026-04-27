@@ -217,7 +217,9 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
 
   const iconOnlyBtn = (icon: React.ReactNode, onClick?: () => void, title?: string, active?: boolean) => (
     <button
+      type="button"
       onClick={onClick}
+      aria-label={title}
       title={title}
       style={{
         display: "flex",
@@ -350,7 +352,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, padding: "var(--ds-sp-2)", overflowY: "auto", overflowX: "hidden" }}>
+      <nav aria-label="사이드바 탐색" style={{ flex: 1, padding: "var(--ds-sp-2)", overflowY: "auto", overflowX: "hidden" }}>
         {collapsed ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
             {allVisibleItems.map((item) => {

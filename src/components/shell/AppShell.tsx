@@ -71,6 +71,22 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div style={{ display: "flex", height: "100vh", background: "var(--ds-bg)" }}>
+      <a
+        href="#main-content"
+        style={{
+          position: "absolute",
+          left: -9999,
+          top: "auto",
+          width: 1,
+          height: 1,
+          overflow: "hidden",
+          zIndex: 9999,
+        }}
+        onFocus={(e) => { e.currentTarget.style.left = "0"; e.currentTarget.style.width = "auto"; e.currentTarget.style.height = "auto"; e.currentTarget.style.padding = "var(--ds-sp-2) var(--ds-sp-4)"; e.currentTarget.style.background = "var(--ds-accent)"; e.currentTarget.style.color = "var(--ds-accent-on)"; e.currentTarget.style.borderRadius = "var(--ds-r-6)"; }}
+        onBlur={(e) => { e.currentTarget.style.left = "-9999px"; e.currentTarget.style.width = "1px"; e.currentTarget.style.height = "1px"; e.currentTarget.style.padding = ""; }}
+      >
+        본문으로 건너뛰기
+      </a>
       <Sidebar
         onOpenCommandPalette={openCmd}
         onOpenChat={openChat}
@@ -79,6 +95,7 @@ export function AppShell({ children }: AppShellProps) {
         onToggleCollapse={toggleSidebar}
       />
       <main
+        id="main-content"
         style={{
           flex: 1,
           marginLeft: sidebarW,
