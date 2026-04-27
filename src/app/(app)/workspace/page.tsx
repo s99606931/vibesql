@@ -1012,6 +1012,8 @@ export default function WorkspacePage() {
                   type="button"
                   role="tab"
                   aria-selected={activeTab === tab.key}
+                  aria-controls={`result-panel-${tab.key}`}
+                  id={`result-tab-${tab.key}`}
                   onClick={async () => {
                     setActiveTab(tab.key);
                     if (tab.key === "explain" && sql.trim() && (isEdited || !explanation) && !explanationFetching) {
@@ -1082,15 +1084,19 @@ export default function WorkspacePage() {
             </div>
 
             {activeTab === "table" && results && (
-              <ResultTable rows={results} columns={columns} />
+              <div id="result-panel-table" role="tabpanel" aria-labelledby="result-tab-table">
+                <ResultTable rows={results} columns={columns} />
+              </div>
             )}
 
             {activeTab === "chart" && results && (
-              <ResultChart rows={results} columns={columns} />
+              <div id="result-panel-chart" role="tabpanel" aria-labelledby="result-tab-chart">
+                <ResultChart rows={results} columns={columns} />
+              </div>
             )}
 
             {activeTab === "explain" && (
-              <div style={{ padding: "var(--ds-sp-4)" }}>
+              <div id="result-panel-explain" role="tabpanel" aria-labelledby="result-tab-explain" style={{ padding: "var(--ds-sp-4)" }}>
                 <AICallout label="◆ AI · SQL 설명">
                   {explanationFetching
                     ? "SQL 설명을 불러오는 중..."

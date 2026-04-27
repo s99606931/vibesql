@@ -121,7 +121,9 @@ export default function SignInPage() {
               key={t}
               type="button"
               role="tab"
+              id={`signin-tab-${t}`}
               aria-selected={tab === t}
+              aria-controls="signin-form"
               onClick={() => { setTab(t); setError(null); }}
               style={{
                 flex: 1,
@@ -175,7 +177,7 @@ export default function SignInPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
+        <form id="signin-form" role="tabpanel" aria-labelledby={`signin-tab-${tab}`} onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
           {tab === "register" && (
             <div>
               <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
