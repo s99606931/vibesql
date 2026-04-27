@@ -153,10 +153,12 @@ function TemplateCard({
   template,
   onUse,
   onDelete,
+  onTagClick,
 }: {
   template: QueryTemplate;
   onUse: () => void;
   onDelete?: () => void;
+  onTagClick?: (tag: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const CatIcon = CAT_META[template.category].icon;
@@ -234,9 +236,17 @@ function TemplateCard({
         <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-1)", flexWrap: "wrap" }}>
           <Tag size={11} style={{ color: "var(--ds-text-faint)" }} />
           {template.tags.map((tag) => (
-            <span key={tag} style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", fontFamily: "var(--ds-font-mono)" }}>
+            <button
+              key={tag}
+              onClick={() => onTagClick?.(tag)}
+              style={{
+                background: "none", border: "none", cursor: onTagClick ? "pointer" : "default",
+                padding: 0, fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)",
+                fontFamily: "var(--ds-font-mono)",
+              }}
+            >
               #{tag}
-            </span>
+            </button>
           ))}
           <span style={{ marginLeft: "auto", fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", fontFamily: "var(--ds-font-mono)" }}>
             {template.dialect}
@@ -414,6 +424,7 @@ export default function TemplatesPage() {
                 template={t}
                 onUse={() => handleUse(t)}
                 onDelete={!t.isBuiltIn ? () => setDeleteConfirmId(t.id) : undefined}
+                onTagClick={(tag) => setSearch((prev) => prev === tag ? "" : tag)}
               />
             ))}
           </div>

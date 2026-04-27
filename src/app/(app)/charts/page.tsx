@@ -176,6 +176,16 @@ export default function ChartsPage() {
         breadcrumbs={[{ label: "vibeSQL" }, { label: "차트" }]}
         actions={
           <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+            {visible.length > 0 && activeConnectionId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Play size={13} />}
+                onClick={() => visible.forEach((c) => { void runChart(c); })}
+              >
+                모두 실행
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"

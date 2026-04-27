@@ -381,7 +381,7 @@ export default function WorkspacePage() {
     setActiveConnection,
   } = useWorkspaceStore();
 
-  const { dialect } = useSettingsStore();
+  const { dialect, setDialect } = useSettingsStore();
   const { data: connections } = useConnections();
   const queryClient = useQueryClient();
 
@@ -660,11 +660,33 @@ export default function WorkspacePage() {
                 cursor: "pointer",
               }}
             >
-              <option value="" disabled>연결 선택...</option>
+              <option value="">연결 없음</option>
               {(connections ?? []).map((conn) => (
                 <option key={conn.id} value={conn.id}>
                   {conn.name}
                 </option>
+              ))}
+            </select>
+
+            {/* Dialect selector */}
+            <select
+              value={dialect}
+              onChange={(e) => setDialect(e.target.value as typeof dialect)}
+              style={{
+                border: "1px solid var(--ds-border)",
+                borderRadius: "var(--ds-r-6)",
+                background: "var(--ds-surface)",
+                color: "var(--ds-text-mute)",
+                fontSize: "var(--ds-fs-12)",
+                padding: "var(--ds-sp-1) var(--ds-sp-2)",
+                fontFamily: "var(--ds-font-mono)",
+                outline: "none",
+                cursor: "pointer",
+              }}
+              title="SQL 방언 선택"
+            >
+              {(["postgresql", "mysql", "sqlite", "mssql", "oracle"] as const).map((d) => (
+                <option key={d} value={d}>{d}</option>
               ))}
             </select>
 
@@ -1065,7 +1087,7 @@ export default function WorkspacePage() {
             <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-medium)" }}>
               위에서 질문을 입력하세요
             </div>
-            <div style={{ fontSize: "var(--ds-fs-12)" }}>⌘⏎ 로 SQL 생성 · 실행</div>
+            <div style={{ fontSize: "var(--ds-fs-12)" }}>⌘⏎ SQL 생성 · ⌥⏎ 실행</div>
           </div>
         )}
       </div>

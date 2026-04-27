@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
-import { Search, Activity, Shield, Database, Zap, FileText, Settings } from "lucide-react";
+import { Search, Activity, Shield, Database, Zap, FileText, Settings, Download } from "lucide-react";
 import type { AuditLogItem } from "@/app/api/audit-logs/route";
 
 // ─── Action meta ──────────────────────────────────────────────────────────────
@@ -156,11 +156,43 @@ export default function AuditLogsPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  function exportCsv() {
+    const rows = [["시각", "액션", "그룹", "사용자 ID", "IP", "메타데이터"]];
+    for (const log of filtered) {
+      rows.push([
+        formatTimestamp(log.createdAt),
+        formatAction(log.action),
+        ACTION_META[categorizeAction(log.action)].label,
+        log.userId ?? "",
+        log.ipAddress ?? "",
+        log.metadata ? JSON.stringify(log.metadata) : "",
+      ]);
+    }
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "audit-logs.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <TopBar
         title="감사 로그"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "계정" }, { label: "감사 로그" }]}
+        actions={
+          filtered.length > 0 ? (
+            <button
+              onClick={exportCsv}
+              title="CSV 내보내기"
+              style={{ display: "flex", alignItems: "center", gap: 4, padding: "var(--ds-sp-1) var(--ds-sp-3)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-12)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}
+            >
+              <Download size={12} />
+              CSV
+            </button>
+          ) : undefined
+        }
       />
 
       <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
