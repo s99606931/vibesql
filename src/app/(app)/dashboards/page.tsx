@@ -508,7 +508,7 @@ export default function DashboardsPage() {
               <button
                 onClick={() => { if (newDashName.trim()) { createMutation.mutate({ name: newDashName.trim(), description: newDashDesc.trim() }); setNewDashModal(false); setNewDashName(""); setNewDashDesc(""); } }}
                 disabled={!newDashName.trim() || createMutation.isPending}
-                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)" }}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
               >
                 만들기
               </button>
@@ -549,7 +549,7 @@ export default function DashboardsPage() {
               <button
                 onClick={() => { if (editName.trim()) { editMutation.mutate({ id: editModal.id, name: editName.trim(), description: editDesc.trim(), isPublic: editPublic }); setEditModal(null); } }}
                 disabled={!editName.trim() || editMutation.isPending}
-                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)" }}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
               >
                 {editMutation.isPending ? "저장 중..." : "저장"}
               </button>
