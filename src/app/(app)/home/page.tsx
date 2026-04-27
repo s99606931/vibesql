@@ -659,6 +659,17 @@ type HistoryItem = {
   createdAt: string;
 };
 
+function formatRelativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 60_000) return "방금 전";
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMs / 3_600_000);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffMs / 86_400_000);
+  return `${diffDay}일 전`;
+}
+
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; color: string; bg: string }> = {
     SUCCESS: {
@@ -905,6 +916,12 @@ function StatsSection() {
                     }}
                   >
                     {preview}{isTruncated ? "..." : ""}
+                  </span>
+                  <span
+                    title={new Date(item.createdAt).toLocaleString("ko-KR")}
+                    style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", flexShrink: 0, fontFamily: "var(--ds-font-mono)" }}
+                  >
+                    {formatRelativeTime(item.createdAt)}
                   </span>
                   <StatusBadge status={item.status} />
                 </div>

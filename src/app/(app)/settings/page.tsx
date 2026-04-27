@@ -17,17 +17,19 @@ import {
   Moon,
   Check,
   ArrowRight,
+  Keyboard,
 } from "lucide-react";
 
 // ─── Sidebar nav ─────────────────────────────────────────────────────────────
 
-type Section = "appearance" | "ai" | "security" | "notifications";
+type Section = "appearance" | "ai" | "security" | "notifications" | "shortcuts";
 
 const NAV_ITEMS: { id: Section; label: string; icon: React.ReactNode }[] = [
   { id: "appearance", label: "외관", icon: <Palette size={15} /> },
   { id: "ai", label: "AI 환경설정", icon: <Cpu size={15} /> },
   { id: "security", label: "보안", icon: <ShieldCheck size={15} /> },
   { id: "notifications", label: "알림", icon: <Bell size={15} /> },
+  { id: "shortcuts", label: "단축키", icon: <Keyboard size={15} /> },
 ];
 
 // ─── Reusable Toggle ─────────────────────────────────────────────────────────
@@ -615,6 +617,48 @@ export default function SettingsPage() {
                   onChange={() => { toggle("notifyLong"); persistSettings(); }}
                 />
               </SettingRow>
+            </Card>
+          )}
+          {/* ── SHORTCUTS ──────────────────────────────────────────────────── */}
+          {activeSection === "shortcuts" && (
+            <Card>
+              <CardHead title="키보드 단축키" />
+              {[
+                { keys: ["⌘", "K"], desc: "명령 팔레트 열기", section: "전체" },
+                { keys: ["⌘", "F"], desc: "현재 페이지 검색 포커스", section: "전체" },
+                { keys: ["⌘", "Enter"], desc: "SQL 실행", section: "워크스페이스" },
+                { keys: ["⌘", "S"], desc: "쿼리 저장", section: "워크스페이스" },
+                { keys: ["Alt", "Enter"], desc: "자연어 쿼리 생성", section: "워크스페이스" },
+                { keys: ["Esc"], desc: "모달 / 드롭다운 닫기", section: "전체" },
+                { keys: ["Tab"], desc: "SQL 자동완성 수락", section: "SQL 에디터" },
+                { keys: ["⌘", "Z"], desc: "실행 취소", section: "SQL 에디터" },
+              ].map((row, i, arr) => (
+                <div
+                  key={row.desc}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "var(--ds-sp-4)",
+                    paddingBottom: i < arr.length - 1 ? "var(--ds-sp-3)" : 0,
+                    marginBottom: i < arr.length - 1 ? "var(--ds-sp-3)" : 0,
+                    borderBottom: i < arr.length - 1 ? "1px solid var(--ds-border)" : "none",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>{row.desc}</div>
+                    <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>{row.section}</div>
+                  </div>
+                  <div style={{ display: "flex", gap: "var(--ds-sp-1)", alignItems: "center", flexShrink: 0 }}>
+                    {row.keys.map((k, ki) => (
+                      <span key={ki} style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                        <kbd style={{ display: "inline-block", padding: "2px 7px", borderRadius: "var(--ds-r-6)", border: "1px solid var(--ds-border)", background: "var(--ds-fill)", fontSize: "var(--ds-fs-11)", color: "var(--ds-text)", fontFamily: "var(--ds-font-mono)", fontWeight: "var(--ds-fw-semibold)", lineHeight: 1.6 }}>{k}</kbd>
+                        {ki < row.keys.length - 1 && <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)" }}>+</span>}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </Card>
           )}
         </div>

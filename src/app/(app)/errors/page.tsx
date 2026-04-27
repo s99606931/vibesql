@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
 import { Card } from "@/components/ui-vs/Card";
 import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
-import { CheckCircle2, Clock, ChevronDown, ChevronRight, ScrollText, ExternalLink, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Clock, ChevronDown, ChevronRight, ScrollText, ExternalLink, AlertTriangle, Search, Copy, Check } from "lucide-react";
 
 // ─── Error History types ───────────────────────────────────────────────────
 
@@ -63,7 +63,18 @@ type Tab = "errors" | "audit";
 
 export default function ErrorsPage() {
   const [activeTab, setActiveTab] = useState<Tab>("errors");
+  const [search, setSearch] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const { data: history = [], isLoading: historyLoading } = useQuery({
     queryKey: ["history"],
@@ -71,9 +82,16 @@ export default function ErrorsPage() {
     staleTime: 10_000,
   });
 
-  const errors = history.filter((h) => h.status === "ERROR" || h.status === "BLOCKED");
-  const unresolvedCount = errors.length;
-  const lastError = errors[0];
+  const allErrors = history.filter((h) => h.status === "ERROR" || h.status === "BLOCKED");
+  const errors = allErrors.filter((e) =>
+    !search ||
+    (e.errorMsg ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    e.sql.toLowerCase().includes(search.toLowerCase()) ||
+    (e.connectionName ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    (e.nlQuery ?? "").toLowerCase().includes(search.toLowerCase())
+  );
+  const unresolvedCount = allErrors.length;
+  const lastError = allErrors[0];
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "errors", label: "오류 이력" },
@@ -174,7 +192,7 @@ export default function ErrorsPage() {
               </Card>
             )}
 
-            {!historyLoading && errors.length === 0 && (
+            {!historyLoading && allErrors.length === 0 && (
               <Card>
                 <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-mute)" }}>
                   <CheckCircle2 size={32} style={{ color: "var(--ds-success)", margin: "0 auto var(--ds-sp-3)" }} />
@@ -184,39 +202,68 @@ export default function ErrorsPage() {
               </Card>
             )}
 
-            {!historyLoading && errors.length > 0 && (
-              <Card padding={0}>
-                {errors.slice(0, 20).map((err, i) => {
-                  const errType = classifyError(err);
-                  const meta = typeLabel[errType];
-                  const message = err.errorMsg ?? err.sql.slice(0, 80);
-                  return (
-                    <div
-                      key={err.id}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "var(--ds-sp-3)",
-                        padding: "var(--ds-sp-3) var(--ds-sp-4)",
-                        borderBottom: i < errors.length - 1 ? "1px solid var(--ds-border)" : undefined,
-                      }}
-                    >
-                      <Pill variant={meta.variant}>{meta.label}</Pill>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: "var(--ds-font-mono)", fontSize: "var(--ds-fs-12)", color: "var(--ds-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {message}
+            {!historyLoading && allErrors.length > 0 && (
+              <>
+                <div style={{ position: "relative", maxWidth: 320, marginBottom: "var(--ds-sp-3)" }}>
+                  <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+                  <input
+                    ref={searchRef}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="오류 검색... (⌘F)"
+                    style={{ width: "100%", paddingLeft: 32, paddingRight: "var(--ds-sp-3)", paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", color: "var(--ds-text)", fontSize: "var(--ds-fs-12)", outline: "none", fontFamily: "var(--ds-font-sans)", boxSizing: "border-box" }}
+                  />
+                </div>
+                {search && (
+                  <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginBottom: "var(--ds-sp-2)" }}>
+                    {errors.length}건 표시 중
+                  </div>
+                )}
+                <Card padding={0}>
+                  {errors.slice(0, 20).map((err, i) => {
+                    const errType = classifyError(err);
+                    const meta = typeLabel[errType];
+                    const message = err.errorMsg ?? err.sql.slice(0, 80);
+                    const copied = copiedId === err.id;
+                    return (
+                      <div
+                        key={err.id}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "var(--ds-sp-3)",
+                          padding: "var(--ds-sp-3) var(--ds-sp-4)",
+                          borderBottom: i < errors.length - 1 ? "1px solid var(--ds-border)" : undefined,
+                        }}
+                      >
+                        <Pill variant={meta.variant}>{meta.label}</Pill>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: "var(--ds-font-mono)", fontSize: "var(--ds-fs-12)", color: "var(--ds-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {message}
+                          </div>
+                          <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>
+                            {err.connectionName ?? "알 수 없는 연결"} · {formatTime(err.createdAt)}
+                            {err.nlQuery && (
+                              <span style={{ marginLeft: "var(--ds-sp-2)", fontStyle: "italic" }}>"{err.nlQuery.slice(0, 40)}"</span>
+                            )}
+                          </div>
                         </div>
-                        <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>
-                          {err.connectionName ?? "알 수 없는 연결"} · {formatTime(err.createdAt)}
-                          {err.nlQuery && (
-                            <span style={{ marginLeft: "var(--ds-sp-2)", fontStyle: "italic" }}>"{err.nlQuery.slice(0, 40)}"</span>
-                          )}
-                        </div>
+                        <button
+                          title="SQL 복사"
+                          onClick={() => {
+                            void navigator.clipboard.writeText(err.sql);
+                            setCopiedId(err.id);
+                            setTimeout(() => setCopiedId(null), 1500);
+                          }}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: copied ? "var(--ds-success)" : "var(--ds-text-faint)", padding: "var(--ds-sp-1)", borderRadius: "var(--ds-r-6)", display: "flex", alignItems: "center" }}
+                        >
+                          {copied ? <Check size={13} /> : <Copy size={13} />}
+                        </button>
                       </div>
-                    </div>
-                  );
-                })}
-              </Card>
+                    );
+                  })}
+                </Card>
+              </>
             )}
           </>
         )}

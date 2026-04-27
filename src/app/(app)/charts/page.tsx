@@ -12,7 +12,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import {
   Plus, ExternalLink, BarChart2, TrendingUp, PieChart,
-  Table2, Search, Play, RefreshCw, AlertCircle, LayoutDashboard,
+  Table2, Search, Play, RefreshCw, AlertCircle, LayoutDashboard, Download,
 } from "lucide-react";
 
 const ResultChart = dynamic(
@@ -67,6 +67,20 @@ const CHART_TYPE_VARIANTS: Record<string, "accent" | "success" | "info" | "defau
   "파이": "success",
   "테이블": "default",
 };
+
+function exportChartsCsv(charts: Array<{ name: string; folder: string; chartType: string; sql: string; dialect?: string; createdAt: string }>) {
+  const headers = ["이름", "폴더", "차트 유형", "방언", "SQL", "생성일"];
+  const esc = (v: string) => (v.includes(",") || v.includes('"') || v.includes("\n") ? `"${v.replace(/"/g, '""')}"` : v);
+  const rows = charts.map((c) => [c.name, c.folder, c.chartType, c.dialect ?? "", c.sql.replace(/\n/g, " "), new Date(c.createdAt).toLocaleString("ko-KR")].map(esc).join(","));
+  const csv = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `charts-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function ChartsPage() {
   const [activeFilter, setActiveFilter] = useState<ChartFilterType>("전체");
@@ -185,6 +199,16 @@ export default function ChartsPage() {
         breadcrumbs={[{ label: "vibeSQL" }, { label: "차트" }]}
         actions={
           <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+            {visible.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Download size={13} />}
+                onClick={() => exportChartsCsv(visible)}
+              >
+                CSV 내보내기
+              </Button>
+            )}
             {visible.length > 0 && activeConnectionId && (
               <Button
                 variant="ghost"
