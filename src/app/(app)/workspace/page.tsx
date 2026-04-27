@@ -711,6 +711,7 @@ export default function WorkspacePage() {
                 <Button
                   variant="ghost"
                   size="sm"
+                  title="⌘S"
                   icon={savedOk ? <Check size={13} /> : <Star size={13} />}
                   loading={saveQueryMutation.isPending}
                   onClick={() => {

@@ -10,7 +10,7 @@ import { Pill } from "@/components/ui-vs/Pill";
 import { AIBadge } from "@/components/ui-vs/AICallout";
 import { Button } from "@/components/ui-vs/Button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Database, Copy, Play, RefreshCw, Link2 } from "lucide-react";
+import { Search, Database, Copy, Play, RefreshCw, Link2, Download } from "lucide-react";
 import { useConnections } from "@/hooks/useConnections";
 
 interface TableMeta {
@@ -96,6 +96,27 @@ export default function SchemaPage() {
       <TopBar
         title="스키마"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "스키마" }]}
+        actions={
+          tables.length > 0 ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Download size={13} />}
+              onClick={() => {
+                const headers = ["테이블", "행수", "컬럼수", "컬럼목록", "FK", "PII"];
+                const esc = (v: string) => (v.includes(",") || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v);
+                const rows = tables.map((t) => [t.name, t.rows, String(t.columns), t.cols.join("|"), t.fks.join("|"), t.pii ? "Y" : "N"].map(esc).join(","));
+                const csv = [headers.join(","), ...rows].join("\n");
+                const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a"); a.href = url; a.download = `schema-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              CSV
+            </Button>
+          ) : undefined
+        }
       />
 
       <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>

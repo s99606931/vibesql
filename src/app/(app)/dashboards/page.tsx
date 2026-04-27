@@ -8,7 +8,7 @@ import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Card, CardHead } from "@/components/ui-vs/Card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, Plus, Search, Clock, BarChart2, TrendingUp, Table2, ExternalLink, Link2, Check, Pencil, Globe, Lock } from "lucide-react";
+import { LayoutDashboard, Plus, Search, Clock, BarChart2, TrendingUp, Table2, ExternalLink, Link2, Check, Pencil, Globe, Lock, Download } from "lucide-react";
 
 interface StatsData {
   totalQueries: number;
@@ -186,15 +186,36 @@ export default function DashboardsPage() {
         title="대시보드"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "대시보드" }]}
         actions={
-          <Button
-            variant="accent"
-            size="sm"
-            icon={<Plus size={13} />}
-            loading={createMutation.isPending}
-            onClick={() => { setNewDashName(""); setNewDashModal(true); }}
-          >
-            새 대시보드
-          </Button>
+          <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+            {visible.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Download size={13} />}
+                onClick={() => {
+                  const headers = ["이름", "설명", "위젯수", "공개", "수정일"];
+                  const esc = (v: string) => (v.includes(",") || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v);
+                  const rows = visible.map((d) => [d.name, d.description ?? "", String(d.widgets.length), d.isPublic ? "Y" : "N", new Date(d.updatedAt).toLocaleString("ko-KR")].map(esc).join(","));
+                  const csv = [headers.join(","), ...rows].join("\n");
+                  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a"); a.href = url; a.download = `dashboards-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                CSV
+              </Button>
+            )}
+            <Button
+              variant="accent"
+              size="sm"
+              icon={<Plus size={13} />}
+              loading={createMutation.isPending}
+              onClick={() => { setNewDashName(""); setNewDashModal(true); }}
+            >
+              새 대시보드
+            </Button>
+          </div>
         }
       />
 

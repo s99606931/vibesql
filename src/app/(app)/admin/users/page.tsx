@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
-import { Crown, ShieldCheck, User, Trash2, AlertTriangle, Search } from "lucide-react";
+import { Button } from "@/components/ui-vs/Button";
+import { Crown, ShieldCheck, User, Trash2, AlertTriangle, Search, Download } from "lucide-react";
 import type { UserRole } from "@/lib/auth/jwt";
 
 function formatRelativeDate(iso: string): string {
@@ -44,6 +45,20 @@ function RoleBadge({ role }: { role: UserRole }) {
       {role === "ADMIN" ? "관리자" : "사용자"}
     </span>
   );
+}
+
+function exportUsersCsv(users: UserRow[]) {
+  const headers = ["이름", "이메일", "역할", "가입일"];
+  const esc = (v: string) => (v.includes(",") || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v);
+  const rows = users.map((u) => [
+    u.name ?? "", u.email, u.role, new Date(u.createdAt).toLocaleString("ko-KR"),
+  ].map(esc).join(","));
+  const csv = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `users-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+  URL.revokeObjectURL(url);
 }
 
 export default function AdminUsersPage() {
@@ -105,6 +120,13 @@ export default function AdminUsersPage() {
       <TopBar
         title="사용자 관리"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "관리자" }, { label: "사용자 관리" }]}
+        actions={
+          data && data.length > 0 ? (
+            <Button variant="ghost" size="sm" icon={<Download size={13} />} onClick={() => exportUsersCsv(data)}>
+              CSV
+            </Button>
+          ) : undefined
+        }
       />
 
       <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
