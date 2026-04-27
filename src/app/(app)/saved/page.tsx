@@ -147,6 +147,7 @@ function VersionPanel({
             <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>{queryName}</div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             aria-label="닫기"
             style={{
@@ -418,7 +419,9 @@ export default function SavedPage() {
           <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
             {filtered.length > 0 && (
               <button
+                type="button"
                 onClick={exportSavedCsv}
+                aria-label="CSV 내보내기"
                 title="CSV 내보내기"
                 style={{ display: "flex", alignItems: "center", gap: 4, padding: "var(--ds-sp-1) var(--ds-sp-3)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-12)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}
               >
@@ -585,6 +588,7 @@ export default function SavedPage() {
                 </span>
                 {folder.name !== "미분류" && folder.queries.length > 0 && (
                   <button
+                    type="button"
                     onClick={() => { setRenameFolderValue(folder.name); setRenameFolderModal(folder.name); }}
                     aria-label="폴더 이름 변경"
                     style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, opacity: 0.6, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
@@ -871,6 +875,7 @@ export default function SavedPage() {
             <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
               <button autoFocus type="button" onClick={() => setConfirmDeleteId(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
               <button
+                type="button"
                 onClick={() => { deleteMutation.mutate(confirmDeleteId); setConfirmDeleteId(null); }}
                 disabled={deleteMutation.isPending}
                 style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-danger)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-bg)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
@@ -920,6 +925,7 @@ export default function SavedPage() {
             <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
               <button type="button" onClick={() => setNewFolderModal(false)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
               <button
+                type="button"
                 onClick={() => void handleNewFolderSubmit(newFolderName)}
                 disabled={!newFolderName.trim()}
                 style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
@@ -960,6 +966,7 @@ export default function SavedPage() {
             <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
               <button type="button" onClick={() => setRenameFolderModal(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
               <button
+                type="button"
                 onClick={() => {
                   if (renameFolderValue.trim() && renameFolderValue !== renameFolderModal) {
                     renameFolderMutation.mutate({ oldFolder: renameFolderModal, newFolder: renameFolderValue.trim() });
@@ -992,6 +999,8 @@ export default function SavedPage() {
               {[...new Set(["미분류", ...folders.map((f) => f.name)])].map((name) => (
                 <button
                   key={name}
+                  type="button"
+                  aria-pressed={moveFolder === name}
                   onClick={() => setMoveFolder(name)}
                   style={{
                     display: "flex",
@@ -1021,6 +1030,7 @@ export default function SavedPage() {
             <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
               <button autoFocus type="button" onClick={() => setMoveModal(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
               <button
+                type="button"
                 onClick={() => {
                   if (moveFolder !== moveModal.currentFolder) {
                     moveMutation.mutate({ id: moveModal.id, folder: moveFolder });
@@ -1078,6 +1088,7 @@ export default function SavedPage() {
             <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
               <button type="button" onClick={() => setRenameModal(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
               <button
+                type="button"
                 onClick={() => {
                   if (renameValue.trim() && renameValue !== renameModal.name) {
                     renameMutation.mutate({ id: renameModal.id, name: renameValue.trim() });
