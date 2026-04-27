@@ -172,11 +172,12 @@ function RuleModal({
         {/* Key field */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
           <label htmlFor="rule-key" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
-            {keyLabel} <span style={{ color: "var(--ds-danger)" }}>*</span>
+            {keyLabel} <span aria-hidden="true" style={{ color: "var(--ds-danger)" }}>*</span>
           </label>
           <input
             id="rule-key"
             autoFocus
+            aria-required="true"
             value={form.key}
             onChange={(e) => set("key", e.target.value)}
             placeholder={form.ruleType === "few_shot" ? "예: 이번 달 매출 상위 10개 제품" : form.ruleType === "forbidden" ? "예: no_delete" : "예: 고객"}
@@ -196,10 +197,11 @@ function RuleModal({
         {/* Value field */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
           <label htmlFor="rule-value" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
-            {valueLabel} <span style={{ color: "var(--ds-danger)" }}>*</span>
+            {valueLabel} <span aria-hidden="true" style={{ color: "var(--ds-danger)" }}>*</span>
           </label>
           <textarea
             id="rule-value"
+            aria-required="true"
             value={form.value}
             onChange={(e) => set("value", e.target.value)}
             rows={4}
