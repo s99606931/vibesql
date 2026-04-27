@@ -458,7 +458,12 @@ export default function AiContextPage() {
         )}
 
         {!isLoading && search && groupedRules.every((g) => g.items.length === 0) && (
-          <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>검색 결과가 없습니다.</div>
+          <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
+            <div>검색 결과가 없습니다.</div>
+            <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setSearch("")}>
+              검색 지우기
+            </Button>
+          </div>
         )}
 
         {!isLoading && (

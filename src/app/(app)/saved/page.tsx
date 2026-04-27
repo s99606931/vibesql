@@ -538,7 +538,12 @@ export default function SavedPage() {
 
         {/* No-results */}
         {!isLoading && filtered.length === 0 && search && (
-          <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>검색 결과가 없습니다.</div>
+          <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
+            <div>검색 결과가 없습니다.</div>
+            <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setSearch("")}>
+              검색 지우기
+            </Button>
+          </div>
         )}
 
         {/* Folder groups */}

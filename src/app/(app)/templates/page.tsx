@@ -447,6 +447,11 @@ export default function TemplatesPage() {
             <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>
               {search ? "검색 결과가 없습니다." : category === "custom" ? "아직 저장한 템플릿이 없습니다." : "등록된 템플릿이 없습니다."}
             </div>
+            {search && (
+              <Button variant="ghost" size="sm" onClick={() => setSearch("")}>
+                검색 지우기
+              </Button>
+            )}
             {category === "custom" && !search && (
               <Button variant="accent" size="sm" icon={<Plus size={13} />} onClick={() => setSaveModal(true)}>
                 첫 템플릿 저장하기
