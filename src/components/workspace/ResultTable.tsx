@@ -56,7 +56,7 @@ function formatValue(value: unknown, type: ColType): { text: string; isNull: boo
 }
 
 function ColIcon({ type }: { type: ColType }) {
-  const props = { size: 11, style: { flexShrink: 0 as const } };
+  const props = { "aria-hidden": true as const, size: 11, style: { flexShrink: 0 as const } };
   if (type === "number") return <Hash {...props} />;
   if (type === "date") return <Calendar {...props} />;
   return <Type {...props} />;
@@ -254,9 +254,9 @@ export function ResultTable({ rows, columns }: ResultTableProps) {
                   {col}
                   {sortCol === col &&
                     (sortDir === "asc" ? (
-                      <ArrowUp size={10} />
+                      <ArrowUp aria-hidden="true" size={10} />
                     ) : (
-                      <ArrowDown size={10} />
+                      <ArrowDown aria-hidden="true" size={10} />
                     ))}
                 </div>
               </th>

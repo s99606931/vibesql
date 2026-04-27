@@ -305,8 +305,8 @@ function ProviderCard({
     >
       {/* Status icon */}
       <div style={{ flexShrink: 0, paddingTop: 2 }}>
-        {provider.lastTestedOk === true && <CheckCircle2 size={18} style={{ color: "var(--ds-success)" }} />}
-        {provider.lastTestedOk === false && <XCircle size={18} style={{ color: "var(--ds-danger)" }} />}
+        {provider.lastTestedOk === true && <CheckCircle2 aria-hidden="true" size={18} style={{ color: "var(--ds-success)" }} />}
+        {provider.lastTestedOk === false && <XCircle aria-hidden="true" size={18} style={{ color: "var(--ds-danger)" }} />}
         {provider.lastTestedOk == null && <div style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--ds-border)" }} />}
       </div>
 
@@ -535,7 +535,7 @@ export function AiProviderSection() {
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-mute)", fontSize: "var(--ds-fs-13)", padding: 0 }}
         >
           <span>환경변수 폴백 정보</span>
-          {showEnvFallback ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {showEnvFallback ? <ChevronUp aria-hidden="true" size={14} /> : <ChevronDown aria-hidden="true" size={14} />}
         </button>
         {showEnvFallback && (
           <div style={{ marginTop: "var(--ds-sp-3)", fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)", lineHeight: 1.7 }}>
