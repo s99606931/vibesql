@@ -161,17 +161,18 @@ function TemplatePicker({
           }}
         >
           <FileText aria-hidden="true" size={16} style={{ color: "var(--ds-accent)", flexShrink: 0 }} />
-          <span
+          <h2
             style={{
               fontSize: "var(--ds-fs-16)",
               fontWeight: "var(--ds-fw-bold)",
               color: "var(--ds-text)",
               fontFamily: "var(--ds-font-sans)",
               flex: 1,
+              margin: 0,
             }}
           >
             템플릿 불러오기
-          </span>
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -1166,7 +1167,7 @@ export default function WorkspacePage() {
             onClick={(e) => e.stopPropagation()}
             style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%", display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}
           >
-            <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>쿼리 저장</div>
+            <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>쿼리 저장</h2>
             <div>
               <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-1)" }}>이름</div>
               <input
@@ -1231,7 +1232,7 @@ export default function WorkspacePage() {
             style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 320, maxWidth: 400, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>대시보드에 추가</div>
+            <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>대시보드에 추가</h2>
 
             <div>
               <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>대시보드 선택</div>
