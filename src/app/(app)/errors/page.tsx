@@ -249,7 +249,7 @@ export default function ErrorsPage() {
                 </div>
                 {search && (
                   <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginBottom: "var(--ds-sp-2)" }}>
-                    {errors.length}/{allErrors.length}건 표시 중
+                    {Math.min(errors.length, 20)}/{allErrors.length}건 표시 중{errors.length > 20 ? " · 최대 20건" : ""}
                   </div>
                 )}
                 {search && errors.length === 0 && (

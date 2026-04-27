@@ -903,11 +903,22 @@ function StatsSection() {
               return (
                 <div
                   key={item.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => {
                     if (item.nlQuery) setNlQuery(item.nlQuery);
                     setSql(item.sql);
                     setStatus("ready");
                     router.push("/workspace");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      if (item.nlQuery) setNlQuery(item.nlQuery);
+                      setSql(item.sql);
+                      setStatus("ready");
+                      router.push("/workspace");
+                    }
                   }}
                   className="group hover:bg-fill transition-colors"
                   style={{

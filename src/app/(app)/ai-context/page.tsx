@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
@@ -284,6 +284,15 @@ export default function AiContextPage() {
   const [importError, setImportError] = useState<string | null>(null);
   const [copiedRuleId, setCopiedRuleId] = useState<string | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const { data: rules = [], isLoading } = useQuery({
     queryKey: ["ai-context"],
@@ -430,6 +439,7 @@ export default function AiContextPage() {
             <div style={{ position: "relative" }}>
               <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
               <input
+                ref={searchRef}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="규칙 검색... (⌘F)"

@@ -259,6 +259,7 @@ function TemplatePicker({
               <button
                 key={t.id}
                 onClick={() => onSelect(t)}
+                className="hover:bg-fill hover:border-border transition-colors"
                 style={{
                   width: "100%",
                   textAlign: "left",
@@ -270,16 +271,7 @@ function TemplatePicker({
                   display: "flex",
                   flexDirection: "column",
                   gap: "var(--ds-sp-1)",
-                  transition: "background var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                   fontFamily: "var(--ds-font-sans)",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = "var(--ds-fill)";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--ds-border)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "transparent";
                 }}
               >
                 <div

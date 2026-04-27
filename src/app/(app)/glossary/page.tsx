@@ -204,6 +204,12 @@ export default function GlossaryPage() {
               borderBottom: "1px solid var(--ds-border)",
             }}
           >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--ds-sp-2)" }}>
+              <span style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)" }}>용어 사전</span>
+              {!isLoading && (
+                <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)" }}>{terms.length}개</span>
+              )}
+            </div>
             <div
               style={{
                 display: "flex",
