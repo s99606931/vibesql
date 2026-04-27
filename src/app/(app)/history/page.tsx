@@ -197,6 +197,8 @@ export default function HistoryPage() {
           {HISTORY_FILTERS.map((f) => (
             <button
               key={f}
+              type="button"
+              aria-pressed={activeFilter === f}
               onClick={() => setActiveFilter(f)}
               style={{
                 padding: "4px 12px",
@@ -267,6 +269,8 @@ export default function HistoryPage() {
             return (
             <div key={date} style={{ marginBottom: "var(--ds-sp-5)" }}>
               <button
+                type="button"
+                aria-label={`${date} 그룹 ${collapsed ? "펼치기" : "접기"}`}
                 aria-expanded={!collapsed}
                 onClick={() => setCollapsedDates((prev) => {
                   const next = new Set(prev);

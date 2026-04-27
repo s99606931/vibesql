@@ -956,6 +956,7 @@ function StatsSection() {
                   </span>
                   <StatusBadge status={item.status} />
                   <button
+                    type="button"
                     aria-label="SQL 복사"
                     onClick={(e) => {
                       e.stopPropagation();

@@ -322,6 +322,8 @@ export default function GlossaryPage() {
             {filtered.map((term) => (
               <button
                 key={term.id}
+                type="button"
+                aria-selected={(selectedId ?? terms[0]?.id) === term.id}
                 onClick={() => { setSelectedId(term.id); setIsEditing(false); }}
                 className={(selectedId ?? terms[0]?.id) !== term.id ? "hover:bg-fill" : undefined}
                 style={{
@@ -627,6 +629,7 @@ export default function GlossaryPage() {
               <BookOpen size={32} style={{ opacity: 0.4 }} />
               <div style={{ fontSize: "var(--ds-fs-14)" }}>용어를 선택하거나 새 용어를 추가하세요</div>
               <button
+                type="button"
                 onClick={() => setShowAdd(true)}
                 style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", color: "var(--ds-accent-on)", fontSize: "var(--ds-fs-12)", cursor: "pointer", fontFamily: "var(--ds-font-sans)", fontWeight: "var(--ds-fw-medium)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
               >
