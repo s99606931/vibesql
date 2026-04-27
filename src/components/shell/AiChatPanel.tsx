@@ -93,7 +93,7 @@ function SqlBlock({ code, lang, isSql, onApply }: { code: string; lang: string; 
             cursor: "pointer", fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)",
           }}
         >
-          {copied ? <Check size={10} /> : <Copy size={10} />}
+          {copied ? <Check aria-hidden="true" size={10} /> : <Copy aria-hidden="true" size={10} />}
           <span>{copied ? "복사됨" : "복사"}</span>
         </button>
         {isSql && onApply && (
@@ -110,7 +110,7 @@ function SqlBlock({ code, lang, isSql, onApply }: { code: string; lang: string; 
               fontWeight: "var(--ds-fw-medium)",
             }}
           >
-            <Zap size={10} />
+            <Zap aria-hidden="true" size={10} />
             <span>적용</span>
           </button>
         )}
@@ -361,7 +361,7 @@ export function AiChatPanel({
             flexShrink: 0,
           }}
         >
-          <Bot size={15} style={{ color: "var(--ds-accent)", flexShrink: 0 }} />
+          <Bot aria-hidden="true" size={15} style={{ color: "var(--ds-accent)", flexShrink: 0 }} />
           <span
             style={{
               flex: 1,
@@ -389,7 +389,7 @@ export function AiChatPanel({
                 cursor: "default", flexShrink: 0,
               }}
             >
-              <Zap size={9} />
+              <Zap aria-hidden="true" size={9} />
               <span>컨텍스트</span>
             </div>
           )}
@@ -413,7 +413,7 @@ export function AiChatPanel({
               }}
               className="hover:bg-fill hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
             >
-              <Trash2 size={13} />
+              <Trash2 aria-hidden="true" size={13} />
             </button>
           )}
           <button
@@ -435,7 +435,7 @@ export function AiChatPanel({
             }}
             className="hover:bg-fill hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
           >
-            <X size={14} />
+            <X aria-hidden="true" size={14} />
           </button>
         </div>
 
@@ -467,7 +467,7 @@ export function AiChatPanel({
                 padding: "var(--ds-sp-6)",
               }}
             >
-              <Bot size={32} style={{ color: "var(--ds-text-faint)" }} />
+              <Bot aria-hidden="true" size={32} style={{ color: "var(--ds-text-faint)" }} />
               <div>
                 <div
                   style={{
@@ -559,9 +559,9 @@ export function AiChatPanel({
                 }}
               >
                 {msg.role === "user" ? (
-                  <User size={12} style={{ color: "var(--ds-accent)" }} />
+                  <User aria-hidden="true" size={12} style={{ color: "var(--ds-accent)" }} />
                 ) : (
-                  <Bot size={12} style={{ color: "var(--ds-text-mute)" }} />
+                  <Bot aria-hidden="true" size={12} style={{ color: "var(--ds-text-mute)" }} />
                 )}
               </div>
 
@@ -581,7 +581,7 @@ export function AiChatPanel({
                 className={msg.role === "assistant" ? "ai-bubble" : undefined}
               >
                 {!msg.content && msg.streaming ? (
-                  <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />
+                  <Loader2 aria-hidden="true" size={13} style={{ animation: "spin 1s linear infinite" }} />
                 ) : msg.role === "assistant" ? (
                   <>
                     <ReactMarkdown
@@ -683,9 +683,9 @@ export function AiChatPanel({
               }}
             >
               {loading ? (
-                <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />
+                <Loader2 aria-hidden="true" size={13} style={{ animation: "spin 1s linear infinite" }} />
               ) : (
-                <Send size={13} />
+                <Send aria-hidden="true" size={13} />
               )}
             </button>
           </div>

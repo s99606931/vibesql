@@ -65,6 +65,7 @@ export function TopBar({ title, breadcrumbs, actions }: TopBarProps) {
               >
                 {i > 0 && (
                   <ChevronRight
+                    aria-hidden="true"
                     size={10}
                     style={{ color: "var(--ds-text-faint)" }}
                   />
