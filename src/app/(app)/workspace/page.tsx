@@ -33,6 +33,10 @@ import { ShareDialog } from "@/components/share/ShareDialog";
 
 type ResultTab = "table" | "chart" | "explain";
 
+function confidenceToPercent(c: "high" | "medium" | "low"): number {
+  return c === "high" ? 95 : c === "medium" ? 70 : 40;
+}
+
 function exportToCsv(rows: Record<string, unknown>[], columns: string[]): void {
   if (rows.length === 0 || columns.length === 0) return;
 
@@ -396,6 +400,9 @@ export default function WorkspacePage() {
   const [noDashMsg, setNoDashMsg] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const [noConnWarn, setNoConnWarn] = useState(false);
+  const [saveModal, setSaveModal] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const [saveFolder, setSaveFolder] = useState("기본");
 
   useEffect(() => {
     return () => {
@@ -667,13 +674,11 @@ export default function WorkspacePage() {
                   size="sm"
                   icon={savedOk ? <Check size={13} /> : <Star size={13} />}
                   loading={saveQueryMutation.isPending}
-                  onClick={() =>
-                    saveQueryMutation.mutate({
-                      name: nlQuery || "쿼리",
-                      query: sql,
-                      folder: "기본",
-                    })
-                  }
+                  onClick={() => {
+                    setSaveName(nlQuery || "쿼리");
+                    setSaveFolder("기본");
+                    setSaveModal(true);
+                  }}
                 >
                   저장
                 </Button>
@@ -862,7 +867,7 @@ export default function WorkspacePage() {
                     opacity: 0.8,
                   }}
                 >
-                  {confidence === "high" ? "신뢰도 높음" : confidence === "medium" ? "신뢰도 중간" : "신뢰도 낮음"}
+                  {confidence === "high" ? "신뢰도 높음" : confidence === "medium" ? "신뢰도 중간" : "신뢰도 낮음"} {confidenceToPercent(confidence)}%
                 </span>
               )}
               <div style={{ flex: 1 }} />
@@ -1058,6 +1063,64 @@ export default function WorkspacePage() {
           }}
           onClose={() => setTemplatePickerOpen(false)}
         />
+      )}
+
+      {saveModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
+          onClick={() => setSaveModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%", display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}
+          >
+            <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>쿼리 저장</div>
+            <div>
+              <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-1)" }}>이름</div>
+              <input
+                autoFocus
+                value={saveName}
+                onChange={(e) => setSaveName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Escape") setSaveModal(false); }}
+                placeholder="쿼리 이름"
+                style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", boxSizing: "border-box" }}
+              />
+            </div>
+            <div>
+              <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-1)" }}>폴더</div>
+              <input
+                value={saveFolder}
+                onChange={(e) => setSaveFolder(e.target.value)}
+                list="save-folder-list"
+                placeholder="폴더 이름 (예: 기본, 분석, 보고서)"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setSaveModal(false);
+                  if (e.key === "Enter" && saveName.trim()) {
+                    saveQueryMutation.mutate({ name: saveName.trim(), query: sql, folder: saveFolder.trim() || "기본" });
+                    setSaveModal(false);
+                  }
+                }}
+                style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", boxSizing: "border-box" }}
+              />
+              <datalist id="save-folder-list">
+                <option value="기본" />
+                <option value="분석" />
+                <option value="보고서" />
+                <option value="임시" />
+              </datalist>
+            </div>
+            <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button onClick={() => setSaveModal(false)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}>취소</button>
+              <button
+                disabled={!saveName.trim() || saveQueryMutation.isPending}
+                onClick={() => { saveQueryMutation.mutate({ name: saveName.trim(), query: sql, folder: saveFolder.trim() || "기본" }); setSaveModal(false); }}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)" }}
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {addToDashModal && (

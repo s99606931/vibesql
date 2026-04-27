@@ -8,7 +8,7 @@ import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Card, CardHead } from "@/components/ui-vs/Card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, Plus, Search, Clock, BarChart2, TrendingUp, Table2, ExternalLink } from "lucide-react";
+import { LayoutDashboard, Plus, Search, Clock, BarChart2, TrendingUp, Table2, ExternalLink, Link2, Check } from "lucide-react";
 
 interface StatsData {
   totalQueries: number;
@@ -89,6 +89,7 @@ export default function DashboardsPage() {
   const [newDashName, setNewDashName] = useState("");
   const [newDashDesc, setNewDashDesc] = useState("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [copiedDashId, setCopiedDashId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -314,6 +315,21 @@ export default function DashboardsPage() {
                   meta={dash.description}
                   actions={
                     <div style={{ display: "flex", gap: "var(--ds-sp-1)" }}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={copiedDashId === dash.id ? <Check size={12} /> : <Link2 size={12} />}
+                        onClick={() => {
+                          const url = `${window.location.origin}/dashboards/${dash.id}`;
+                          navigator.clipboard.writeText(url).then(() => {
+                            setCopiedDashId(dash.id);
+                            setTimeout(() => setCopiedDashId(null), 1500);
+                          }).catch(() => undefined);
+                        }}
+                        title="링크 복사"
+                      >
+                        {copiedDashId === dash.id ? "복사됨" : "링크"}
+                      </Button>
                       <Button variant="ghost" size="sm" icon={<ExternalLink size={12} />} onClick={() => router.push(`/dashboards/${dash.id}`)}>
                         열기
                       </Button>
