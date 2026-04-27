@@ -237,6 +237,8 @@ export default function SavedPage() {
   const [renameValue, setRenameValue] = useState("");
   const [moveModal, setMoveModal] = useState<{ id: string; currentFolder: string } | null>(null);
   const [moveFolder, setMoveFolder] = useState("");
+  const [renameFolderModal, setRenameFolderModal] = useState<string | null>(null);
+  const [renameFolderValue, setRenameFolderValue] = useState("");
   const queryClient = useQueryClient();
   const router = useRouter();
   const { setSql, setStatus } = useWorkspaceStore();
@@ -284,6 +286,22 @@ export default function SavedPage() {
         body: JSON.stringify({ folder: folder === "미분류" ? null : folder }),
       });
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "이동 실패");
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved"] }),
+  });
+
+  const renameFolderMutation = useMutation({
+    mutationFn: async ({ oldFolder, newFolder }: { oldFolder: string; newFolder: string }) => {
+      const targets = savedList.filter((q) => (q.folder ?? "미분류") === oldFolder);
+      await Promise.all(
+        targets.map((q) =>
+          fetch(`/api/saved/${q.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ folder: newFolder === "미분류" ? null : newFolder }),
+          })
+        )
+      );
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved"] }),
   });
@@ -438,6 +456,15 @@ export default function SavedPage() {
                 >
                   ({folder.queries.length})
                 </span>
+                {folder.name !== "미분류" && folder.queries.length > 0 && (
+                  <button
+                    onClick={() => { setRenameFolderValue(folder.name); setRenameFolderModal(folder.name); }}
+                    title="폴더 이름 변경"
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, opacity: 0.6 }}
+                  >
+                    <Pencil size={10} />
+                  </button>
+                )}
               </div>
 
               {folder.queries.length === 0 ? (
@@ -736,6 +763,47 @@ export default function SavedPage() {
                 style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)" }}
               >
                 만들기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename folder modal */}
+      {renameFolderModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
+          onClick={() => setRenameFolderModal(null)}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
+            <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-3)" }}>폴더 이름 변경</div>
+            <input
+              autoFocus
+              value={renameFolderValue}
+              onChange={(e) => setRenameFolderValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && renameFolderValue.trim() && renameFolderValue !== renameFolderModal) {
+                  renameFolderMutation.mutate({ oldFolder: renameFolderModal, newFolder: renameFolderValue.trim() });
+                  setRenameFolderModal(null);
+                }
+                if (e.key === "Escape") setRenameFolderModal(null);
+              }}
+              placeholder="새 폴더 이름..."
+              style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-4)", boxSizing: "border-box" }}
+            />
+            <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button onClick={() => setRenameFolderModal(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}>취소</button>
+              <button
+                onClick={() => {
+                  if (renameFolderValue.trim() && renameFolderValue !== renameFolderModal) {
+                    renameFolderMutation.mutate({ oldFolder: renameFolderModal, newFolder: renameFolderValue.trim() });
+                    setRenameFolderModal(null);
+                  }
+                }}
+                disabled={!renameFolderValue.trim() || renameFolderValue === renameFolderModal || renameFolderMutation.isPending}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)" }}
+              >
+                {renameFolderMutation.isPending ? "변경 중..." : "변경"}
               </button>
             </div>
           </div>

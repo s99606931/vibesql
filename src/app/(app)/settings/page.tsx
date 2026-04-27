@@ -438,6 +438,19 @@ export default function SettingsPage() {
                     ))}
                   </div>
                 </SettingRow>
+                <div
+                  style={{
+                    marginTop: "var(--ds-sp-3)",
+                    border: "1px dashed var(--ds-border)",
+                    borderRadius: "var(--ds-r-8)",
+                    padding: density === "compact" ? "var(--ds-sp-2) var(--ds-sp-3)" : density === "comfy" ? "var(--ds-sp-5) var(--ds-sp-5)" : "var(--ds-sp-3) var(--ds-sp-4)",
+                    background: "var(--ds-fill)",
+                    transition: "padding var(--ds-dur-fast) var(--ds-ease)",
+                  }}
+                >
+                  <div style={{ fontSize: density === "compact" ? "var(--ds-fs-11)" : density === "comfy" ? "var(--ds-fs-14)" : "var(--ds-fs-13)", color: "var(--ds-text)", marginBottom: density === "compact" ? 2 : density === "comfy" ? 6 : 4, fontWeight: "var(--ds-fw-medium)" }}>미리보기 — 쿼리 결과 행</div>
+                  <div style={{ fontSize: density === "compact" ? "var(--ds-fs-11)" : density === "comfy" ? "var(--ds-fs-14)" : "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-mono)" }}>SELECT * FROM users WHERE active = true</div>
+                </div>
               </Card>
             </>
           )}

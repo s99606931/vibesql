@@ -703,7 +703,7 @@ function StatusBadge({ status }: { status: string }) {
 function StatsSection() {
   const router = useRouter();
   const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
     queryKey: ["stats"],
     queryFn: async () => {
       const r = await fetch("/api/stats");
@@ -801,6 +801,8 @@ function StatsSection() {
               </div>
               {statsLoading ? (
                 <Skeleton className="h-7 w-16 mt-1" />
+              ) : statsError ? (
+                <div style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-danger)", marginTop: 4 }}>오류</div>
               ) : (
                 <div
                   style={{

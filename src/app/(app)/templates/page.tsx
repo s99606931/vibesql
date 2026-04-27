@@ -45,14 +45,16 @@ function SaveModal({
   onSave,
   onClose,
   saving,
+  defaultSql,
 }: {
   onSave: (form: SaveForm) => void;
   onClose: () => void;
   saving: boolean;
+  defaultSql?: string;
 }) {
   const [form, setForm] = useState<SaveForm>({
     name: "", description: "", category: "custom",
-    nlQuery: "", sql: "", dialect: "postgresql", tags: "",
+    nlQuery: "", sql: defaultSql ?? "", dialect: "postgresql", tags: "",
   });
 
   function set<K extends keyof SaveForm>(k: K, v: SaveForm[K]) {
@@ -248,6 +250,7 @@ export default function TemplatesPage() {
   const router = useRouter();
   const qc = useQueryClient();
   const setNlQuery = useWorkspaceStore((s) => s.setNlQuery);
+  const workspaceSql = useWorkspaceStore((s) => s.sql);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<TemplateCategory | "all">("all");
   const [saveModal, setSaveModal] = useState(false);
@@ -419,6 +422,7 @@ export default function TemplatesPage() {
           onSave={(form) => saveMutation.mutate(form)}
           onClose={() => setSaveModal(false)}
           saving={saveMutation.isPending}
+          defaultSql={workspaceSql || undefined}
         />
       )}
 
