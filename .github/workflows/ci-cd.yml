@@ -103,16 +103,12 @@ jobs:
           railway status 2>&1 || true
           echo "=== railway environment ==="
           railway environment 2>&1 || true
-          echo "=== GraphQL: project services (project token) ==="
+          echo "=== GraphQL: project services ==="
           curl -s https://backboard.railway.com/graphql/v2 \
             -H "Authorization: Bearer $RAILWAY_TOKEN" \
             -H "Content-Type: application/json" \
             -d '{"query":"{ project { id name services { edges { node { id name } } } } }"}' \
-            | python3 -c "
-import sys, json
-data = json.load(sys.stdin)
-print(json.dumps(data, indent=2))
-" 2>&1 || echo "graphql failed"
+            | python3 -m json.tool 2>&1 || echo "graphql failed"
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
