@@ -279,6 +279,7 @@ export default function SchemaPage() {
               <Card
                 key={table.name}
                 hoverable
+                aria-expanded={expandedTable === table.name}
                 style={{ cursor: "pointer" }}
                 onClick={() => handleTableClick(table)}
               >

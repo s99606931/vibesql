@@ -82,9 +82,13 @@ function LogRow({ log }: { log: AuditLogItem }) {
       }}
     >
       <div
+        role={log.metadata ? "button" : undefined}
+        tabIndex={log.metadata ? 0 : undefined}
         aria-expanded={log.metadata ? expanded : undefined}
+        aria-label={log.metadata ? "로그 상세 보기" : undefined}
         style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-3)", cursor: log.metadata ? "pointer" : "default" }}
         onClick={() => { if (log.metadata) setExpanded((v) => !v); }}
+        onKeyDown={(e) => { if (log.metadata && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); setExpanded((v) => !v); } }}
       >
         <Icon size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", flexWrap: "wrap" }}>

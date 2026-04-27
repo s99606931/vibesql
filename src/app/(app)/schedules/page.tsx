@@ -662,7 +662,12 @@ export default function SchedulesPage() {
                     </span>
                   </div>
                   <div
+                    role={schedule.sql.length > 60 ? "button" : undefined}
+                    tabIndex={schedule.sql.length > 60 ? 0 : undefined}
+                    aria-expanded={schedule.sql.length > 60 ? expandedSqlId === schedule.id : undefined}
+                    aria-label={schedule.sql.length > 60 ? "SQL 전체 보기" : undefined}
                     onClick={() => setExpandedSqlId((prev) => prev === schedule.id ? null : schedule.id)}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setExpandedSqlId((prev) => prev === schedule.id ? null : schedule.id); } }}
                     style={{
                       fontSize: "var(--ds-fs-11)",
                       color: "var(--ds-text-faint)",
