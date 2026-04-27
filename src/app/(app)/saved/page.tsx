@@ -641,11 +641,13 @@ export default function SavedPage() {
                             whiteSpace: "nowrap",
                             marginBottom: 2,
                           }}
+                          title={query.name}
                         >
                           {query.name}
                         </div>
                         {query.description && (
                           <div
+                            title={query.description}
                             style={{
                               fontSize: "var(--ds-fs-11)",
                               color: "var(--ds-text-mute)",

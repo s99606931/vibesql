@@ -261,7 +261,7 @@ export default function AdminUsersPage() {
 
                 {/* Email */}
                 <div style={{ display: "flex", alignItems: "center", gap: 4, overflow: "hidden", minWidth: 0 }}>
-                  <span style={{ color: "var(--ds-text-mute)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+                  <span title={user.email} style={{ color: "var(--ds-text-mute)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
                     {user.email}
                   </span>
                   <button

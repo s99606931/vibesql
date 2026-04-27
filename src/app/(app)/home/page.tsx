@@ -907,6 +907,7 @@ function StatsSection() {
                   }}
                 >
                   <span
+                    title={item.nlQuery || item.sql}
                     style={{
                       flex: 1,
                       minWidth: 0,

@@ -662,7 +662,7 @@ export default function SchedulesPage() {
                     )}
                     {expandedSqlId === schedule.id
                       ? <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{schedule.sql}</span>
-                      : <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{schedule.sql.slice(0, 80)}{schedule.sql.length > 80 ? "..." : ""}</span>
+                      : <span title={schedule.sql} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{schedule.sql.slice(0, 80)}{schedule.sql.length > 80 ? "..." : ""}</span>
                     }
                   </div>
                   <div
