@@ -442,6 +442,9 @@ export function AiChatPanel({
         {/* Messages */}
         <div
           ref={scrollRef}
+          role="log"
+          aria-live="polite"
+          aria-label="AI 채팅 메시지"
           style={{
             flex: 1,
             overflowY: "auto",
