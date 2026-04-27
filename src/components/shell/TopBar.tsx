@@ -45,7 +45,8 @@ export function TopBar({ title, breadcrumbs, actions }: TopBarProps) {
           {title}
         </div>
         {breadcrumbs && breadcrumbs.length > 0 && (
-          <div
+          <nav
+            aria-label="탐색경로"
             style={{
               display: "flex",
               alignItems: "center",
@@ -82,6 +83,7 @@ export function TopBar({ title, breadcrumbs, actions }: TopBarProps) {
                   </Link>
                 ) : (
                   <span
+                    aria-current={i === breadcrumbs.length - 1 ? "page" : undefined}
                     style={{
                       fontSize: "var(--ds-fs-11)",
                       color: "var(--ds-text-mute)",
@@ -92,7 +94,7 @@ export function TopBar({ title, breadcrumbs, actions }: TopBarProps) {
                 )}
               </span>
             ))}
-          </div>
+          </nav>
         )}
       </div>
 
