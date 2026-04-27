@@ -179,12 +179,14 @@ export default function AdminUsersPage() {
         )}
 
         {error && (
-          <div style={{
-            display: "flex", alignItems: "center", gap: "var(--ds-sp-2)",
-            padding: "var(--ds-sp-4)", borderRadius: "var(--ds-r-8)",
-            background: "var(--ds-danger-soft)",
-            color: "var(--ds-danger)",
-          }}>
+          <div
+            role="alert"
+            style={{
+              display: "flex", alignItems: "center", gap: "var(--ds-sp-2)",
+              padding: "var(--ds-sp-4)", borderRadius: "var(--ds-r-8)",
+              background: "var(--ds-danger-soft)",
+              color: "var(--ds-danger)",
+            }}>
             <AlertTriangle size={16} />
             {error instanceof Error ? error.message : "오류가 발생했습니다."}
           </div>

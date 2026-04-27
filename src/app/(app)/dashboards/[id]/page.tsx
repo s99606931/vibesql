@@ -325,6 +325,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
             }}
           >
             <div
+              role="alert"
               style={{
                 display: "flex",
                 alignItems: "center",

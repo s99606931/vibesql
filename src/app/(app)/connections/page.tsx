@@ -325,6 +325,7 @@ export default function ConnectionsPage() {
 
         {isError && (
           <div
+            role="alert"
             style={{
               fontSize: "var(--ds-fs-13)",
               color: "var(--ds-danger)",

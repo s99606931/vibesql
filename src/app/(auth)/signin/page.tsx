@@ -157,6 +157,8 @@ export default function SignInPage() {
         {/* Error */}
         {error && (
           <div
+            role="alert"
+            aria-live="assertive"
             style={{
               display: "flex",
               alignItems: "center",
