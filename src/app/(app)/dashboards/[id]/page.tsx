@@ -850,7 +850,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
             <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>대시보드 삭제</div>
             <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>"{dashboard?.name}" 대시보드를 삭제할까요? 위젯 데이터도 함께 삭제됩니다.</div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
-              <Button variant="ghost" size="sm" onClick={() => setDeleteConfirm(false)}>취소</Button>
+              <Button autoFocus variant="ghost" size="sm" onClick={() => setDeleteConfirm(false)}>취소</Button>
               <Button variant="danger" size="sm" onClick={() => { deleteMutation.mutate(); setDeleteConfirm(false); }}>삭제</Button>
             </div>
           </div>
