@@ -282,6 +282,7 @@ export default function HistoryPage() {
                   marginBottom: "var(--ds-sp-2)",
                   paddingLeft: "var(--ds-sp-1)",
                   padding: 0,
+                  transition: "color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
                 {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}

@@ -227,6 +227,7 @@ function TemplateCard({
             background: "none", border: "none", cursor: "pointer",
             fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)",
             padding: 0, marginBottom: expanded ? "var(--ds-sp-1)" : 0,
+            transition: "color var(--ds-dur-fast) var(--ds-ease)",
           }}
         >
           <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
@@ -259,6 +260,7 @@ function TemplateCard({
                 background: "none", border: "none", cursor: onTagClick ? "pointer" : "default",
                 padding: 0, fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)",
                 fontFamily: "var(--ds-font-mono)",
+                transition: onTagClick ? "opacity var(--ds-dur-fast) var(--ds-ease)" : undefined,
               }}
             >
               #{tag}
@@ -418,6 +420,7 @@ export default function TemplatesPage() {
                   color: category === opt.value ? "var(--ds-accent)" : "var(--ds-text-mute)",
                   fontSize: "var(--ds-fs-12)",
                   cursor: "pointer",
+                  transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
                 {opt.label}

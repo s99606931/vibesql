@@ -150,6 +150,7 @@ function RuleModal({
                   fontSize: "var(--ds-fs-12)",
                   cursor: "pointer",
                   fontFamily: "var(--ds-font-sans)",
+                  transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
                 <m.icon size={12} />
