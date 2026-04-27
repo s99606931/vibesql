@@ -204,6 +204,7 @@ function ScheduleModal({
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
             <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>DB 방언</label>
             <select
+              aria-label="DB 방언"
               value={form.dialect}
               onChange={(e) => set("dialect", e.target.value as DbDialect)}
               style={{
@@ -226,6 +227,7 @@ function ScheduleModal({
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
             <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>실행 주기</label>
             <select
+              aria-label="실행 주기"
               value={CRON_PRESETS.some((p) => p.value === form.cronExpr) ? form.cronExpr : "custom"}
               onChange={(e) => {
                 if (e.target.value !== "custom") set("cronExpr", e.target.value);
@@ -290,6 +292,7 @@ function ScheduleModal({
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
             <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>연결 (선택)</label>
             <select
+              aria-label="연결 선택"
               value={form.connectionId ?? ""}
               onChange={(e) => set("connectionId", e.target.value || undefined)}
               style={{ border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", padding: "var(--ds-sp-2) var(--ds-sp-3)", outline: "none", fontFamily: "var(--ds-font-sans)", cursor: "pointer" }}

@@ -150,6 +150,7 @@ function ProviderModal({
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
           <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>프로바이더 유형</label>
           <select
+            aria-label="프로바이더 유형"
             value={form.type}
             onChange={(e) => onTypeChange(e.target.value as AiProviderType)}
             style={{ background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", padding: "var(--ds-sp-2)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", width: "100%" }}

@@ -100,6 +100,7 @@ function ConnectionSelector({ connections, selectedId, onChange }: ConnectionSel
       <Database size={13} style={{ color: "var(--ds-text-mute)", flexShrink: 0 }} />
       <div style={{ position: "relative" }}>
         <select
+          aria-label="데이터베이스 연결 선택"
           value={selectedId ?? ""}
           onChange={(e) => onChange(e.target.value || null)}
           style={{
