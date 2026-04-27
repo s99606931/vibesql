@@ -245,7 +245,12 @@ function TemplatePicker({
                 fontSize: "var(--ds-fs-12)",
               }}
             >
-              검색 결과가 없습니다.
+              <div>검색 결과가 없습니다.</div>
+              {search && (
+                <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setSearch("")}>
+                  검색 지우기
+                </Button>
+              )}
             </div>
           )}
 

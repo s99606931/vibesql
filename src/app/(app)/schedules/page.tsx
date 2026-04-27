@@ -565,6 +565,7 @@ export default function SchedulesPage() {
             {schedules.filter((s) => !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.sql.toLowerCase().includes(search.toLowerCase())).map((schedule, i, arr) => (
               <div
                 key={schedule.id}
+                className="hover:bg-fill transition-colors"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -625,6 +626,7 @@ export default function SchedulesPage() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: 2 }}>
                     <span
+                      title={schedule.name}
                       style={{
                         fontSize: "var(--ds-fs-13)",
                         fontWeight: "var(--ds-fw-medium)",
