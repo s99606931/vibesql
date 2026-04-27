@@ -9,7 +9,7 @@ import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Button } from "@/components/ui-vs/Button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RotateCcw, Star, MoreHorizontal, Trash2 } from "lucide-react";
+import { RotateCcw, Star, MoreHorizontal, Trash2, Download } from "lucide-react";
 
 type HistoryFilter = "전체" | "성공" | "실패" | "즐겨찾기";
 const HISTORY_FILTERS: HistoryFilter[] = ["전체", "성공", "실패", "즐겨찾기"];
@@ -122,6 +122,25 @@ export default function HistoryPage() {
 
   const historyGroups = groupByDate(filtered);
 
+  function exportHistoryCsv() {
+    if (data.length === 0) return;
+    const headers = ["createdAt", "status", "dialect", "rowCount", "durationMs", "nlQuery", "sql", "errorMsg"];
+    const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const csv = [
+      headers.join(","),
+      ...data.map((item) =>
+        headers.map((h) => escape(item[h as keyof HistoryItem])).join(",")
+      ),
+    ].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `history_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <TopBar
@@ -129,14 +148,24 @@ export default function HistoryPage() {
         breadcrumbs={[{ label: "vibeSQL" }, { label: "히스토리" }]}
         actions={
           data.length > 0 ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={<Trash2 size={13} />}
-              onClick={() => setClearAllModal(true)}
-            >
-              전체 삭제
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Download size={13} />}
+                onClick={exportHistoryCsv}
+              >
+                CSV
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Trash2 size={13} />}
+                onClick={() => setClearAllModal(true)}
+              >
+                전체 삭제
+              </Button>
+            </>
           ) : undefined
         }
       />

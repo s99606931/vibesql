@@ -907,6 +907,20 @@ export default function WorkspacePage() {
               minHeight={120}
               maxHeight={280}
             />
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                padding: "2px var(--ds-sp-3)",
+                borderTop: "1px solid var(--ds-border)",
+                fontSize: "var(--ds-fs-10)",
+                color: "var(--ds-text-faint)",
+                fontFamily: "var(--ds-font-mono)",
+                background: "var(--ds-fill)",
+              }}
+            >
+              {sql.split("\n").length}줄 · {sql.length}자
+            </div>
           </div>
         )}
 

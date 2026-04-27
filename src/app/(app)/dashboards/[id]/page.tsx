@@ -18,6 +18,8 @@ import {
   Clock,
   Globe,
   Lock,
+  Copy,
+  Check,
   X,
   RefreshCw,
   AlertCircle,
@@ -381,6 +383,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
   const [renameName, setRenameName] = useState("");
   const [renameDesc, setRenameDesc] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
 
   // Dashboard data
   const { data: dashboard, isLoading, isError } = useQuery<Dashboard>({
@@ -609,6 +612,32 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                         : <><Lock size={10} style={{ marginRight: 3 }} />비공개</>}
                     </Pill>
                   </button>
+                  {dashboard.isPublic && (
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(window.location.href);
+                        setCopiedUrl(true);
+                        setTimeout(() => setCopiedUrl(false), 2000);
+                      }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        background: "none",
+                        border: `1px solid var(--ds-border)`,
+                        borderRadius: "var(--ds-r-6)",
+                        padding: "2px 8px",
+                        cursor: "pointer",
+                        fontSize: "var(--ds-fs-11)",
+                        color: copiedUrl ? "var(--ds-success)" : "var(--ds-text-mute)",
+                        transition: "color 0.15s",
+                      }}
+                      title="공유 URL 복사"
+                    >
+                      {copiedUrl ? <Check size={11} /> : <Copy size={11} />}
+                      {copiedUrl ? "복사됨!" : "URL 복사"}
+                    </button>
+                  )}
                   <span
                     style={{
                       display: "flex",

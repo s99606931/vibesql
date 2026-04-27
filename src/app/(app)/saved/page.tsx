@@ -24,6 +24,7 @@ import {
   RotateCcw,
   X,
   FolderInput,
+  Copy,
 } from "lucide-react";
 import type { SavedQuery, QueryVersion } from "@/types";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
@@ -302,6 +303,27 @@ export default function SavedPage() {
           })
         )
       );
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved"] }),
+  });
+
+  const duplicateMutation = useMutation({
+    mutationFn: async (query: SavedQuery) => {
+      const res = await fetch("/api/saved", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: `${query.name} (복사)`,
+          description: query.description,
+          folder: query.folder,
+          tags: query.tags,
+          nlQuery: query.nlQuery,
+          sql: query.sql,
+          dialect: query.dialect,
+          connectionId: query.connectionId,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "복제 실패");
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved"] }),
   });
@@ -676,6 +698,18 @@ export default function SavedPage() {
                           }}
                         >
                           버전
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={<Copy size={12} />}
+                          loading={duplicateMutation.isPending && duplicateMutation.variables?.id === query.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            duplicateMutation.mutate(query);
+                          }}
+                        >
+                          복제
                         </Button>
                         <Button
                           variant="danger"

@@ -60,6 +60,18 @@ function formatTime(iso: string | null | undefined): string {
   return d.toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
+function formatRelativeTime(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const diffMs = new Date(iso).getTime() - Date.now();
+  if (diffMs < 0) return formatTime(iso);
+  const diffMin = Math.round(diffMs / 60000);
+  if (diffMin < 60) return `${diffMin}분 후`;
+  const diffHr = Math.round(diffMs / 3600000);
+  if (diffHr < 24) return `${diffHr}시간 후`;
+  const diffDay = Math.round(diffMs / 86400000);
+  return `${diffDay}일 후`;
+}
+
 function statusIcon(status: string | null | undefined) {
   if (!status) return null;
   if (status === "success") return <CheckCircle2 size={14} style={{ color: "var(--ds-success)" }} />;
@@ -598,6 +610,11 @@ export default function SchedulesPage() {
                     {schedule.durationMs != null && (
                       <span style={{ fontFamily: "var(--ds-font-mono)" }}>
                         {schedule.durationMs < 1000 ? `${schedule.durationMs}ms` : `${(schedule.durationMs / 1000).toFixed(1)}s`}
+                      </span>
+                    )}
+                    {schedule.nextRunAt && schedule.isActive && (
+                      <span style={{ display: "flex", alignItems: "center", gap: 3, color: "var(--ds-accent)" }}>
+                        다음 {formatRelativeTime(schedule.nextRunAt)}
                       </span>
                     )}
                   </div>
