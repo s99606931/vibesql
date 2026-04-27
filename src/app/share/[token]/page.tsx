@@ -248,6 +248,8 @@ export default function SharePage() {
               }}
             >
               <button
+                type="button"
+                aria-label={copied ? "복사됨" : "SQL 복사"}
                 onClick={handleCopy}
                 style={{
                   display: "flex",
@@ -272,6 +274,8 @@ export default function SharePage() {
               </button>
 
               <button
+                type="button"
+                aria-label="vibeSQL에서 열기"
                 onClick={handleOpenInVibeSQL}
                 style={{
                   display: "flex",

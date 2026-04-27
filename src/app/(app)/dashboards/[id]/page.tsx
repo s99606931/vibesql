@@ -231,6 +231,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
         <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
           {canFetch && (
             <button
+              type="button"
               onClick={() => void refetch()}
               disabled={isLoading}
               aria-label="새로고침"
@@ -250,6 +251,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
             </button>
           )}
           <button
+            type="button"
             onClick={() => onRemove(index)}
             disabled={isRemoving}
             aria-label="위젯 삭제"
@@ -616,6 +618,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                 )}
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", flexWrap: "wrap" }}>
                   <button
+                    type="button"
                     onClick={() => togglePublicMutation.mutate()}
                     disabled={togglePublicMutation.isPending}
                     aria-label={dashboard.isPublic ? "비공개로 전환" : "공유로 전환"}
@@ -630,6 +633,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                   </button>
                   {dashboard.isPublic && (
                     <button
+                      type="button"
                       onClick={() => {
                         navigator.clipboard.writeText(window.location.href);
                         setCopiedUrl(true);
@@ -790,6 +794,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                         </span>
                       </div>
                       <button
+                        type="button"
                         onClick={() => removeWidgetMutation.mutate(i)}
                         disabled={removeWidgetMutation.isPending}
                         aria-label="위젯 삭제"

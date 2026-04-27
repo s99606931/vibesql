@@ -117,6 +117,9 @@ export default function SignInPage() {
           {(["login", "register"] as Tab[]).map((t) => (
             <button
               key={t}
+              type="button"
+              role="tab"
+              aria-selected={tab === t}
               onClick={() => { setTab(t); setError(null); }}
               style={{
                 flex: 1,
