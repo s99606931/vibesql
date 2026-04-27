@@ -145,6 +145,7 @@ export default function SchemaPage() {
               ))}
             </select>
             <button
+              type="button"
               onClick={() => void refetch()}
               aria-label="스키마 새로고침"
               style={{ display: "flex", alignItems: "center", padding: "var(--ds-sp-1)", background: "none", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", color: "var(--ds-text-mute)", transition: "color var(--ds-dur-fast) var(--ds-ease), background var(--ds-dur-fast) var(--ds-ease)" }}
@@ -203,18 +204,24 @@ export default function SchemaPage() {
             )}
           </div>
           <button
+            type="button"
+            aria-pressed={activeFilter === "all"}
             onClick={() => setActiveFilter("all")}
             style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
           >
             <Pill variant={activeFilter === "all" ? "accent" : "default"}>전체</Pill>
           </button>
           <button
+            type="button"
+            aria-pressed={activeFilter === "public"}
             onClick={() => setActiveFilter("public")}
             style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
           >
             <Pill variant={activeFilter === "public" ? "accent" : "default"}>public</Pill>
           </button>
           <button
+            type="button"
+            aria-pressed={activeFilter === "pii"}
             onClick={() => setActiveFilter("pii")}
             style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
           >
@@ -298,6 +305,7 @@ export default function SchemaPage() {
                       )}
                       {table.pii && <Pill variant="warn">PII</Pill>}
                       <button
+                        type="button"
                         onClick={(e) => handleCopyTable(e, table)}
                         aria-label="테이블명 복사"
                         style={{ background: "none", border: "none", cursor: "pointer", color: copiedTable === table.name ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, gap: 2, transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
@@ -308,6 +316,7 @@ export default function SchemaPage() {
                         )}
                       </button>
                       <button
+                        type="button"
                         onClick={(e) => handleTableRun(e, table)}
                         aria-label="워크스페이스에서 SELECT 실행"
                         style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-accent)", display: "flex", alignItems: "center", padding: 2, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
