@@ -256,7 +256,7 @@ export default function ErrorsPage() {
                   )}
                 </div>
                 {search && (
-                  <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginBottom: "var(--ds-sp-2)" }}>
+                  <div role="status" aria-live="polite" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginBottom: "var(--ds-sp-2)" }}>
                     {Math.min(errors.length, 20)}/{allErrors.length}건 표시 중{errors.length > 20 ? " · 최대 20건" : ""}
                   </div>
                 )}

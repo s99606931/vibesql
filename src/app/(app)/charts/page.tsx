@@ -295,7 +295,7 @@ export default function ChartsPage() {
             )}
           </div>
           {search && !isLoading && (
-            <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", whiteSpace: "nowrap" }}>
+            <span role="status" aria-live="polite" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", whiteSpace: "nowrap" }}>
               {visible.length}/{charts.length}개
             </span>
           )}

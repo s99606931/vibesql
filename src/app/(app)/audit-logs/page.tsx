@@ -338,7 +338,7 @@ export default function AuditLogsPage() {
               {opt.label}
             </button>
           ))}
-          <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", alignSelf: "center", marginLeft: "var(--ds-sp-2)" }}>
+          <span role="status" aria-live="polite" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", alignSelf: "center", marginLeft: "var(--ds-sp-2)" }}>
             {filtered.length}건 · {page}/{totalPages} 페이지
           </span>
         </div>
