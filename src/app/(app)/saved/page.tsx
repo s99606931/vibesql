@@ -601,9 +601,17 @@ export default function SavedPage() {
                           }}
                         >
                           {query.tags.map((tag) => (
-                            <Pill key={tag} variant="dashed">
-                              {tag}
-                            </Pill>
+                            <button
+                              key={tag}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSearch((prev) => prev === tag ? "" : tag);
+                              }}
+                              title={`"${tag}" 태그로 필터`}
+                              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                            >
+                              <Pill variant="dashed">{tag}</Pill>
+                            </button>
                           ))}
                           {query.connectionId && (
                             <span

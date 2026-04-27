@@ -42,7 +42,7 @@ type NavItem = {
   href: string;
   icon: React.ElementType;
   label: string;
-  countKey?: "saved";
+  countKey?: "saved" | "schedules";
   requiredRole?: UserRole;
   badge?: "soon";
 };
@@ -64,7 +64,7 @@ const navGroups: NavGroup[] = [
       { href: "/templates", icon: FileText, label: "템플릿" },
       { href: "/history", icon: History, label: "히스토리" },
       { href: "/saved", icon: Star, label: "저장됨", countKey: "saved" },
-      { href: "/schedules", icon: CalendarClock, label: "스케줄러" },
+      { href: "/schedules", icon: CalendarClock, label: "스케줄러", countKey: "schedules" as const },
     ],
   },
   {
@@ -162,6 +162,16 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
     },
     staleTime: 30_000,
     select: (data) => (Array.isArray(data) ? data.length : 0),
+  });
+
+  const { data: schedulesActiveCount } = useQuery({
+    queryKey: ["schedules-count"],
+    queryFn: async () => {
+      const res = await fetch("/api/schedules");
+      const json = await res.json() as { data?: Array<{ isActive: boolean }> };
+      return Array.isArray(json.data) ? json.data.filter((s) => s.isActive).length : 0;
+    },
+    staleTime: 60_000,
   });
 
   const { data: connections } = useConnections();
@@ -398,7 +408,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                   <div>
                     {group.items.map((item) => {
                       const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
-                      const count = item.countKey === "saved" ? savedCount : undefined;
+                      const count = item.countKey === "saved" ? savedCount : item.countKey === "schedules" ? schedulesActiveCount : undefined;
                       return (
                         <Link
                           key={item.href}

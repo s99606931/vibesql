@@ -29,6 +29,7 @@ export default function SchemaPage() {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<SchemaFilter>("all");
   const [copiedTable, setCopiedTable] = useState<string | null>(null);
+  const [copiedCol, setCopiedCol] = useState<string | null>(null);
   const [expandedTable, setExpandedTable] = useState<string | null>(null);
   const { activeConnectionId, setActiveConnection } = useWorkspaceStore();
   const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
@@ -277,13 +278,22 @@ export default function SchemaPage() {
                   {(expandedTable === table.name ? table.cols : table.cols.slice(0, 5)).map((col) => (
                     <span
                       key={col}
+                      title="클릭하여 복사"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(col);
+                        setCopiedCol(col);
+                        setTimeout(() => setCopiedCol((p) => p === col ? null : p), 1500);
+                      }}
                       style={{
                         fontFamily: "var(--ds-font-mono)",
                         fontSize: "var(--ds-fs-10)",
-                        color: "var(--ds-text-mute)",
-                        background: "var(--ds-fill)",
+                        color: copiedCol === col ? "var(--ds-accent)" : "var(--ds-text-mute)",
+                        background: copiedCol === col ? "var(--ds-accent-soft)" : "var(--ds-fill)",
                         padding: "1px 6px",
                         borderRadius: "var(--ds-r-4)",
+                        cursor: "pointer",
+                        transition: "color 0.1s, background 0.1s",
                       }}
                     >
                       {col}

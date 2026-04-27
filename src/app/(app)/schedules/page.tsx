@@ -6,7 +6,7 @@ import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
-import { Plus, Trash2, Play, Pencil, Clock, Calendar, CheckCircle2, XCircle, Loader, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Trash2, Play, Pencil, Clock, Calendar, CheckCircle2, XCircle, Loader, ChevronDown, ChevronRight, Database } from "lucide-react";
 import type { ScheduledQuery, DbDialect } from "@/types";
 import { useConnections } from "@/hooks/useConnections";
 
@@ -322,6 +322,7 @@ function ScheduleModal({
 
 export default function SchedulesPage() {
   const queryClient = useQueryClient();
+  const { data: connections = [] } = useConnections();
   const [modal, setModal] = useState<{ open: boolean; editing: ScheduledQuery | null }>({ open: false, editing: null });
   const [runningId, setRunningId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
@@ -628,6 +629,15 @@ export default function SchedulesPage() {
                         다음 {formatRelativeTime(schedule.nextRunAt)}
                       </span>
                     )}
+                    {schedule.connectionId && (() => {
+                      const conn = connections.find((c) => c.id === schedule.connectionId);
+                      return conn ? (
+                        <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                          <Database size={10} />
+                          {conn.name}
+                        </span>
+                      ) : null;
+                    })()}
                   </div>
                 </div>
 

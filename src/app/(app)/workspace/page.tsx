@@ -410,6 +410,17 @@ export default function WorkspacePage() {
     };
   }, []);
 
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.altKey && e.key === "Enter" && sql.trim() && status !== "running") {
+        e.preventDefault();
+        void handleRun();
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [sql, status]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const activeConnection = (connections ?? []).find((c) => c.id === activeConnectionId);
 
   const saveQueryMutation = useMutation({
@@ -894,7 +905,7 @@ export default function WorkspacePage() {
                 icon={<Play size={12} />}
                 onClick={handleRun}
               >
-                실행 ⌘⏎
+                실행 ⌥⏎
               </Button>
             </div>
 
