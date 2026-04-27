@@ -1,4 +1,4 @@
-import { ReactNode, HTMLAttributes } from "react";
+import { ReactNode, HTMLAttributes, KeyboardEvent } from "react";
 import { cn } from "@/lib/utils";
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
@@ -16,11 +16,26 @@ export function Card({
   className,
   style,
   onClick,
+  onKeyDown,
+  tabIndex,
   ...props
 }: CardProps) {
+  const isInteractive = !!(hoverable && onClick);
+
+  function handleKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (isInteractive && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>);
+    }
+    onKeyDown?.(e);
+  }
+
   return (
     <div
       onClick={onClick}
+      onKeyDown={handleKeyDown}
+      role={isInteractive ? "button" : undefined}
+      tabIndex={isInteractive ? (tabIndex ?? 0) : tabIndex}
       style={{
         background: "var(--ds-surface)",
         border: `1px ${dashed ? "dashed" : "solid"} var(--ds-border)`,

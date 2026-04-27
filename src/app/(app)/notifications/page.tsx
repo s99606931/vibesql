@@ -54,7 +54,7 @@ export default function NotificationsPage() {
           >
             <Zap size={20} style={{ color: enabledCount > 0 ? "var(--ds-accent)" : "var(--ds-text-faint)", flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-semibold)", color: enabledCount > 0 ? "var(--ds-accent)" : "var(--ds-text-mute)" }}>
+              <div role="status" aria-live="polite" style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-semibold)", color: enabledCount > 0 ? "var(--ds-accent)" : "var(--ds-text-mute)" }}>
                 {enabledCount > 0 ? `${enabledCount}개 알림 활성화됨` : "모든 알림이 꺼져 있습니다"}
               </div>
               <div style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)", marginTop: 2 }}>
