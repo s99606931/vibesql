@@ -403,7 +403,7 @@ export default function ProfilePage() {
       {deleteAccountModal && (
         <div role="dialog" aria-modal="true" aria-label="계정 삭제 요청" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteAccountModal(false)} onKeyDown={(e) => { if (e.key === "Escape") setDeleteAccountModal(false); }}>
           <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 320, maxWidth: 400, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-danger)" }}>계정 삭제 요청</div>
+            <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-danger)", margin: 0 }}>계정 삭제 요청</h2>
             <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", lineHeight: 1.6 }}>
               계정 삭제는 관리자 패널에서 처리됩니다.<br />
               지원팀(<strong>support@vibesql.com</strong>)에 문의하거나 관리자에게 요청해주세요.
