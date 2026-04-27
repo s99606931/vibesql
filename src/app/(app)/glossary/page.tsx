@@ -7,7 +7,7 @@ import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Card } from "@/components/ui-vs/Card";
 import { AICallout } from "@/components/ui-vs/AICallout";
-import { Plus, Search, BookOpen, Trash2, X } from "lucide-react";
+import { Plus, Search, BookOpen, Trash2, X, Pencil } from "lucide-react";
 import type { GlossaryTerm } from "@/types";
 
 const categoryColors: Record<string, "default" | "accent" | "success" | "warn" | "info"> = {
@@ -37,12 +37,21 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
+interface EditForm {
+  term: string;
+  category: string;
+  definition: string;
+  sql: string;
+}
+
 export default function GlossaryPage() {
   const qc = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [newTerm, setNewTerm] = useState({ term: "", category: "매출", definition: "", sql: "" });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<EditForm>({ term: "", category: "", definition: "", sql: "" });
 
   const { data: terms = [], isLoading } = useQuery({
     queryKey: ["glossary"],
@@ -79,6 +88,35 @@ export default function GlossaryPage() {
       setSelectedId(null);
     },
   });
+
+  const editMutation = useMutation({
+    mutationFn: async ({ id, body }: { id: string; body: Partial<EditForm> }) => {
+      const res = await fetch(`/api/glossary/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "수정 실패");
+      return json.data as GlossaryTerm;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["glossary"] });
+      setIsEditing(false);
+    },
+    onError: (err) => {
+      console.warn("[glossary] edit failed:", err instanceof Error ? err.message : err);
+    },
+  });
+
+  function startEditing(term: GlossaryTerm) {
+    setEditForm({ term: term.term, category: term.category, definition: term.definition, sql: term.sql ?? "" });
+    setIsEditing(true);
+  }
+
+  function cancelEditing() {
+    setIsEditing(false);
+  }
 
   const filtered = terms.filter(
     (t) =>
@@ -163,7 +201,7 @@ export default function GlossaryPage() {
             {filtered.map((term) => (
               <button
                 key={term.id}
-                onClick={() => setSelectedId(term.id)}
+                onClick={() => { setSelectedId(term.id); setIsEditing(false); }}
                 style={{
                   width: "100%",
                   display: "flex",
@@ -288,7 +326,7 @@ export default function GlossaryPage() {
           )}
 
           {/* Term detail */}
-          {selected && !showAdd && (
+          {selected && !showAdd && !isEditing && (
             <>
               <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--ds-sp-3)" }}>
                 <div style={{ flex: 1 }}>
@@ -297,15 +335,25 @@ export default function GlossaryPage() {
                   </div>
                   <Pill variant={categoryColors[selected.category] ?? "default"}>{selected.category}</Pill>
                 </div>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  icon={<Trash2 size={12} />}
-                  loading={deleteMutation.isPending}
-                  onClick={() => deleteMutation.mutate(selected.id)}
-                >
-                  삭제
-                </Button>
+                <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={<Pencil size={12} />}
+                    onClick={() => startEditing(selected)}
+                  >
+                    수정
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    icon={<Trash2 size={12} />}
+                    loading={deleteMutation.isPending}
+                    onClick={() => deleteMutation.mutate(selected.id)}
+                  >
+                    삭제
+                  </Button>
+                </div>
               </div>
 
               <Card padding="var(--ds-sp-4)">
@@ -328,6 +376,68 @@ export default function GlossaryPage() {
                 </Card>
               )}
             </>
+          )}
+
+          {/* Edit mode */}
+          {selected && !showAdd && isEditing && (
+            <Card padding="var(--ds-sp-4)">
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--ds-sp-4)" }}>
+                <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>
+                  용어 수정
+                </div>
+                <Button variant="ghost" size="sm" icon={<X size={13} />} onClick={cancelEditing}>닫기</Button>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
+                <div>
+                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>용어</label>
+                  <input
+                    style={inputStyle}
+                    value={editForm.term}
+                    onChange={(e) => setEditForm((p) => ({ ...p, term: e.target.value }))}
+                    placeholder="예: 결제율"
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>카테고리</label>
+                  <input
+                    style={inputStyle}
+                    value={editForm.category}
+                    onChange={(e) => setEditForm((p) => ({ ...p, category: e.target.value }))}
+                    placeholder="예: 매출"
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>정의</label>
+                  <textarea
+                    style={{ ...inputStyle, minHeight: 72, resize: "vertical" }}
+                    value={editForm.definition}
+                    onChange={(e) => setEditForm((p) => ({ ...p, definition: e.target.value }))}
+                    placeholder="용어에 대한 비즈니스 정의를 입력하세요..."
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>SQL 힌트 (선택)</label>
+                  <textarea
+                    style={{ ...inputStyle, minHeight: 56, resize: "vertical", fontFamily: "var(--ds-font-mono)" }}
+                    value={editForm.sql}
+                    onChange={(e) => setEditForm((p) => ({ ...p, sql: e.target.value }))}
+                    placeholder="예: COUNT(*) FILTER (WHERE status='paid')"
+                  />
+                </div>
+                <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+                  <Button variant="ghost" size="sm" onClick={cancelEditing}>취소</Button>
+                  <Button
+                    variant="accent"
+                    size="sm"
+                    loading={editMutation.isPending}
+                    disabled={!editForm.term.trim() || !editForm.definition.trim()}
+                    onClick={() => editMutation.mutate({ id: selected.id, body: editForm })}
+                  >
+                    저장
+                  </Button>
+                </div>
+              </div>
+            </Card>
           )}
 
           {!selected && !showAdd && !isLoading && (

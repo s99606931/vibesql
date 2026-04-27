@@ -37,7 +37,8 @@ function RoleBadge({ role }: { role: UserRole }) {
 
 export default function AdminUsersPage() {
   const queryClient = useQueryClient();
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<UserRow | null>(null);
+  const [confirmRole, setConfirmRole] = useState<{ user: UserRow; nextRole: UserRole } | null>(null);
 
   const { data, isLoading, error } = useQuery<UserRow[]>({
     queryKey: ["admin", "users"],
@@ -74,7 +75,7 @@ export default function AdminUsersPage() {
     },
     onSuccess: () => {
       setConfirmDelete(null);
-      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
     },
   });
 
@@ -112,7 +113,7 @@ export default function AdminUsersPage() {
           <div style={{
             display: "flex", alignItems: "center", gap: "var(--ds-sp-2)",
             padding: "var(--ds-sp-4)", borderRadius: "var(--ds-r-8)",
-            background: "var(--ds-danger-soft, rgba(239,68,68,0.1))",
+            background: "var(--ds-danger-soft)",
             color: "var(--ds-danger)",
           }}>
             <AlertTriangle size={16} />
@@ -208,7 +209,7 @@ export default function AdminUsersPage() {
                   <button
                     title={user.role === "ADMIN" ? "사용자로 변경" : "관리자로 변경"}
                     disabled={roleMutation.isPending}
-                    onClick={() => roleMutation.mutate({ id: user.id, role: user.role === "ADMIN" ? "USER" : "ADMIN" })}
+                    onClick={() => setConfirmRole({ user, nextRole: user.role === "ADMIN" ? "USER" : "ADMIN" })}
                     style={{
                       display: "flex", alignItems: "center", justifyContent: "center",
                       width: 26, height: 26, borderRadius: "var(--ds-r-6)",
@@ -221,7 +222,7 @@ export default function AdminUsersPage() {
                   <button
                     title="삭제"
                     disabled={deleteMutation.isPending}
-                    onClick={() => setConfirmDelete(user.id)}
+                    onClick={() => setConfirmDelete(user)}
                     style={{
                       display: "flex", alignItems: "center", justifyContent: "center",
                       width: 26, height: 26, borderRadius: "var(--ds-r-6)",
@@ -238,52 +239,61 @@ export default function AdminUsersPage() {
         )}
       </div>
 
+      {/* Role change confirm dialog */}
+      {confirmRole && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
+          onClick={() => setConfirmRole(null)}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-6)", maxWidth: 400, width: "100%" }}>
+            <h3 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-2)" }}>
+              역할 변경
+            </h3>
+            <p style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", margin: "0 0 var(--ds-sp-1)" }}>
+              <strong style={{ color: "var(--ds-text)" }}>{confirmRole.user.name ?? confirmRole.user.email}</strong>
+            </p>
+            <p style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", margin: "0 0 var(--ds-sp-4)" }}>
+              {confirmRole.user.email} 계정을{" "}
+              <strong style={{ color: confirmRole.nextRole === "ADMIN" ? "var(--ds-accent)" : "var(--ds-text-mute)" }}>
+                {confirmRole.nextRole === "ADMIN" ? "관리자" : "일반 사용자"}
+              </strong>로 변경하시겠습니까?
+            </p>
+            <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button onClick={() => setConfirmRole(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}>취소</button>
+              <button
+                onClick={() => { roleMutation.mutate({ id: confirmRole.user.id, role: confirmRole.nextRole }); setConfirmRole(null); }}
+                disabled={roleMutation.isPending}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)" }}
+              >
+                변경
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete confirm dialog */}
       {confirmDelete && (
         <div
-          style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000,
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
           onClick={() => setConfirmDelete(null)}
         >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: "var(--ds-surface)", border: "1px solid var(--ds-border)",
-              borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-6)",
-              maxWidth: 380, width: "100%",
-            }}
-          >
-            <h3 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-2)", margin: "0 0 var(--ds-sp-2)" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-6)", maxWidth: 380, width: "100%" }}>
+            <h3 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-2)" }}>
               사용자 삭제
             </h3>
-            <p style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-4)" }}>
-              이 사용자를 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            <p style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", margin: "0 0 var(--ds-sp-1)" }}>
+              <strong style={{ color: "var(--ds-text)" }}>{confirmDelete.name ?? confirmDelete.email}</strong>
+            </p>
+            <p style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", margin: "0 0 var(--ds-sp-4)" }}>
+              {confirmDelete.email} 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
             </p>
             <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button onClick={() => setConfirmDelete(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}>취소</button>
               <button
-                onClick={() => setConfirmDelete(null)}
-                style={{
-                  padding: "var(--ds-sp-2) var(--ds-sp-4)",
-                  background: "var(--ds-fill)", border: "1px solid var(--ds-border)",
-                  borderRadius: "var(--ds-r-6)", cursor: "pointer",
-                  fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)",
-                  fontFamily: "var(--ds-font-sans)",
-                }}
-              >
-                취소
-              </button>
-              <button
-                onClick={() => deleteMutation.mutate(confirmDelete)}
+                onClick={() => deleteMutation.mutate(confirmDelete.id)}
                 disabled={deleteMutation.isPending}
-                style={{
-                  padding: "var(--ds-sp-2) var(--ds-sp-4)",
-                  background: "var(--ds-danger, #ef4444)", border: "none",
-                  borderRadius: "var(--ds-r-6)", cursor: "pointer",
-                  fontSize: "var(--ds-fs-13)", color: "#fff", fontWeight: "var(--ds-fw-medium)",
-                  fontFamily: "var(--ds-font-sans)",
-                }}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-danger)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-bg)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)" }}
               >
                 {deleteMutation.isPending ? "삭제 중..." : "삭제"}
               </button>

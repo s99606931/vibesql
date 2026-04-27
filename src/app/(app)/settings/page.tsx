@@ -326,7 +326,7 @@ export default function SettingsPage() {
                             justifyContent: "center",
                           }}
                         >
-                          {selected && <Check size={14} color="#fff" />}
+                          {selected && <Check size={14} color="var(--ds-accent-on)" />}
                         </span>
                         <span
                           style={{

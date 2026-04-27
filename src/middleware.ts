@@ -5,16 +5,28 @@ import { verifySession, SESSION_COOKIE } from "@/lib/auth/jwt";
 // Exact-match or trailing-slash boundary to prevent prefix collisions (e.g. /signin-bypass)
 const PUBLIC_PATHS = ["/signin", "/share"];
 const PUBLIC_API_PREFIXES = ["/api/share/", "/api/auth/login", "/api/auth/register", "/api/health"];
-const ADMIN_PATHS = ["/admin", "/api/admin"];
+const ADMIN_PATHS = [
+  "/admin",
+  "/api/admin",
+  "/ai-providers",
+  "/ai-context",
+  "/audit-logs",
+  "/errors",
+  "/api/ai-providers",
+  "/api/ai-context",
+  "/api/audit-logs",
+];
 
 function isPublicPath(pathname: string): boolean {
   if (pathname === "/") return true;
-  if (PUBLIC_API_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/") || pathname.startsWith(p))) return true;
+  // Use exact-match OR trailing-slash prefix only — bare startsWith(p) risks prefix collision
+  // (e.g. /api/auth/login matching a hypothetical /api/auth/login-bypass route).
+  if (PUBLIC_API_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) return true;
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));
 }
 
 function isAdminPath(pathname: string): boolean {
-  return ADMIN_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/") || pathname === p);
+  return ADMIN_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));
 }
 
 export async function middleware(request: NextRequest) {
@@ -25,6 +37,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── Clerk guard (when configured) ─────────────────────────────────────────
+  // NOTE: Role-based admin enforcement for Clerk mode requires Clerk's auth()
+  // which performs a DB lookup not available in Edge middleware. Admin API routes
+  // are protected by requireAdmin() in each route handler. For middleware-level
+  // admin page protection with Clerk, migrate to clerkMiddleware() from @clerk/nextjs/server.
   const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   if (clerkKey) {
     const sessionToken =
@@ -48,6 +64,15 @@ export async function middleware(request: NextRequest) {
   if (!token) {
     // Dev bypass: explicit opt-in only, never in production
     if (process.env.VIBESQL_DEV_AUTH_BYPASS === "1" && process.env.NODE_ENV !== "production") {
+      // Still enforce admin path guard in dev bypass mode (requires VIBESQL_DEV_AS_ADMIN=1)
+      if (isAdminPath(pathname) && process.env.VIBESQL_DEV_AS_ADMIN !== "1") {
+        if (pathname.startsWith("/api/")) {
+          return NextResponse.json({ error: "관리자 권한이 필요합니다." }, { status: 403 });
+        }
+        const url = request.nextUrl.clone();
+        url.pathname = "/";
+        return NextResponse.redirect(url);
+      }
       return NextResponse.next();
     }
     if (pathname.startsWith("/api/")) {

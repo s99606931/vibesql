@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
-import { Plus, Trash2, Pencil, Lightbulb, ShieldX, Tag, ToggleLeft, ToggleRight } from "lucide-react";
+import { Plus, Trash2, Pencil, Lightbulb, ShieldX, Tag, ToggleLeft, ToggleRight, ChevronDown, ChevronRight } from "lucide-react";
 import type { AiContextRule, AiContextRuleType } from "@/types";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -36,6 +36,39 @@ const DEFAULT_FORM: RuleFormData = {
   isActive: true,
   priority: 0,
 };
+
+// ─── Value preview with expand ───────────────────────────────────────────────
+
+function ValuePreview({ value }: { value: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = value.length > 100;
+  return (
+    <div>
+      <div
+        style={{
+          fontSize: "var(--ds-fs-11)",
+          fontFamily: "var(--ds-font-mono)",
+          color: "var(--ds-text-mute)",
+          whiteSpace: expanded ? "pre-wrap" : "nowrap",
+          overflow: expanded ? "visible" : "hidden",
+          textOverflow: expanded ? "clip" : "ellipsis",
+          wordBreak: expanded ? "break-all" : undefined,
+        }}
+      >
+        {expanded ? value : value.slice(0, 100) + (isLong ? "..." : "")}
+      </div>
+      {isLong && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 2, marginTop: 2, background: "none", border: "none", cursor: "pointer", fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)", padding: 0, fontFamily: "var(--ds-font-sans)" }}
+        >
+          {expanded ? <ChevronRight size={10} /> : <ChevronDown size={10} />}
+          {expanded ? "접기" : "전체 보기"}
+        </button>
+      )}
+    </div>
+  );
+}
 
 // ─── Rule form modal ──────────────────────────────────────────────────────────
 
@@ -246,6 +279,7 @@ function RuleModal({
 export default function AiContextPage() {
   const queryClient = useQueryClient();
   const [modal, setModal] = useState<{ open: boolean; editing: AiContextRule | null }>({ open: false, editing: null });
+  const importRef = useRef<HTMLInputElement>(null);
 
   const { data: rules = [], isLoading } = useQuery({
     queryKey: ["ai-context"],
@@ -306,20 +340,60 @@ export default function AiContextPage() {
     items: rules.filter((r) => r.ruleType === t),
   }));
 
+  function handleExport() {
+    const payload = rules.map(({ id: _id, createdAt: _c, updatedAt: _u, ...rest }) => rest);
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ai-context-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const items = JSON.parse(text) as RuleFormData[];
+      if (!Array.isArray(items)) throw new Error("Invalid format");
+      await Promise.allSettled(
+        items.map((item) =>
+          fetch("/api/ai-context", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item),
+          })
+        )
+      );
+      queryClient.invalidateQueries({ queryKey: ["ai-context"] });
+    } catch {
+      alert("JSON 파일 형식이 올바르지 않습니다.");
+    } finally {
+      if (importRef.current) importRef.current.value = "";
+    }
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+      <input ref={importRef} type="file" accept=".json" style={{ display: "none" }} onChange={handleImport} />
       <TopBar
         title="AI 컨텍스트 튜너"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "지식베이스" }, { label: "AI 컨텍스트" }]}
         actions={
-          <Button
-            variant="accent"
-            size="sm"
-            icon={<Plus size={13} />}
-            onClick={() => setModal({ open: true, editing: null })}
-          >
-            규칙 추가
-          </Button>
+          <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+            <Button variant="ghost" size="sm" onClick={handleExport}>내보내기</Button>
+            <Button variant="ghost" size="sm" onClick={() => importRef.current?.click()}>가져오기</Button>
+            <Button
+              variant="accent"
+              size="sm"
+              icon={<Plus size={13} />}
+              onClick={() => setModal({ open: true, editing: null })}
+            >
+              규칙 추가
+            </Button>
+          </div>
         }
       />
 
@@ -415,18 +489,7 @@ export default function AiContextPage() {
                             >
                               {rule.key}
                             </div>
-                            <div
-                              style={{
-                                fontSize: "var(--ds-fs-11)",
-                                fontFamily: "var(--ds-font-mono)",
-                                color: "var(--ds-text-mute)",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {rule.value.slice(0, 100)}{rule.value.length > 100 ? "..." : ""}
-                            </div>
+                            <ValuePreview value={rule.value} />
                             {rule.description && (
                               <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>
                                 {rule.description}

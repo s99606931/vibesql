@@ -377,6 +377,9 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
   const queryClient = useQueryClient();
 
   const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
+  const [renameModal, setRenameModal] = useState(false);
+  const [renameName, setRenameName] = useState("");
+  const [renameDesc, setRenameDesc] = useState("");
 
   // Dashboard data
   const { data: dashboard, isLoading, isError } = useQuery<Dashboard>({
@@ -462,11 +465,9 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
   });
 
   function handleRename() {
-    const name = prompt("새 이름을 입력하세요:", dashboard?.name);
-    if (name?.trim() && name.trim() !== dashboard?.name) {
-      const description = prompt("설명 (선택):", dashboard?.description ?? "");
-      renameMutation.mutate({ name: name.trim(), description: description ?? undefined });
-    }
+    setRenameName(dashboard?.name ?? "");
+    setRenameDesc(dashboard?.description ?? "");
+    setRenameModal(true);
   }
 
   // ── Loading / Error states ───────────────────────────────────────────────────
@@ -785,6 +786,65 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
           </Card>
         </div>
       </div>
+
+      {/* Rename modal */}
+      {renameModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
+          onClick={() => setRenameModal(false)}
+        >
+          <div
+            style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 320, maxWidth: 400, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>대시보드 이름 편집</div>
+
+            <div>
+              <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>이름</div>
+              <input
+                autoFocus
+                value={renameName}
+                onChange={(e) => setRenameName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setRenameModal(false);
+                  if (e.key === "Enter" && renameName.trim() && renameName.trim() !== dashboard?.name) {
+                    renameMutation.mutate({ name: renameName.trim(), description: renameDesc || undefined });
+                    setRenameModal(false);
+                  }
+                }}
+                style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", fontFamily: "var(--ds-font-sans)", outline: "none", boxSizing: "border-box" }}
+                placeholder="대시보드 이름"
+              />
+            </div>
+
+            <div>
+              <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>설명 (선택)</div>
+              <input
+                value={renameDesc}
+                onChange={(e) => setRenameDesc(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Escape") setRenameModal(false); }}
+                style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", fontFamily: "var(--ds-font-sans)", outline: "none", boxSizing: "border-box" }}
+                placeholder="대시보드 설명"
+              />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button variant="ghost" size="sm" onClick={() => setRenameModal(false)}>취소</Button>
+              <Button
+                variant="accent"
+                size="sm"
+                disabled={!renameName.trim() || renameName.trim() === dashboard?.name || renameMutation.isPending}
+                onClick={() => {
+                  renameMutation.mutate({ name: renameName.trim(), description: renameDesc || undefined });
+                  setRenameModal(false);
+                }}
+              >
+                {renameMutation.isPending ? "저장 중..." : "저장"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Spinner keyframe (inline) */}
       <style>{`

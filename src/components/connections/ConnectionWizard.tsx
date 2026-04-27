@@ -353,7 +353,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                 style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}
               >
                 {[
-                  `연결 성공 — ${testData.serverVersion}`,
+                  testData.serverVersion ? `연결 성공 — ${testData.serverVersion}` : "연결 성공",
                   `응답 속도: ${testData.latencyMs}ms`,
                   "읽기 권한 확인 완료",
                 ].map((item) => (

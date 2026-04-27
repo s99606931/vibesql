@@ -156,7 +156,9 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
 
   function canShow(requiredRole?: UserRole): boolean {
     if (!requiredRole) return true;
-    return userRole === requiredRole;
+    // Treat requiredRole as minimum threshold: ADMIN satisfies ADMIN and USER.
+    if (requiredRole === "ADMIN") return userRole === "ADMIN";
+    return true;
   }
 
   const visibleGroups = navGroups

@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
 import { Card } from "@/components/ui-vs/Card";
+import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
-import { AlertTriangle, CheckCircle2, Clock, ChevronDown, ChevronRight } from "lucide-react";
+import { CheckCircle2, Clock, ChevronDown, ChevronRight, ScrollText, ExternalLink, AlertTriangle } from "lucide-react";
 
 // ─── Error History types ───────────────────────────────────────────────────
 
@@ -33,17 +35,6 @@ function classifyError(item: HistoryItem): ErrorType {
   return "unknown";
 }
 
-// ─── Audit Log types ───────────────────────────────────────────────────────
-
-type AuditLogItem = {
-  id: string;
-  action: string;
-  userId?: string;
-  ipAddress?: string;
-  metadata?: Record<string, unknown>;
-  createdAt: string;
-};
-
 // ─── Shared utils ──────────────────────────────────────────────────────────
 
 function formatTime(iso: string): string {
@@ -66,121 +57,18 @@ async function fetchHistory(): Promise<HistoryItem[]> {
   return json.data ?? [];
 }
 
-async function fetchAuditLogs(): Promise<AuditLogItem[]> {
-  const r = await fetch("/api/audit-logs");
-  if (!r.ok) throw new Error("Failed to fetch audit logs");
-  const j = (await r.json()) as { data?: AuditLogItem[] };
-  return j.data ?? [];
-}
-
-// ─── Audit log row ─────────────────────────────────────────────────────────
-
-function AuditLogRow({ item, isLast }: { item: AuditLogItem; isLast: boolean }) {
-  const [expanded, setExpanded] = useState(false);
-  const hasMetadata = item.metadata && Object.keys(item.metadata).length > 0;
-
-  return (
-    <div
-      style={{
-        borderBottom: isLast ? undefined : "1px solid var(--ds-border)",
-        padding: "var(--ds-sp-3) var(--ds-sp-4)",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--ds-sp-3)" }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              fontWeight: "var(--ds-fw-semibold)",
-              fontSize: "var(--ds-fs-13)",
-              color: "var(--ds-text)",
-              fontFamily: "var(--ds-font-mono)",
-            }}
-          >
-            {item.action}
-          </div>
-          <div
-            style={{
-              fontSize: "var(--ds-fs-11)",
-              color: "var(--ds-text-faint)",
-              marginTop: 2,
-              display: "flex",
-              gap: "var(--ds-sp-2)",
-              flexWrap: "wrap",
-            }}
-          >
-            {item.ipAddress && <span>{item.ipAddress}</span>}
-            {item.userId && <span>user:{item.userId.slice(0, 8)}</span>}
-            <span>{formatTime(item.createdAt)}</span>
-          </div>
-        </div>
-
-        {hasMetadata && (
-          <button
-            onClick={() => setExpanded((v) => !v)}
-            aria-expanded={expanded}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              padding: "2px var(--ds-sp-2)",
-              background: "var(--ds-fill)",
-              border: "1px solid var(--ds-border)",
-              borderRadius: "var(--ds-r-6)",
-              cursor: "pointer",
-              fontSize: "var(--ds-fs-11)",
-              color: "var(--ds-text-faint)",
-              fontFamily: "var(--ds-font-sans)",
-              flexShrink: 0,
-            }}
-          >
-            {expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
-            detail
-          </button>
-        )}
-      </div>
-
-      {expanded && hasMetadata && (
-        <pre
-          style={{
-            padding: "var(--ds-sp-2) var(--ds-sp-3)",
-            background: "var(--ds-fill)",
-            border: "1px solid var(--ds-border)",
-            borderRadius: "var(--ds-r-6)",
-            fontSize: "var(--ds-fs-11)",
-            fontFamily: "var(--ds-font-mono)",
-            color: "var(--ds-text-mute)",
-            overflowX: "auto",
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-            margin: 0,
-            marginTop: "var(--ds-sp-2)",
-          }}
-        >
-          {JSON.stringify(item.metadata, null, 2)}
-        </pre>
-      )}
-    </div>
-  );
-}
-
 // ─── Main page ─────────────────────────────────────────────────────────────
 
 type Tab = "errors" | "audit";
 
 export default function ErrorsPage() {
   const [activeTab, setActiveTab] = useState<Tab>("errors");
+  const router = useRouter();
 
   const { data: history = [], isLoading: historyLoading } = useQuery({
     queryKey: ["history"],
     queryFn: fetchHistory,
     staleTime: 10_000,
-  });
-
-  const { data: auditLogs = [], isLoading: auditLoading, error: auditError } = useQuery({
-    queryKey: ["audit-logs"],
-    queryFn: fetchAuditLogs,
-    staleTime: 30_000,
-    enabled: activeTab === "audit",
   });
 
   const errors = history.filter((h) => h.status === "ERROR" || h.status === "BLOCKED");
@@ -333,51 +221,24 @@ export default function ErrorsPage() {
           </>
         )}
 
-        {/* ── Tab: 감사 로그 ── */}
+        {/* ── Tab: 감사 로그 → 전용 페이지로 이동 ── */}
         {activeTab === "audit" && (
-          <>
-            <div style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "var(--ds-sp-2)" }}>
-              감사 로그
+          <Card>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ds-sp-3)", padding: "var(--ds-sp-6)", textAlign: "center" }}>
+              <ScrollText size={28} style={{ color: "var(--ds-text-faint)" }} />
+              <div>
+                <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: 4 }}>
+                  감사 로그 전용 페이지
+                </div>
+                <div style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-text-mute)" }}>
+                  날짜 범위 필터, 사용자 필터, 페이지네이션이 지원되는 전용 페이지에서 확인하세요.
+                </div>
+              </div>
+              <Button variant="accent" size="sm" icon={<ExternalLink size={12} />} onClick={() => router.push("/audit-logs")}>
+                감사 로그 페이지로 이동
+              </Button>
             </div>
-
-            {auditLoading && (
-              <Card padding={0}>
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} style={{ height: 56, borderBottom: i < 3 ? "1px solid var(--ds-border)" : undefined, background: "var(--ds-fill)", margin: 0 }} className="ds-stripes" />
-                ))}
-              </Card>
-            )}
-
-            {!auditLoading && auditError && (
-              <Card>
-                <div style={{ textAlign: "center", padding: "var(--ds-sp-5)", color: "var(--ds-danger)" }}>
-                  <AlertTriangle size={24} style={{ margin: "0 auto var(--ds-sp-2)" }} />
-                  <div style={{ fontSize: "var(--ds-fs-13)" }}>감사 로그를 불러오지 못했습니다.</div>
-                </div>
-              </Card>
-            )}
-
-            {!auditLoading && !auditError && auditLogs.length === 0 && (
-              <Card>
-                <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-mute)" }}>
-                  <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)" }}>감사 로그가 없습니다</div>
-                  <div style={{ fontSize: "var(--ds-fs-12)", marginTop: 4 }}>기록된 감사 이벤트가 없습니다.</div>
-                </div>
-              </Card>
-            )}
-
-            {!auditLoading && !auditError && auditLogs.length > 0 && (
-              <Card padding={0}>
-                {auditLogs.map((item, i) => (
-                  <AuditLogRow
-                    key={item.id}
-                    item={item}
-                    isLast={i === auditLogs.length - 1}
-                  />
-                ))}
-              </Card>
-            )}
-          </>
+          </Card>
         )}
 
       </div>

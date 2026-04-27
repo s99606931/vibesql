@@ -86,7 +86,7 @@ export default function HistoryPage() {
 
   const statusParam =
     activeFilter === "성공" ? "SUCCESS" :
-    activeFilter === "실패" ? "FAILURE" :
+    activeFilter === "실패" ? "ERROR" :
     undefined;
   const starredParam = activeFilter === "즐겨찾기";
 

@@ -390,6 +390,9 @@ export default function WorkspacePage() {
   const savedOkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [addToDashModal, setAddToDashModal] = useState<{ dashboards: Array<{ id: string; name: string; widgets: unknown[] }> } | null>(null);
+  const [selectedDashId, setSelectedDashId] = useState<string>("");
+  const [widgetLabel, setWidgetLabel] = useState<string>("");
 
   useEffect(() => {
     return () => {
@@ -463,12 +466,9 @@ export default function WorkspacePage() {
       alert("대시보드가 없습니다. 먼저 대시보드를 생성하세요.");
       return;
     }
-    const opts = fresh.map((d, i) => `${i + 1}. ${d.name}`).join("\n");
-    const input = prompt(`어느 대시보드에 추가할까요?\n\n${opts}\n\n번호를 입력하세요:`);
-    const idx = parseInt(input ?? "", 10) - 1;
-    if (isNaN(idx) || idx < 0 || idx >= fresh.length) return;
-    const label = prompt("위젯 이름:", nlQuery || "쿼리 결과") ?? "쿼리 결과";
-    addToDashboardMutation.mutate({ dashId: fresh[idx].id, label });
+    setSelectedDashId(fresh[0].id);
+    setWidgetLabel(nlQuery || "쿼리 결과");
+    setAddToDashModal({ dashboards: fresh });
   }
 
   async function handleGenerate() {
@@ -1031,6 +1031,78 @@ export default function WorkspacePage() {
           }}
           onClose={() => setTemplatePickerOpen(false)}
         />
+      )}
+
+      {addToDashModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
+          onClick={() => setAddToDashModal(null)}
+        >
+          <div
+            style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 320, maxWidth: 400, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>대시보드에 추가</div>
+
+            <div>
+              <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>대시보드 선택</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)", maxHeight: 160, overflowY: "auto" }}>
+                {addToDashModal.dashboards.map((d) => (
+                  <button
+                    key={d.id}
+                    onClick={() => setSelectedDashId(d.id)}
+                    style={{
+                      padding: "var(--ds-sp-2) var(--ds-sp-3)",
+                      borderRadius: "var(--ds-r-6)",
+                      border: `1px solid ${selectedDashId === d.id ? "var(--ds-accent)" : "var(--ds-border)"}`,
+                      background: selectedDashId === d.id ? "var(--ds-accent-soft)" : "transparent",
+                      color: selectedDashId === d.id ? "var(--ds-accent)" : "var(--ds-text)",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      fontSize: "var(--ds-fs-13)",
+                      fontFamily: "var(--ds-font-sans)",
+                    }}
+                  >
+                    {d.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>위젯 이름</div>
+              <input
+                autoFocus
+                value={widgetLabel}
+                onChange={(e) => setWidgetLabel(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setAddToDashModal(null);
+                  if (e.key === "Enter" && widgetLabel.trim() && selectedDashId) {
+                    addToDashboardMutation.mutate({ dashId: selectedDashId, label: widgetLabel.trim() });
+                    setAddToDashModal(null);
+                  }
+                }}
+                style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", fontFamily: "var(--ds-font-sans)", outline: "none", boxSizing: "border-box" }}
+                placeholder="위젯 이름을 입력하세요"
+              />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button variant="ghost" size="sm" onClick={() => setAddToDashModal(null)}>취소</Button>
+              <Button
+                variant="accent"
+                size="sm"
+                disabled={!widgetLabel.trim() || !selectedDashId || addToDashboardMutation.isPending}
+                onClick={() => {
+                  addToDashboardMutation.mutate({ dashId: selectedDashId, label: widgetLabel.trim() });
+                  setAddToDashModal(null);
+                }}
+              >
+                {addToDashboardMutation.isPending ? "추가 중..." : "추가"}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

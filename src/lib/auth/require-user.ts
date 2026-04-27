@@ -85,12 +85,22 @@ export async function requireUser(): Promise<AuthUser | NextResponse> {
   return { userId: "dev-user", email: "dev@vibesql.dev", name: "Dev User", role };
 }
 
+/** Returns AuthUser if role === ADMIN, or a 403 NextResponse. */
+export async function requireAdmin(): Promise<AuthUser | NextResponse> {
+  const result = await requireUser();
+  if (result instanceof NextResponse) return result;
+  if (result.role !== "ADMIN") {
+    return NextResponse.json({ error: "관리자 권한이 필요합니다." }, { status: 403 });
+  }
+  return result;
+}
+
 async function resolveRole(userId: string): Promise<UserRole> {
   if (process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/db/prisma");
       const user = await prisma.user.findUnique({ where: { clerkId: userId }, select: { role: true } });
-      if (user) return user.role as UserRole;
+      if (user) return user.role === "ADMIN" ? "ADMIN" : "USER";
     } catch { /* fall through */ }
   }
   return "USER";

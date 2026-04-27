@@ -9,6 +9,7 @@ import { Pill } from "@/components/ui-vs/Pill";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import {
   Database,
   BookMarked,
@@ -78,6 +79,7 @@ function formatTime(iso: string): string {
 export default function ProfilePage() {
   const dialect = useSettingsStore((s) => s.dialect);
   const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
+  const { data: currentUser } = useCurrentUser();
   const router = useRouter();
 
   const { data: history = [], isLoading: historyLoading } = useQuery({
@@ -186,16 +188,19 @@ export default function ProfilePage() {
                   flexShrink: 0,
                 }}
               >
-                V
+                {(currentUser?.name ?? currentUser?.email ?? "V").charAt(0).toUpperCase()}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: "var(--ds-fs-18)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: 2 }}>
-                  vibeSQL 사용자
+                  {currentUser?.name ?? currentUser?.email ?? "vibeSQL 사용자"}
                 </div>
                 <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>
-                  {dialect.toUpperCase()} 모드
+                  {currentUser?.email ? currentUser.email : dialect.toUpperCase() + " 모드"}
                 </div>
-                <Pill variant="accent">일반 사용자</Pill>
+                {currentUser?.role === "ADMIN"
+                  ? <Pill variant="warn">관리자</Pill>
+                  : <Pill variant="accent">일반 사용자</Pill>
+                }
               </div>
               <Button variant="default" size="sm" onClick={() => router.push("/settings")}>프로필 편집</Button>
             </div>

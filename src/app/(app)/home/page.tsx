@@ -24,8 +24,10 @@ import {
   Clock,
 } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 // ─── 워크플로 스텝 ─────────────────────────────────────────────────────────────
 
@@ -696,6 +698,8 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function StatsSection() {
+  const router = useRouter();
+  const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["stats"],
     queryFn: async () => {
@@ -873,6 +877,12 @@ function StatsSection() {
               return (
                 <div
                   key={item.id}
+                  onClick={() => {
+                    if (item.nlQuery) setNlQuery(item.nlQuery);
+                    setSql(item.sql);
+                    setStatus("ready");
+                    router.push("/workspace");
+                  }}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -880,6 +890,7 @@ function StatsSection() {
                     padding: "var(--ds-sp-3) var(--ds-sp-4)",
                     background: "var(--ds-surface)",
                     borderTop: idx > 0 ? "1px solid var(--ds-border)" : "none",
+                    cursor: "pointer",
                   }}
                 >
                   <span

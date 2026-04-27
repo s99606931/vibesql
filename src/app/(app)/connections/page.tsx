@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Card, CardHead } from "@/components/ui-vs/Card";
@@ -118,12 +118,79 @@ function EditConnectionForm({
   );
 }
 
+interface ConnTestFeedback {
+  status: "success" | "error";
+  latencyMs?: number;
+  serverVersion?: string;
+  message?: string;
+}
+
 export default function ConnectionsPage() {
   const [showWizard, setShowWizard] = useState(false);
   const [editingConn, setEditingConn] = useState<Connection | null>(null);
+  const [testFeedback, setTestFeedback] = useState<Record<string, ConnTestFeedback>>({});
   const { data: connections, isLoading, isError, error } = useConnections();
   const testMutation = useTestConnection();
   const queryClient = useQueryClient();
+  const feedbackTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  useEffect(() => {
+    const timers = feedbackTimers.current;
+    return () => {
+      Object.values(timers).forEach((t) => clearTimeout(t));
+    };
+  }, []);
+
+  function scheduleFeedbackClear(id: string) {
+    if (feedbackTimers.current[id]) {
+      clearTimeout(feedbackTimers.current[id]);
+    }
+    feedbackTimers.current[id] = setTimeout(() => {
+      setTestFeedback((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      delete feedbackTimers.current[id];
+    }, 5000);
+  }
+
+  function handleTest(id: string) {
+    if (feedbackTimers.current[id]) {
+      clearTimeout(feedbackTimers.current[id]);
+      delete feedbackTimers.current[id];
+    }
+    setTestFeedback((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    testMutation.mutate(id, {
+      onSuccess: (data) => {
+        setTestFeedback((prev) => ({
+          ...prev,
+          [id]: {
+            status: data.ok ? "success" : "error",
+            latencyMs: data.latencyMs,
+            serverVersion: data.serverVersion,
+          },
+        }));
+        void queryClient.invalidateQueries({ queryKey: ["connections"] });
+        scheduleFeedbackClear(id);
+      },
+      onError: (err) => {
+        setTestFeedback((prev) => ({
+          ...prev,
+          [id]: {
+            status: "error",
+            message: err instanceof Error ? err.message : "연결 실패",
+          },
+        }));
+        void queryClient.invalidateQueries({ queryKey: ["connections"] });
+        scheduleFeedbackClear(id);
+      },
+    });
+  }
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -230,6 +297,7 @@ export default function ConnectionsPage() {
                     const isTesting =
                       testMutation.isPending &&
                       testMutation.variables === conn.id;
+                    const feedback = testFeedback[conn.id];
                     return (
                       <tr
                         key={conn.id}
@@ -278,25 +346,40 @@ export default function ConnectionsPage() {
                           </span>
                         </td>
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
-                          {isTesting ? (
-                            <Pill variant="info">
-                              <Loader2
-                                size={10}
-                                style={{ animation: "spin 1s linear infinite" }}
-                              />
-                              테스트 중
-                            </Pill>
-                          ) : conn.lastTestedOk === true ? (
-                            <Pill variant="success" dot="ok">
-                              연결됨
-                            </Pill>
-                          ) : conn.lastTestedOk === false ? (
-                            <Pill variant="danger" dot="err">
-                              오류
-                            </Pill>
-                          ) : (
-                            <Pill variant="default">미확인</Pill>
-                          )}
+                          <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
+                            {isTesting ? (
+                              <Pill variant="info">
+                                <Loader2
+                                  size={10}
+                                  style={{ animation: "spin 1s linear infinite" }}
+                                />
+                                테스트 중
+                              </Pill>
+                            ) : conn.lastTestedOk === true ? (
+                              <Pill variant="success" dot="ok">
+                                연결 정상
+                              </Pill>
+                            ) : conn.lastTestedOk === false ? (
+                              <Pill variant="danger" dot="err">
+                                연결 실패
+                              </Pill>
+                            ) : (
+                              <Pill variant="default">테스트 안함</Pill>
+                            )}
+                            {feedback && !isTesting && (
+                              <span
+                                style={{
+                                  fontSize: "var(--ds-fs-11)",
+                                  color: feedback.status === "success" ? "var(--ds-success)" : "var(--ds-danger)",
+                                  fontFamily: "var(--ds-font-mono)",
+                                }}
+                              >
+                                {feedback.status === "success"
+                                  ? `${typeof feedback.latencyMs === "number" ? `${feedback.latencyMs}ms` : ""}${feedback.serverVersion ? ` · ${feedback.serverVersion}` : ""}`.trim() || "OK"
+                                  : feedback.message ?? "연결 실패"}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)" }}>
                           <div
@@ -328,11 +411,9 @@ export default function ConnectionsPage() {
                                 )
                               }
                               disabled={isTesting}
-                              onClick={() =>
-                                testMutation.mutate(conn.id)
-                              }
+                              onClick={() => handleTest(conn.id)}
                             >
-                              재테스트
+                              {isTesting ? "테스트 중" : "재테스트"}
                             </Button>
                             <Button
                               variant="danger"

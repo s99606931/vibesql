@@ -21,7 +21,7 @@ const variantStyles: Record<ButtonVariant, object> = {
   },
   primary: {
     background: "var(--ds-text)",
-    color: "#ffffff",
+    color: "var(--ds-bg)",
     border: "1px solid var(--ds-text)",
   },
   accent: {

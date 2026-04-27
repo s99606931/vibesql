@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
@@ -255,6 +255,12 @@ function ProviderModal({
 
 // ─── ProviderCard ─────────────────────────────────────────────────────────────
 
+interface TestFeedback {
+  status: "running" | "success" | "error";
+  latencyMs?: number;
+  message?: string;
+}
+
 function ProviderCard({
   provider,
   onEdit,
@@ -262,6 +268,7 @@ function ProviderCard({
   onTest,
   onActivate,
   testing,
+  feedback,
 }: {
   provider: ProviderRow;
   onEdit: () => void;
@@ -269,6 +276,7 @@ function ProviderCard({
   onTest: () => void;
   onActivate: () => void;
   testing: boolean;
+  feedback?: TestFeedback;
 }) {
   const meta = PROVIDER_META[provider.type];
 
@@ -279,6 +287,31 @@ function ProviderCard({
     return provider.lastTestedOk
       ? <CheckCircle2 size={12} style={{ color: "var(--ds-success)" }} />
       : <XCircle size={12} style={{ color: "var(--ds-danger)" }} />;
+  }
+
+  function FeedbackLine() {
+    if (!feedback) return null;
+    if (feedback.status === "running") {
+      return (
+        <div style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)" }}>
+          테스트 중...
+        </div>
+      );
+    }
+    if (feedback.status === "success") {
+      return (
+        <div style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-success)", display: "flex", alignItems: "center", gap: "var(--ds-sp-1)" }}>
+          <CheckCircle2 size={12} />
+          <span>연결 성공{typeof feedback.latencyMs === "number" ? ` · ${feedback.latencyMs}ms` : ""}</span>
+        </div>
+      );
+    }
+    return (
+      <div style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-danger)", display: "flex", alignItems: "center", gap: "var(--ds-sp-1)" }}>
+        <XCircle size={12} />
+        <span>{feedback.message ?? "연결 실패"}</span>
+      </div>
+    );
   }
 
   return (
@@ -346,7 +379,73 @@ function ProviderCard({
           </Button>
         </div>
       </div>
+      <FeedbackLine />
     </Card>
+  );
+}
+
+// ─── DeleteModal ──────────────────────────────────────────────────────────────
+
+function DeleteModal({
+  provider,
+  onCancel,
+  onConfirm,
+  deleting,
+}: {
+  provider: ProviderRow;
+  onCancel: () => void;
+  onConfirm: () => void;
+  deleting: boolean;
+}) {
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 50,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: "rgba(0,0,0,0.4)",
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+    >
+      <div
+        style={{
+          background: "var(--ds-surface)",
+          border: "1px solid var(--ds-border)",
+          borderRadius: "var(--ds-r-8)",
+          padding: "var(--ds-sp-5)",
+          width: 440,
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--ds-sp-3)",
+        }}
+      >
+        <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>
+          AI 프로바이더 삭제
+        </h2>
+        <p style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", margin: 0 }}>
+          <strong style={{ color: "var(--ds-text)" }}>&quot;{provider.name}&quot;</strong> 프로바이더를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+        </p>
+        {provider.isActive && (
+          <div
+            style={{
+              fontSize: "var(--ds-fs-12)",
+              color: "var(--ds-warn)",
+              padding: "var(--ds-sp-2) var(--ds-sp-3)",
+              border: "1px solid var(--ds-warn)",
+              borderRadius: "var(--ds-r-6)",
+              background: "var(--ds-warn-soft)",
+            }}
+          >
+            ⚠️ 이 프로바이더는 현재 활성 상태입니다. 삭제 시 AI 기능이 중단됩니다.
+          </div>
+        )}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)", marginTop: "var(--ds-sp-1)" }}>
+          <Button variant="ghost" size="sm" onClick={onCancel} disabled={deleting}>취소</Button>
+          <Button size="sm" onClick={onConfirm} disabled={deleting}>
+            {deleting ? "삭제 중..." : "삭제"}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -358,6 +457,17 @@ export default function AiProvidersPage() {
     open: false, editId: null, initial: DEFAULT_FORM,
   });
   const [testingId, setTestingId] = useState<string | null>(null);
+  const [testFeedback, setTestFeedback] = useState<Record<string, TestFeedback>>({});
+  const [deleteTarget, setDeleteTarget] = useState<ProviderRow | null>(null);
+  const feedbackTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    const timers = feedbackTimers.current;
+    return () => {
+      Object.values(timers).forEach((t) => clearTimeout(t));
+    };
+  }, []);
 
   const { data: providers = [], isLoading } = useQuery<ProviderRow[]>({
     queryKey: ["ai-providers"],
@@ -397,7 +507,10 @@ export default function AiProvidersPage() {
       const res = await fetch(`/api/ai-providers/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("삭제 실패");
     },
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["ai-providers"] }); },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["ai-providers"] });
+      setDeleteTarget(null);
+    },
   });
 
   const activateMutation = useMutation({
@@ -408,13 +521,65 @@ export default function AiProvidersPage() {
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ["ai-providers"] }); },
   });
 
+  function scheduleFeedbackClear(id: string) {
+    if (feedbackTimers.current[id]) {
+      clearTimeout(feedbackTimers.current[id]);
+    }
+    feedbackTimers.current[id] = setTimeout(() => {
+      setTestFeedback((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      delete feedbackTimers.current[id];
+    }, 5000);
+  }
+
   async function handleTest(id: string) {
     setTestingId(id);
+    // Clear any pending auto-dismiss timer while a new test runs
+    if (feedbackTimers.current[id]) {
+      clearTimeout(feedbackTimers.current[id]);
+      delete feedbackTimers.current[id];
+    }
+    setTestFeedback((prev) => ({ ...prev, [id]: { status: "running" } }));
     try {
-      await fetch(`/api/ai-providers/${id}/test`, { method: "POST" });
+      const res = await fetch(`/api/ai-providers/${id}/test`, { method: "POST" });
+      const json = (await res.json().catch(() => ({}))) as {
+        data?: { ok?: boolean; latencyMs?: number; message?: string };
+        error?: string;
+      };
+      const payload = json.data;
+      if (res.ok && payload?.ok) {
+        setTestFeedback((prev) => ({
+          ...prev,
+          [id]: {
+            status: "success",
+            latencyMs: payload.latencyMs,
+            message: payload.message,
+          },
+        }));
+      } else {
+        setTestFeedback((prev) => ({
+          ...prev,
+          [id]: {
+            status: "error",
+            message: payload?.message ?? json.error ?? "연결 실패",
+          },
+        }));
+      }
       await qc.invalidateQueries({ queryKey: ["ai-providers"] });
+    } catch (err) {
+      setTestFeedback((prev) => ({
+        ...prev,
+        [id]: {
+          status: "error",
+          message: err instanceof Error ? err.message : "네트워크 오류",
+        },
+      }));
     } finally {
       setTestingId(null);
+      scheduleFeedbackClear(id);
     }
   }
 
@@ -503,10 +668,11 @@ export default function AiProvidersPage() {
                 key={p.id}
                 provider={p}
                 onEdit={() => openEdit(p)}
-                onDelete={() => { if (confirm(`"${p.name}" 프로바이더를 삭제할까요?`)) deleteMutation.mutate(p.id); }}
+                onDelete={() => setDeleteTarget(p)}
                 onTest={() => handleTest(p.id)}
                 onActivate={() => activateMutation.mutate(p.id)}
                 testing={testingId === p.id}
+                feedback={testFeedback[p.id]}
               />
             ))}
             {inactive.map((p) => (
@@ -514,10 +680,11 @@ export default function AiProvidersPage() {
                 key={p.id}
                 provider={p}
                 onEdit={() => openEdit(p)}
-                onDelete={() => { if (confirm(`"${p.name}" 프로바이더를 삭제할까요?`)) deleteMutation.mutate(p.id); }}
+                onDelete={() => setDeleteTarget(p)}
                 onTest={() => handleTest(p.id)}
                 onActivate={() => activateMutation.mutate(p.id)}
                 testing={testingId === p.id}
+                feedback={testFeedback[p.id]}
               />
             ))}
           </div>
@@ -531,6 +698,15 @@ export default function AiProvidersPage() {
           onSave={(form) => saveMutation.mutate({ editId: modal.editId, form })}
           onClose={() => setModal({ open: false, editId: null, initial: DEFAULT_FORM })}
           saving={saveMutation.isPending}
+        />
+      )}
+
+      {deleteTarget && (
+        <DeleteModal
+          provider={deleteTarget}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={() => deleteMutation.mutate(deleteTarget.id)}
+          deleting={deleteMutation.isPending}
         />
       )}
     </div>

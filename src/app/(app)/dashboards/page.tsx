@@ -85,6 +85,8 @@ function WidgetTypeIcon({ type }: { type: string }) {
 export default function DashboardsPage() {
   const [activeFilter, setActiveFilter] = useState("전체");
   const [search, setSearch] = useState("");
+  const [newDashModal, setNewDashModal] = useState(false);
+  const [newDashName, setNewDashName] = useState("");
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -150,10 +152,7 @@ export default function DashboardsPage() {
             size="sm"
             icon={<Plus size={13} />}
             loading={createMutation.isPending}
-            onClick={() => {
-              const name = prompt("대시보드 이름을 입력하세요:");
-              if (name?.trim()) createMutation.mutate(name.trim());
-            }}
+            onClick={() => { setNewDashName(""); setNewDashModal(true); }}
           >
             새 대시보드
           </Button>
@@ -280,10 +279,7 @@ export default function DashboardsPage() {
                 size="sm"
                 icon={<Plus size={13} />}
                 loading={createMutation.isPending}
-                onClick={() => {
-                  const name = prompt("대시보드 이름을 입력하세요:");
-                  if (name?.trim()) createMutation.mutate(name.trim());
-                }}
+                onClick={() => { setNewDashName(""); setNewDashModal(true); }}
               >
                 새 대시보드
               </Button>
@@ -382,6 +378,39 @@ export default function DashboardsPage() {
           </div>
         )}
       </div>
+
+      {/* New dashboard modal */}
+      {newDashModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
+          onClick={() => setNewDashModal(false)}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
+            <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-3)" }}>새 대시보드</div>
+            <input
+              autoFocus
+              value={newDashName}
+              onChange={(e) => setNewDashName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && newDashName.trim()) { createMutation.mutate(newDashName.trim()); setNewDashModal(false); }
+                if (e.key === "Escape") setNewDashModal(false);
+              }}
+              placeholder="대시보드 이름 입력..."
+              style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-4)", boxSizing: "border-box" }}
+            />
+            <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button onClick={() => setNewDashModal(false)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}>취소</button>
+              <button
+                onClick={() => { if (newDashName.trim()) { createMutation.mutate(newDashName.trim()); setNewDashModal(false); } }}
+                disabled={!newDashName.trim() || createMutation.isPending}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)" }}
+              >
+                만들기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

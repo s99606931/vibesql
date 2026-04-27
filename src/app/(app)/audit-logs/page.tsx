@@ -121,14 +121,23 @@ function LogRow({ log }: { log: AuditLogItem }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+const PAGE_SIZE = 50;
+
 export default function AuditLogsPage() {
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState<ActionGroup | "all">("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [userIdFilter, setUserIdFilter] = useState("");
+  const [page, setPage] = useState(1);
 
   const { data: logs = [], isLoading } = useQuery<AuditLogItem[]>({
-    queryKey: ["audit-logs"],
+    queryKey: ["audit-logs", userIdFilter],
     queryFn: async () => {
-      const res = await fetch("/api/audit-logs");
+      const url = userIdFilter.trim()
+        ? `/api/audit-logs?userId=${encodeURIComponent(userIdFilter.trim())}`
+        : "/api/audit-logs";
+      const res = await fetch(url);
       const json = await res.json() as { data?: AuditLogItem[] };
       return json.data ?? [];
     },
@@ -137,9 +146,15 @@ export default function AuditLogsPage() {
 
   const filtered = logs.filter((log) => {
     const matchGroup = group === "all" || categorizeAction(log.action) === group;
-    const matchSearch = !search || log.action.toLowerCase().includes(search.toLowerCase());
-    return matchGroup && matchSearch;
+    const matchSearch = !search || log.action.toLowerCase().includes(search.toLowerCase()) || (log.userId ?? "").toLowerCase().includes(search.toLowerCase());
+    const logDate = new Date(log.createdAt);
+    const matchFrom = !dateFrom || logDate >= new Date(dateFrom);
+    const matchTo = !dateTo || logDate <= new Date(dateTo + "T23:59:59");
+    return matchGroup && matchSearch && matchFrom && matchTo;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
@@ -174,39 +189,86 @@ export default function AuditLogsPage() {
         </div>
 
         {/* Filter bar */}
-        <div style={{ display: "flex", gap: "var(--ds-sp-3)", marginBottom: "var(--ds-sp-4)", flexWrap: "wrap" }}>
-          <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
+        <div style={{ display: "flex", gap: "var(--ds-sp-3)", marginBottom: "var(--ds-sp-3)", flexWrap: "wrap" }}>
+          <div style={{ position: "relative", flex: 1, minWidth: 180 }}>
             <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="액션 검색..."
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              placeholder="액션 / 사용자 검색..."
               style={{
                 width: "100%", paddingLeft: 30, paddingRight: "var(--ds-sp-3)",
                 paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)",
                 background: "var(--ds-fill)", border: "1px solid var(--ds-border)",
                 borderRadius: "var(--ds-r-6)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)",
+                outline: "none", fontFamily: "var(--ds-font-sans)",
               }}
             />
           </div>
-          <div style={{ display: "flex", gap: "var(--ds-sp-1)", flexWrap: "wrap" }}>
-            {GROUP_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setGroup(opt.value)}
-                style={{
-                  padding: "var(--ds-sp-1) var(--ds-sp-2)", borderRadius: "var(--ds-r-6)",
-                  border: "1px solid",
-                  borderColor: group === opt.value ? "var(--ds-accent)" : "var(--ds-border)",
-                  background: group === opt.value ? "var(--ds-accent-soft)" : "transparent",
-                  color: group === opt.value ? "var(--ds-accent)" : "var(--ds-text-mute)",
-                  fontSize: "var(--ds-fs-12)", cursor: "pointer",
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+          <input
+            value={userIdFilter}
+            onChange={(e) => { setUserIdFilter(e.target.value); setPage(1); }}
+            placeholder="사용자 ID 필터..."
+            style={{
+              padding: "var(--ds-sp-2) var(--ds-sp-3)", background: "var(--ds-fill)",
+              border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)",
+              color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none",
+              fontFamily: "var(--ds-font-sans)", width: 160,
+            }}
+          />
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+            title="시작 날짜"
+            style={{
+              padding: "var(--ds-sp-2) var(--ds-sp-3)", background: "var(--ds-fill)",
+              border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)",
+              color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none",
+              fontFamily: "var(--ds-font-sans)",
+            }}
+          />
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+            title="종료 날짜"
+            style={{
+              padding: "var(--ds-sp-2) var(--ds-sp-3)", background: "var(--ds-fill)",
+              border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)",
+              color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none",
+              fontFamily: "var(--ds-font-sans)",
+            }}
+          />
+          {(dateFrom || dateTo || userIdFilter) && (
+            <button
+              onClick={() => { setDateFrom(""); setDateTo(""); setUserIdFilter(""); setPage(1); }}
+              style={{ padding: "var(--ds-sp-2) var(--ds-sp-3)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-12)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}
+            >
+              초기화
+            </button>
+          )}
+        </div>
+        <div style={{ display: "flex", gap: "var(--ds-sp-1)", flexWrap: "wrap", marginBottom: "var(--ds-sp-4)" }}>
+          {GROUP_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => { setGroup(opt.value); setPage(1); }}
+              style={{
+                padding: "var(--ds-sp-1) var(--ds-sp-2)", borderRadius: "var(--ds-r-6)",
+                border: "1px solid",
+                borderColor: group === opt.value ? "var(--ds-accent)" : "var(--ds-border)",
+                background: group === opt.value ? "var(--ds-accent-soft)" : "transparent",
+                color: group === opt.value ? "var(--ds-accent)" : "var(--ds-text-mute)",
+                fontSize: "var(--ds-fs-12)", cursor: "pointer",
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+          <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", alignSelf: "center", marginLeft: "var(--ds-sp-2)" }}>
+            {filtered.length}건 · {page}/{totalPages} 페이지
+          </span>
         </div>
 
         {/* Log list */}
@@ -218,19 +280,51 @@ export default function AuditLogsPage() {
           <Card style={{ padding: "var(--ds-sp-6)", textAlign: "center" }}>
             <FileText size={24} style={{ color: "var(--ds-text-faint)", marginBottom: "var(--ds-sp-2)" }} />
             <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>
-              {!process.env.DATABASE_URL
-                ? "감사 로그는 데이터베이스 연결 시 기록됩니다."
-                : logs.length === 0
+              {logs.length === 0
                 ? "아직 활동 기록이 없습니다."
                 : "검색 결과가 없습니다."}
             </div>
           </Card>
         ) : (
-          <Card style={{ padding: 0, overflow: "hidden" }}>
-            {filtered.map((log) => (
-              <LogRow key={log.id} log={log} />
-            ))}
-          </Card>
+          <>
+            <Card style={{ padding: 0, overflow: "hidden" }}>
+              {paginated.map((log) => (
+                <LogRow key={log.id} log={log} />
+              ))}
+            </Card>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "var(--ds-sp-2)", marginTop: "var(--ds-sp-4)" }}>
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  style={{ padding: "var(--ds-sp-1) var(--ds-sp-3)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: page === 1 ? "not-allowed" : "pointer", fontSize: "var(--ds-fs-12)", color: page === 1 ? "var(--ds-text-faint)" : "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", opacity: page === 1 ? 0.5 : 1 }}
+                >
+                  이전
+                </button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const p = Math.max(1, Math.min(totalPages - 4, page - 2)) + i;
+                  return p <= totalPages ? (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      style={{ padding: "var(--ds-sp-1) var(--ds-sp-3)", background: p === page ? "var(--ds-accent)" : "var(--ds-fill)", border: "1px solid", borderColor: p === page ? "var(--ds-accent)" : "var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-12)", color: p === page ? "var(--ds-accent-on)" : "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}
+                    >
+                      {p}
+                    </button>
+                  ) : null;
+                })}
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  style={{ padding: "var(--ds-sp-1) var(--ds-sp-3)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: page === totalPages ? "not-allowed" : "pointer", fontSize: "var(--ds-fs-12)", color: page === totalPages ? "var(--ds-text-faint)" : "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", opacity: page === totalPages ? 0.5 : 1 }}
+                >
+                  다음
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

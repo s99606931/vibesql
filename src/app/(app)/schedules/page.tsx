@@ -245,6 +245,7 @@ export default function SchedulesPage() {
   const queryClient = useQueryClient();
   const [modal, setModal] = useState<{ open: boolean; editing: ScheduledQuery | null }>({ open: false, editing: null });
   const [runningId, setRunningId] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const { data: schedules = [], isLoading } = useQuery({
     queryKey: ["schedules"],
@@ -285,6 +286,35 @@ export default function SchedulesPage() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["schedules"] }),
   });
+
+  async function handleToggleActive(schedule: ScheduledQuery) {
+    if (togglingId === schedule.id) return;
+    setTogglingId(schedule.id);
+
+    // Optimistic update
+    queryClient.setQueryData<ScheduledQuery[]>(["schedules"], (prev) =>
+      prev ? prev.map((s) => s.id === schedule.id ? { ...s, isActive: !s.isActive } : s) : prev
+    );
+
+    try {
+      const res = await fetch(`/api/schedules/${schedule.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !schedule.isActive }),
+      });
+      const json = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(json.error ?? "토글 실패");
+      queryClient.invalidateQueries({ queryKey: ["schedules"] });
+    } catch (e) {
+      // Rollback on error
+      queryClient.setQueryData<ScheduledQuery[]>(["schedules"], (prev) =>
+        prev ? prev.map((s) => s.id === schedule.id ? { ...s, isActive: schedule.isActive } : s) : prev
+      );
+      console.warn("[schedule] toggle failed:", e instanceof Error ? e.message : e);
+    } finally {
+      setTogglingId(null);
+    }
+  }
 
   async function handleRun(id: string) {
     setRunningId(id);
@@ -390,16 +420,52 @@ export default function SchedulesPage() {
                   opacity: schedule.isActive ? 1 : 0.6,
                 }}
               >
-                {/* Status dot */}
-                <span
+                {/* Active toggle */}
+                <button
+                  aria-label={schedule.isActive ? "비활성화" : "활성화"}
+                  disabled={togglingId === schedule.id}
+                  onClick={() => { void handleToggleActive(schedule); }}
                   style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "var(--ds-r-full)",
-                    background: schedule.isActive ? "var(--ds-success)" : "var(--ds-text-faint)",
+                    display: "flex",
+                    alignItems: "center",
                     flexShrink: 0,
+                    padding: 0,
+                    border: "none",
+                    background: "transparent",
+                    cursor: togglingId === schedule.id ? "wait" : "pointer",
+                    opacity: togglingId === schedule.id ? 0.5 : 1,
                   }}
-                />
+                  title={schedule.isActive ? "클릭하여 비활성화" : "클릭하여 활성화"}
+                >
+                  {/* Track */}
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      width: 32,
+                      height: 18,
+                      borderRadius: "var(--ds-r-full)",
+                      background: schedule.isActive ? "var(--ds-success)" : "var(--ds-border)",
+                      padding: "2px",
+                      transition: "background 0.15s ease",
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    {/* Thumb */}
+                    <span
+                      style={{
+                        display: "block",
+                        width: 14,
+                        height: 14,
+                        borderRadius: "var(--ds-r-full)",
+                        background: "var(--ds-surface)",
+                        transform: schedule.isActive ? "translateX(14px)" : "translateX(0)",
+                        transition: "transform 0.15s ease",
+                        flexShrink: 0,
+                      }}
+                    />
+                  </span>
+                </button>
 
                 {/* Main content */}
                 <div style={{ flex: 1, minWidth: 0 }}>

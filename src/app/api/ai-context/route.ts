@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireUserId } from "@/lib/auth/require-user";
+import { requireAdmin } from "@/lib/auth/require-user";
 import { memAiContextRules, persistAiContextRules } from "@/lib/db/mem-ai-context";
 
 const CreateSchema = z.object({
@@ -13,9 +13,9 @@ const CreateSchema = z.object({
 });
 
 export async function GET(_req: Request) {
-  const authResult = await requireUserId();
+  const authResult = await requireAdmin();
   if (authResult instanceof NextResponse) return authResult;
-  const userId = authResult;
+  const userId = authResult.userId;
 
   if (process.env.DATABASE_URL) {
     try {
@@ -36,9 +36,9 @@ export async function GET(_req: Request) {
 }
 
 export async function POST(req: Request) {
-  const authResult = await requireUserId();
+  const authResult = await requireAdmin();
   if (authResult instanceof NextResponse) return authResult;
-  const userId = authResult;
+  const userId = authResult.userId;
 
   const body = await req.json();
   const parsed = CreateSchema.safeParse(body);
