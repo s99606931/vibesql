@@ -140,6 +140,7 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
             </span>
           </div>
           <button
+            type="button"
             onClick={handleClose}
             aria-label="닫기"
             style={{
@@ -276,6 +277,7 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
                 {shareUrl}
               </span>
               <button
+                type="button"
                 onClick={handleCopy}
                 aria-label="클립보드에 복사"
                 style={{

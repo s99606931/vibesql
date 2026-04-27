@@ -284,6 +284,8 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
               </div>
             </Link>
             <button
+              type="button"
+              aria-label="사이드바 펼치기"
               onClick={onToggleCollapse}
               title="사이드바 펼치기 (⌘\\)"
               style={{
@@ -318,6 +320,8 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 <Zap size={14} style={{ color: "var(--ds-accent)" }} />
                 <span style={{ flex: 1 }}>vibeSQL</span>
                 <button
+                  type="button"
+                  aria-label="사이드바 접기"
                   onClick={(e) => { e.preventDefault(); onToggleCollapse?.(); }}
                   title="사이드바 접기 (⌘\\)"
                   style={{
@@ -388,6 +392,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
             return (
               <div key={group.id} style={{ marginBottom: "var(--ds-sp-2)" }}>
                 <button
+                  type="button"
                   onClick={() => toggleGroup(group.id, hasActiveItem)}
                   aria-expanded={isOpen}
                   aria-label={group.label}
@@ -502,6 +507,8 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 )}
               </div>
               <button
+                type="button"
+                aria-label="로그아웃"
                 onClick={handleLogout}
                 title="로그아웃"
                 style={{
@@ -516,6 +523,8 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
               </button>
             </div>
             <button
+              type="button"
+              aria-label="명령 팔레트 열기 (⌘K)"
               onClick={onOpenCommandPalette}
               style={{
                 display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", width: "100%",
@@ -529,6 +538,8 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
               ⌘K 명령 팔레트
             </button>
             <button
+              type="button"
+              aria-label="AI 채팅 열기"
               onClick={onOpenChat}
               style={{
                 display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", width: "100%",

@@ -82,6 +82,8 @@ function SqlBlock({ code, lang, isSql, onApply }: { code: string; lang: string; 
         display: "flex", gap: 4,
       }}>
         <button
+          type="button"
+          aria-label="코드 복사"
           onClick={handleCopy}
           title="복사"
           style={{
@@ -96,6 +98,8 @@ function SqlBlock({ code, lang, isSql, onApply }: { code: string; lang: string; 
         </button>
         {isSql && onApply && (
           <button
+            type="button"
+            aria-label="워크스페이스에 적용"
             onClick={() => onApply(code)}
             title="워크스페이스에 적용"
             style={{
@@ -391,6 +395,7 @@ export function AiChatPanel({
           )}
           {messages.length > 0 && (
             <button
+              type="button"
               onClick={handleClear}
               title="대화 초기화"
               aria-label="대화 초기화"
@@ -412,6 +417,7 @@ export function AiChatPanel({
             </button>
           )}
           <button
+            type="button"
             onClick={onClose}
             title="닫기 (Esc)"
             aria-label="닫기"
@@ -505,6 +511,7 @@ export function AiChatPanel({
                 ].slice(0, 4).map((hint) => (
                   <button
                     key={hint}
+                    type="button"
                     onClick={() => setInput(hint)}
                     style={{
                       padding: "var(--ds-sp-2) var(--ds-sp-3)",
@@ -651,6 +658,7 @@ export function AiChatPanel({
               }}
             />
             <button
+              type="button"
               onClick={() => void send()}
               disabled={!input.trim() || loading}
               title="전송 (Enter)"

@@ -521,6 +521,9 @@ export function AiProviderSection() {
       {/* Env var fallback info */}
       <Card>
         <button
+          type="button"
+          aria-expanded={showEnvFallback}
+          aria-label="환경변수 폴백 정보"
           onClick={() => setShowEnvFallback((v) => !v)}
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-mute)", fontSize: "var(--ds-fs-13)", padding: 0 }}
         >
