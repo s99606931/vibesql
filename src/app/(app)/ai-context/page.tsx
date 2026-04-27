@@ -668,7 +668,7 @@ export default function AiContextPage() {
             <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-danger)" }}>가져오기 오류</div>
             <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>{importError}</div>
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <Button variant="ghost" size="sm" onClick={() => setImportError(null)}>닫기</Button>
+              <Button autoFocus variant="ghost" size="sm" onClick={() => setImportError(null)}>닫기</Button>
             </div>
           </div>
         </div>
@@ -680,7 +680,7 @@ export default function AiContextPage() {
             <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>규칙 삭제</div>
             <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>이 AI 컨텍스트 규칙을 삭제할까요?</div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
-              <Button variant="ghost" size="sm" onClick={() => setDeleteConfirmId(null)}>취소</Button>
+              <Button autoFocus variant="ghost" size="sm" onClick={() => setDeleteConfirmId(null)}>취소</Button>
               <Button variant="danger" size="sm" onClick={() => { deleteMutation.mutate(deleteConfirmId); setDeleteConfirmId(null); }}>삭제</Button>
             </div>
           </div>

@@ -489,7 +489,7 @@ function DeleteModal({
           </div>
         )}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)", marginTop: "var(--ds-sp-1)" }}>
-          <Button variant="ghost" size="sm" onClick={onCancel} disabled={deleting}>취소</Button>
+          <Button autoFocus variant="ghost" size="sm" onClick={onCancel} disabled={deleting}>취소</Button>
           <Button size="sm" onClick={onConfirm} disabled={deleting}>
             {deleting ? "삭제 중..." : "삭제"}
           </Button>
