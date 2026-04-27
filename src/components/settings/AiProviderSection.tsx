@@ -172,7 +172,7 @@ function ProviderForm({
       {/* Display Name */}
       <div style={fieldStyle}>
         <label style={labelStyle}>표시 이름</label>
-        <input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="예) 내 Ollama" style={inputStyle} />
+        <input aria-label="표시 이름" value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="예) 내 Ollama" style={inputStyle} />
       </div>
 
       {/* Base URL */}
@@ -180,6 +180,7 @@ function ProviderForm({
         <div style={fieldStyle}>
           <label style={labelStyle}>Base URL <span style={{ color: "var(--ds-danger)" }}>*</span></label>
           <input
+            aria-label="Base URL"
             value={form.baseUrl}
             onChange={(e) => set("baseUrl", e.target.value)}
             placeholder={meta.defaultBaseUrl ?? "http://localhost:8000"}
@@ -196,6 +197,7 @@ function ProviderForm({
           </label>
           <input
             type="password"
+            aria-label="API 키"
             value={form.apiKey}
             onChange={(e) => set("apiKey", e.target.value)}
             placeholder={initial?.hasApiKey ? "••••••••" : "sk-..."}
@@ -209,6 +211,7 @@ function ProviderForm({
         <label style={labelStyle}>모델</label>
         <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
           <input
+            aria-label="모델 이름"
             value={form.model}
             onChange={(e) => set("model", e.target.value)}
             placeholder={meta.defaultModel}
@@ -216,6 +219,7 @@ function ProviderForm({
           />
           {meta.models.length > 1 && (
             <select
+              aria-label="모델 빠른 선택"
               onChange={(e) => { if (e.target.value) set("model", e.target.value); }}
               style={{ ...inputStyle, width: "auto", cursor: "pointer" }}
             >
@@ -232,6 +236,7 @@ function ProviderForm({
           <label style={labelStyle}>Temperature <span style={{ color: "var(--ds-accent)" }}>{form.temperature}</span></label>
           <input
             type="range" min={0} max={2} step={0.05}
+            aria-label={`Temperature: ${form.temperature}`}
             value={form.temperature}
             onChange={(e) => set("temperature", parseFloat(e.target.value))}
             style={{ width: "100%" }}
@@ -241,6 +246,7 @@ function ProviderForm({
           <label style={labelStyle}>Max Tokens</label>
           <input
             type="number" min={256} max={32768}
+            aria-label="Max Tokens"
             value={form.maxTokens}
             onChange={(e) => set("maxTokens", parseInt(e.target.value, 10))}
             style={inputStyle}
