@@ -556,7 +556,9 @@ export default function SchedulesPage() {
                 )}
               </div>
               <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
-                {schedules.filter((s) => !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.sql.toLowerCase().includes(search.toLowerCase())).length}개
+                {search
+                  ? `${schedules.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()) || s.sql.toLowerCase().includes(search.toLowerCase())).length}/${schedules.length}개`
+                  : `${schedules.length}개`}
               </span>
             </div>
           <Card padding={0}>

@@ -117,6 +117,12 @@ export default function AdminUsersPage() {
     },
   });
 
+  const filteredUsers = (data ?? []).filter((u) =>
+    !search ||
+    (u.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    u.email.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <TopBar
@@ -143,7 +149,7 @@ export default function AdminUsersPage() {
               padding: "2px 8px", borderRadius: "var(--ds-r-full)",
               background: "var(--ds-fill)", fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)",
             }}>
-              {data.length}명
+              {search ? `${filteredUsers.length}/${data.length}명` : `${data.length}명`}
             </span>
           )}
         </div>
@@ -215,21 +221,13 @@ export default function AdminUsersPage() {
               <div />
             </div>
 
-            {data.filter((u) =>
-              !search ||
-              (u.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
-              u.email.toLowerCase().includes(search.toLowerCase())
-            ).length === 0 && (
+            {filteredUsers.length === 0 && (
               <div style={{ padding: "var(--ds-sp-8)", textAlign: "center", color: "var(--ds-text-faint)" }}>
                 {search ? "검색 결과가 없습니다." : "사용자가 없습니다."}
               </div>
             )}
 
-            {data.filter((u) =>
-              !search ||
-              (u.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
-              u.email.toLowerCase().includes(search.toLowerCase())
-            ).map((user, idx, filtered) => (
+            {filteredUsers.map((user, idx) => (
               <div
                 key={user.id}
                 style={{
@@ -237,7 +235,7 @@ export default function AdminUsersPage() {
                   gridTemplateColumns: "1fr 1fr 140px 120px 60px",
                   gap: "var(--ds-sp-3)",
                   padding: "var(--ds-sp-3) var(--ds-sp-4)",
-                  borderBottom: idx < filtered.length - 1 ? "1px solid var(--ds-border)" : "none",
+                  borderBottom: idx < filteredUsers.length - 1 ? "1px solid var(--ds-border)" : "none",
                   alignItems: "center",
                   fontSize: "var(--ds-fs-13)",
                 }}

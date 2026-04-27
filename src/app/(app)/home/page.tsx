@@ -744,21 +744,25 @@ function StatsSection() {
       label: "전체 쿼리",
       value: stats ? `${stats.totalQueries}개` : "—",
       icon: <BarChart2 size={14} />,
+      href: "/history",
     },
     {
       label: "성공률",
       value: stats ? `${stats.successRate}%` : "—",
       icon: <TrendingUp size={14} />,
+      href: "/history",
     },
     {
       label: "저장된 쿼리",
       value: stats ? `${stats.totalSaved}개` : "—",
       icon: <Star size={14} />,
+      href: "/saved",
     },
     {
       label: "평균 실행 시간",
       value: stats ? `${stats.avgDurationMs}ms` : "—",
       icon: <Clock size={14} />,
+      href: "/history",
     },
   ];
 
@@ -785,14 +789,20 @@ function StatsSection() {
           }}
         >
           {statCards.map((card) => (
-            <div
+            <Link
               key={card.label}
+              href={card.href}
               style={{
                 padding: "var(--ds-sp-4)",
                 border: "1px solid var(--ds-border)",
                 borderRadius: "var(--ds-r-8)",
                 background: "var(--ds-surface)",
+                display: "block",
+                textDecoration: "none",
+                transition: "border-color var(--ds-dur-fast) var(--ds-ease)",
               }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--ds-accent)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--ds-border)"; }}
             >
               <div
                 style={{
@@ -830,7 +840,7 @@ function StatsSection() {
                   {card.value}
                 </div>
               )}
-            </div>
+            </Link>
           ))}
         </div>
       </div>
