@@ -173,6 +173,7 @@ function RuleModal({
           </label>
           <input
             id="rule-key"
+            autoFocus
             value={form.key}
             onChange={(e) => set("key", e.target.value)}
             placeholder={form.ruleType === "few_shot" ? "예: 이번 달 매출 상위 10개 제품" : form.ruleType === "forbidden" ? "예: no_delete" : "예: 고객"}

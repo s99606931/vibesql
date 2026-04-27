@@ -161,6 +161,7 @@ function ScheduleModal({
           </label>
           <input
             id="sched-name"
+            autoFocus
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
             placeholder="예: 일별 매출 집계"

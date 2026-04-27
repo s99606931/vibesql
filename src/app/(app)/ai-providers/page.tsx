@@ -161,8 +161,10 @@ function ProviderModal({
 
         {/* Name */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>이름</label>
+          <label htmlFor="prov-name" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>이름</label>
           <input
+            id="prov-name"
+            autoFocus
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
             placeholder={`예: 내 ${meta.label} 계정`}
@@ -172,8 +174,9 @@ function ProviderModal({
 
         {/* Model */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>모델명</label>
+          <label htmlFor="prov-model" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>모델명</label>
           <input
+            id="prov-model"
             value={form.model}
             onChange={(e) => set("model", e.target.value)}
             placeholder={meta.defaultModel}
@@ -210,8 +213,9 @@ function ProviderModal({
         {/* Base URL */}
         {(meta.needsBase || form.type === "openai_compat") && (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Base URL</label>
+            <label htmlFor="prov-baseurl" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Base URL</label>
             <input
+              id="prov-baseurl"
               value={form.baseUrl}
               onChange={(e) => set("baseUrl", e.target.value)}
               placeholder="http://localhost:1234"
