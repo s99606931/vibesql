@@ -38,16 +38,19 @@ function Toggle({
   checked,
   onChange,
   disabled,
+  label,
 }: {
   checked: boolean;
   onChange: () => void;
   disabled?: boolean;
+  label?: string;
 }) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-label={label}
       disabled={disabled}
       onClick={onChange}
       style={{
@@ -504,7 +507,7 @@ export default function SettingsPage() {
                 </SettingRow>
 
                 <SettingRow label="항상 결과 설명 포함" description="AI가 쿼리 결과를 자동으로 설명합니다" last>
-                  <Toggle checked={alwaysExplain} onChange={() => { toggle("alwaysExplain"); persistSettings(); }} />
+                  <Toggle checked={alwaysExplain} label="항상 결과 설명 포함" onChange={() => { toggle("alwaysExplain"); persistSettings(); }} />
                 </SettingRow>
               </Card>
 
@@ -584,6 +587,7 @@ export default function SettingsPage() {
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
                   <Toggle
                     checked={readOnly}
+                    label="읽기 전용 모드만 허용"
                     onChange={() => toggle("readOnly")}
                     disabled
                   />
@@ -608,6 +612,7 @@ export default function SettingsPage() {
               >
                 <Toggle
                   checked={notifySuccess}
+                  label="쿼리 성공 알림"
                   onChange={() => { toggle("notifySuccess"); persistSettings(); }}
                 />
               </SettingRow>
@@ -618,6 +623,7 @@ export default function SettingsPage() {
               >
                 <Toggle
                   checked={notifyError}
+                  label="쿼리 오류 알림"
                   onChange={() => { toggle("notifyError"); persistSettings(); }}
                 />
               </SettingRow>
@@ -629,6 +635,7 @@ export default function SettingsPage() {
               >
                 <Toggle
                   checked={notifyLong}
+                  label="장시간 실행 알림"
                   onChange={() => { toggle("notifyLong"); persistSettings(); }}
                 />
               </SettingRow>
