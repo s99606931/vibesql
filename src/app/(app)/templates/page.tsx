@@ -178,7 +178,7 @@ function TemplateCard({
   return (
     <Card style={{ padding: "var(--ds-sp-4)", display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--ds-sp-2)" }}>
-        <CatIcon size={14} style={{ color: "var(--ds-text-faint)", flexShrink: 0, marginTop: 2 }} />
+        <CatIcon aria-hidden="true" size={14} style={{ color: "var(--ds-text-faint)", flexShrink: 0, marginTop: 2 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", flexWrap: "wrap" }}>
             <span style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>
@@ -208,12 +208,12 @@ function TemplateCard({
             {copied ? "복사됨" : "SQL 복사"}
           </Button>
           <Button variant="ghost" size="sm" onClick={onUse} aria-label="워크스페이스에서 열기">
-            <ExternalLink size={13} />
+            <ExternalLink aria-hidden="true" size={13} />
             <span style={{ marginLeft: 4 }}>사용</span>
           </Button>
           {!template.isBuiltIn && onDelete && (
             <Button variant="ghost" size="sm" onClick={onDelete} aria-label="삭제">
-              <Trash2 size={13} style={{ color: "var(--ds-danger)" }} />
+              <Trash2 aria-hidden="true" size={13} style={{ color: "var(--ds-danger)" }} />
             </Button>
           )}
         </div>
@@ -243,7 +243,7 @@ function TemplateCard({
           }}
         >
           <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
-            {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+            {expanded ? <ChevronDown aria-hidden="true" size={10} /> : <ChevronRight aria-hidden="true" size={10} />}
             {expanded ? "SQL 숨기기" : "SQL 보기"}
           </span>
         </button>
@@ -265,7 +265,7 @@ function TemplateCard({
       {/* Tags */}
       {template.tags.length > 0 && (
         <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-1)", flexWrap: "wrap" }}>
-          <Tag size={11} style={{ color: "var(--ds-text-faint)" }} />
+          <Tag aria-hidden="true" size={11} style={{ color: "var(--ds-text-faint)" }} />
           {template.tags.map((tag) => (
             <button
               key={tag}
@@ -368,7 +368,7 @@ export default function TemplatesPage() {
         breadcrumbs={[{ label: "vibeSQL" }, { label: "워크스페이스" }, { label: "템플릿" }]}
         actions={
           <Button size="sm" onClick={() => setSaveModal(true)}>
-            <Plus size={13} />
+            <Plus aria-hidden="true" size={13} />
             <span style={{ marginLeft: 4 }}>템플릿 저장</span>
           </Button>
         }
@@ -402,7 +402,7 @@ export default function TemplatesPage() {
         <div style={{ display: "flex", gap: "var(--ds-sp-3)", marginBottom: "var(--ds-sp-4)", flexWrap: "wrap" }}>
           {/* Search */}
           <div role="search" aria-label="템플릿 검색" style={{ position: "relative", flex: 1, minWidth: 200 }}>
-            <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+            <Search aria-hidden="true" size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
             <input
               ref={searchRef}
               type="search"
@@ -419,7 +419,7 @@ export default function TemplatesPage() {
             />
             {search && (
               <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
-                <X size={13} />
+                <X aria-hidden="true" size={13} />
               </button>
             )}
           </div>

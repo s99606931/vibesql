@@ -45,7 +45,7 @@ export default function CatalogPage() {
               textAlign: "center",
             }}
           >
-            <Database size={36} style={{ color: "var(--ds-text-faint)", opacity: 0.5 }} />
+            <Database aria-hidden="true" size={36} style={{ color: "var(--ds-text-faint)", opacity: 0.5 }} />
             <div>
               <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-1)" }}>
                 데이터 카탈로그 — 개발 중
@@ -100,7 +100,7 @@ export default function CatalogPage() {
                           flexShrink: 0,
                         }}
                       >
-                        <Icon size={15} style={{ color: "var(--ds-accent)" }} />
+                        <Icon aria-hidden="true" size={15} style={{ color: "var(--ds-accent)" }} />
                       </span>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text)" }}>
@@ -110,7 +110,7 @@ export default function CatalogPage() {
                           {item.desc}
                         </div>
                       </div>
-                      <ArrowRight size={14} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+                      <ArrowRight aria-hidden="true" size={14} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
                     </div>
                   </Link>
                 );
