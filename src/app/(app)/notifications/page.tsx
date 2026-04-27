@@ -49,6 +49,7 @@ export default function NotificationsPage() {
               borderRadius: "var(--ds-r-8)",
               background: enabledCount > 0 ? "var(--ds-accent-soft)" : "var(--ds-fill)",
               border: `1px solid ${enabledCount > 0 ? "var(--ds-accent)" : "var(--ds-border)"}`,
+              transition: "background var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
             }}
           >
             <Zap size={20} style={{ color: enabledCount > 0 ? "var(--ds-accent)" : "var(--ds-text-faint)", flexShrink: 0 }} />

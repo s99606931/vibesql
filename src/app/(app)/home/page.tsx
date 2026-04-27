@@ -793,6 +793,7 @@ function StatsSection() {
             <Link
               key={card.label}
               href={card.href}
+              className="hover:border-border-strong"
               style={{
                 padding: "var(--ds-sp-4)",
                 border: "1px solid var(--ds-border)",
@@ -802,8 +803,6 @@ function StatsSection() {
                 textDecoration: "none",
                 transition: "border-color var(--ds-dur-fast) var(--ds-ease)",
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--ds-accent)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--ds-border)"; }}
             >
               <div
                 style={{
