@@ -146,7 +146,8 @@ export default function SchemaPage() {
             <button
               onClick={() => void refetch()}
               title="스키마 새로고침"
-              style={{ display: "flex", alignItems: "center", padding: "var(--ds-sp-1)", background: "none", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", color: "var(--ds-text-mute)" }}
+              style={{ display: "flex", alignItems: "center", padding: "var(--ds-sp-1)", background: "none", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", color: "var(--ds-text-mute)", transition: "color var(--ds-dur-fast) var(--ds-ease), background var(--ds-dur-fast) var(--ds-ease)" }}
+              className="hover:bg-fill"
             >
               <RefreshCw size={12} />
             </button>

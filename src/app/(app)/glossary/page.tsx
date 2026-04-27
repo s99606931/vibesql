@@ -509,7 +509,7 @@ export default function GlossaryPage() {
                         setTimeout(() => setCopiedSqlId((p) => p === selected.id ? null : p), 1500);
                       }}
                       title="복사"
-                      style={{ background: "none", border: "none", cursor: "pointer", color: copiedSqlId === selected.id ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, marginRight: 4 }}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: copiedSqlId === selected.id ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, marginRight: 4, transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
                     >
                       {copiedSqlId === selected.id ? <Check size={12} /> : <Copy size={12} />}
                     </button>
@@ -520,7 +520,8 @@ export default function GlossaryPage() {
                         router.push("/workspace");
                       }}
                       title="워크스페이스에서 열기"
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-accent)", display: "flex", alignItems: "center", padding: 2 }}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-accent)", display: "flex", alignItems: "center", padding: 2, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+                      className="hover:opacity-70"
                     >
                       <ExternalLink size={12} />
                     </button>

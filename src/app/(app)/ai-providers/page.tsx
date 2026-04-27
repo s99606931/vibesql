@@ -194,7 +194,8 @@ function ProviderModal({
               <button
                 type="button"
                 onClick={() => setShowKey((v) => !v)}
-                style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center" }}
+                style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+                className="hover:opacity-70"
               >
                 {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
