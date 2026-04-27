@@ -852,6 +852,9 @@ export default function SavedPage() {
       {/* Delete confirm modal */}
       {confirmDeleteId && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="쿼리 삭제"
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
           onClick={() => setConfirmDeleteId(null)}
           onKeyDown={(e) => { if (e.key === "Escape") setConfirmDeleteId(null); }}
@@ -878,8 +881,12 @@ export default function SavedPage() {
       {/* New folder modal */}
       {newFolderModal && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="새 폴더"
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
           onClick={() => setNewFolderModal(false)}
+          onKeyDown={(e) => { if (e.key === "Escape") setNewFolderModal(false); }}
         >
           <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
             <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-3)" }}>새 폴더</div>
@@ -923,8 +930,12 @@ export default function SavedPage() {
       {/* Rename folder modal */}
       {renameFolderModal && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="폴더 이름 변경"
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
           onClick={() => setRenameFolderModal(null)}
+          onKeyDown={(e) => { if (e.key === "Escape") setRenameFolderModal(null); }}
         >
           <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
             <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-3)" }}>폴더 이름 변경</div>
