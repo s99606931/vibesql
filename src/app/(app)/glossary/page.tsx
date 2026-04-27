@@ -301,7 +301,7 @@ export default function GlossaryPage() {
             )}
           </div>
 
-          <div style={{ flex: 1, overflow: "auto" }}>
+          <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto" }}>
             {isLoading && (
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-2)" }}>
                 {[1, 2, 3, 4].map((i) => (

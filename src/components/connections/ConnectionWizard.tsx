@@ -131,6 +131,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
     <div
       role="dialog"
       aria-modal="true"
+      aria-label="데이터베이스 연결"
       style={{
         position: "fixed",
         inset: 0,

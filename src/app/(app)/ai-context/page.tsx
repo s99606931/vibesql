@@ -98,6 +98,7 @@ function RuleModal({
     <div
       role="dialog"
       aria-modal="true"
+      aria-label={initial.key ? "규칙 편집" : "규칙 추가"}
       onClick={onClose}
       onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       style={{
@@ -167,10 +168,11 @@ function RuleModal({
 
         {/* Key field */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
+          <label htmlFor="rule-key" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
             {keyLabel} <span style={{ color: "var(--ds-danger)" }}>*</span>
           </label>
           <input
+            id="rule-key"
             value={form.key}
             onChange={(e) => set("key", e.target.value)}
             placeholder={form.ruleType === "few_shot" ? "예: 이번 달 매출 상위 10개 제품" : form.ruleType === "forbidden" ? "예: no_delete" : "예: 고객"}
@@ -189,10 +191,11 @@ function RuleModal({
 
         {/* Value field */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
+          <label htmlFor="rule-value" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
             {valueLabel} <span style={{ color: "var(--ds-danger)" }}>*</span>
           </label>
           <textarea
+            id="rule-value"
             value={form.value}
             onChange={(e) => set("value", e.target.value)}
             rows={4}
@@ -221,8 +224,9 @@ function RuleModal({
         {/* Description + priority row */}
         <div style={{ display: "flex", gap: "var(--ds-sp-3)" }}>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>설명 (선택)</label>
+            <label htmlFor="rule-desc" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>설명 (선택)</label>
             <input
+              id="rule-desc"
               value={form.description}
               onChange={(e) => set("description", e.target.value)}
               placeholder="규칙 설명..."

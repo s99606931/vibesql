@@ -121,6 +121,7 @@ function ScheduleModal({
     <div
       role="dialog"
       aria-modal="true"
+      aria-label={initial.name ? "스케줄 편집" : "스케줄 추가"}
       onClick={onClose}
       onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       style={{
@@ -155,10 +156,11 @@ function ScheduleModal({
 
         {/* Name */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
+          <label htmlFor="sched-name" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
             스케줄 이름 <span style={{ color: "var(--ds-danger)" }}>*</span>
           </label>
           <input
+            id="sched-name"
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
             placeholder="예: 일별 매출 집계"
@@ -177,10 +179,11 @@ function ScheduleModal({
 
         {/* SQL */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
+          <label htmlFor="sched-sql" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
             SQL 쿼리 <span style={{ color: "var(--ds-danger)" }}>*</span>
           </label>
           <textarea
+            id="sched-sql"
             value={form.sql}
             onChange={(e) => set("sql", e.target.value)}
             rows={5}
@@ -254,8 +257,9 @@ function ScheduleModal({
 
         {/* Cron expression display / edit */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Cron 표현식</label>
+          <label htmlFor="sched-cron" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Cron 표현식</label>
           <input
+            id="sched-cron"
             value={form.cronExpr}
             onChange={(e) => set("cronExpr", e.target.value)}
             placeholder="0 9 * * *"
