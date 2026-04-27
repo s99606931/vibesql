@@ -512,6 +512,8 @@ export default function ConnectionsPage() {
                             )}
                             {feedback && !isTesting && (
                               <span
+                                role="status"
+                                aria-live="polite"
                                 style={{
                                   fontSize: "var(--ds-fs-11)",
                                   color: feedback.status === "success" ? "var(--ds-success)" : "var(--ds-danger)",

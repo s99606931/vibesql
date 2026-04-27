@@ -29,7 +29,8 @@ export function AICallout({
   return (
     <div
       className={cn(className)}
-      aria-live={streaming ? "polite" : undefined}
+      role={tone === "danger" ? "alert" : "status"}
+      aria-live={tone === "danger" ? "assertive" : streaming ? "polite" : "polite"}
       style={{
         border: "1px dashed",
         borderRadius: "var(--ds-r-6)",

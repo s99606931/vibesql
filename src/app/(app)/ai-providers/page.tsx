@@ -315,21 +315,21 @@ function ProviderCard({
     if (!feedback) return null;
     if (feedback.status === "running") {
       return (
-        <div style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)" }}>
+        <div role="status" aria-live="polite" style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)" }}>
           테스트 중...
         </div>
       );
     }
     if (feedback.status === "success") {
       return (
-        <div style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-success)", display: "flex", alignItems: "center", gap: "var(--ds-sp-1)" }}>
+        <div role="status" aria-live="polite" style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-success)", display: "flex", alignItems: "center", gap: "var(--ds-sp-1)" }}>
           <CheckCircle2 size={12} />
           <span>연결 성공{typeof feedback.latencyMs === "number" ? ` · ${feedback.latencyMs}ms` : ""}</span>
         </div>
       );
     }
     return (
-      <div style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-danger)", display: "flex", alignItems: "center", gap: "var(--ds-sp-1)" }}>
+      <div role="status" aria-live="polite" style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-danger)", display: "flex", alignItems: "center", gap: "var(--ds-sp-1)" }}>
         <XCircle size={12} />
         <span>{feedback.message ?? "연결 실패"}</span>
       </div>
