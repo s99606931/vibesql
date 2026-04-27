@@ -253,7 +253,9 @@ export default function GlossaryPage() {
                 >
                   전체
                 </button>
-                {allCategories.map((cat) => (
+                {allCategories.map((cat) => {
+                  const catCount = terms.filter((t) => t.category === cat).length;
+                  return (
                   <button
                     key={cat}
                     onClick={() => setCatFilter((prev) => prev === cat ? null : cat)}
@@ -266,11 +268,16 @@ export default function GlossaryPage() {
                       fontSize: "var(--ds-fs-10)",
                       cursor: "pointer",
                       fontFamily: "var(--ds-font-sans)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
                     }}
                   >
                     {cat}
+                    <span style={{ fontSize: "var(--ds-fs-9)", opacity: 0.7 }}>{catCount}</span>
                   </button>
-                ))}
+                  );
+                })}
                 {(search || catFilter) && (
                   <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", marginLeft: "var(--ds-sp-1)" }}>
                     {filtered.length}개

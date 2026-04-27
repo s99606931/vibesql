@@ -457,6 +457,10 @@ export default function AiContextPage() {
           </div>
         )}
 
+        {!isLoading && search && groupedRules.every((g) => g.items.length === 0) && (
+          <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>검색 결과가 없습니다.</div>
+        )}
+
         {!isLoading && (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-5)" }}>
             {groupedRules.map(({ type, items }) => {

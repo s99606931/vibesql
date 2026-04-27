@@ -676,7 +676,10 @@ export default function SchedulesPage() {
                     }}
                   >
                     {schedule.lastRunAt && (
-                      <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                      <span
+                        title={new Date(schedule.lastRunAt).toLocaleString("ko-KR")}
+                        style={{ display: "flex", alignItems: "center", gap: 3, cursor: "default" }}
+                      >
                         {statusIcon(schedule.lastRunStatus)}
                         마지막 실행 {formatTime(schedule.lastRunAt)}
                       </span>
@@ -692,7 +695,10 @@ export default function SchedulesPage() {
                       </span>
                     )}
                     {schedule.nextRunAt && schedule.isActive && (
-                      <span style={{ display: "flex", alignItems: "center", gap: 3, color: "var(--ds-accent)" }}>
+                      <span
+                        title={new Date(schedule.nextRunAt).toLocaleString("ko-KR")}
+                        style={{ display: "flex", alignItems: "center", gap: 3, color: "var(--ds-accent)", cursor: "default" }}
+                      >
                         다음 {formatRelativeTime(schedule.nextRunAt)}
                       </span>
                     )}

@@ -335,19 +335,26 @@ export default function ConnectionsPage() {
 
         {!isLoading && !isError && connections && connections.length > 0 && (
           <>
-            <div style={{ position: "relative", maxWidth: 320, marginBottom: "var(--ds-sp-3)" }}>
-              <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
-              <input
-                ref={searchRef}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="연결 검색... (⌘F)"
-                style={{ width: "100%", paddingLeft: 30, paddingRight: search ? 28 : "var(--ds-sp-3)", paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", boxSizing: "border-box" }}
-              />
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-3)" }}>
+              <div style={{ position: "relative", maxWidth: 320, flex: 1 }}>
+                <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+                <input
+                  ref={searchRef}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="연결 검색... (⌘F)"
+                  style={{ width: "100%", paddingLeft: 30, paddingRight: search ? 28 : "var(--ds-sp-3)", paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", boxSizing: "border-box" }}
+                />
+                {search && (
+                  <button onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0 }}>
+                    <XCircle size={13} />
+                  </button>
+                )}
+              </div>
               {search && (
-                <button onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0 }}>
-                  <XCircle size={13} />
-                </button>
+                <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", flexShrink: 0 }}>
+                  {connections.filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()) || (c.host ?? "").toLowerCase().includes(search.toLowerCase()) || c.database.toLowerCase().includes(search.toLowerCase())).length}/{connections.length}개
+                </span>
               )}
             </div>
           <Card padding={0}>
