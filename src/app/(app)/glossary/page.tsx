@@ -515,9 +515,9 @@ export default function GlossaryPage() {
               </div>
 
               <Card padding="var(--ds-sp-4)">
-                <div style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "var(--ds-sp-2)" }}>
+                <h3 style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 var(--ds-sp-2)" }}>
                   정의
-                </div>
+                </h3>
                 <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", lineHeight: 1.7 }}>
                   {selected.definition}
                 </div>
@@ -526,9 +526,9 @@ export default function GlossaryPage() {
               {selected.sql && (
                 <Card padding="var(--ds-sp-4)">
                   <div style={{ display: "flex", alignItems: "center", marginBottom: "var(--ds-sp-2)" }}>
-                    <span style={{ flex: 1, fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    <h3 style={{ flex: 1, fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", textTransform: "uppercase", letterSpacing: "0.06em", margin: 0 }}>
                       SQL 힌트
-                    </span>
+                    </h3>
                     <button
                       type="button"
                       onClick={() => {

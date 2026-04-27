@@ -511,17 +511,18 @@ export default function AiContextPage() {
                     }}
                   >
                     <meta.icon aria-hidden="true" size={14} style={{ color: "var(--ds-text-faint)" }} />
-                    <span
+                    <h3
                       style={{
                         fontSize: "var(--ds-fs-11)",
                         fontWeight: "var(--ds-fw-semibold)",
                         color: "var(--ds-text-mute)",
                         textTransform: "uppercase",
                         letterSpacing: "0.06em",
+                        margin: 0,
                       }}
                     >
                       {meta.label}
-                    </span>
+                    </h3>
                     <Pill variant={meta.variant}>{items.length}</Pill>
                   </div>
 
