@@ -161,8 +161,8 @@ function ProviderForm({
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }}>
       {/* Provider Type */}
       <div style={fieldStyle}>
-        <label style={labelStyle}>프로바이더 유형</label>
-        <select aria-label="프로바이더 유형" value={form.type} onChange={(e) => set("type", e.target.value)} style={inputStyle}>
+        <label htmlFor="prov-type" style={labelStyle}>프로바이더 유형</label>
+        <select id="prov-type" aria-label="프로바이더 유형" value={form.type} onChange={(e) => set("type", e.target.value)} style={inputStyle}>
           {(Object.entries(PROVIDER_META) as [AiProviderType, typeof PROVIDER_META[AiProviderType]][]).map(([k, v]) => (
             <option key={k} value={k}>{v.label}</option>
           ))}
@@ -171,16 +171,17 @@ function ProviderForm({
 
       {/* Display Name */}
       <div style={fieldStyle}>
-        <label style={labelStyle}>표시 이름</label>
-        <input aria-label="표시 이름" value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="예) 내 Ollama" style={inputStyle} />
+        <label htmlFor="prov-name" style={labelStyle}>표시 이름</label>
+        <input id="prov-name" aria-label="표시 이름" value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="예) 내 Ollama" style={inputStyle} />
       </div>
 
       {/* Base URL */}
       {meta.needsBaseUrl && (
         <div style={fieldStyle}>
-          <label style={labelStyle}>Base URL <span style={{ color: "var(--ds-danger)" }}>*</span></label>
+          <label htmlFor="prov-base-url" style={labelStyle}>Base URL <span aria-hidden="true" style={{ color: "var(--ds-danger)" }}>*</span></label>
           <input
-            aria-label="Base URL"
+            id="prov-base-url"
+            aria-label="Base URL (필수)"
             value={form.baseUrl}
             onChange={(e) => set("baseUrl", e.target.value)}
             placeholder={meta.defaultBaseUrl ?? "http://localhost:8000"}
@@ -192,10 +193,11 @@ function ProviderForm({
       {/* API Key */}
       {meta.needsApiKey && (
         <div style={fieldStyle}>
-          <label style={labelStyle}>
+          <label htmlFor="prov-api-key" style={labelStyle}>
             API 키 {initial?.hasApiKey && <span style={{ color: "var(--ds-text-faint)" }}>(이미 저장됨 — 변경 시만 입력)</span>}
           </label>
           <input
+            id="prov-api-key"
             type="password"
             autoComplete="off"
             aria-label="API 키"
@@ -209,9 +211,10 @@ function ProviderForm({
 
       {/* Model */}
       <div style={fieldStyle}>
-        <label style={labelStyle}>모델</label>
+        <label htmlFor="prov-model" style={labelStyle}>모델</label>
         <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
           <input
+            id="prov-model"
             aria-label="모델 이름"
             value={form.model}
             onChange={(e) => set("model", e.target.value)}
@@ -234,8 +237,9 @@ function ProviderForm({
       {/* Temperature + MaxTokens */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ds-sp-3)" }}>
         <div style={fieldStyle}>
-          <label style={labelStyle}>Temperature <span style={{ color: "var(--ds-accent)" }}>{form.temperature}</span></label>
+          <label htmlFor="prov-temperature" style={labelStyle}>Temperature <span style={{ color: "var(--ds-accent)" }}>{form.temperature}</span></label>
           <input
+            id="prov-temperature"
             type="range" min={0} max={2} step={0.05}
             aria-label={`Temperature: ${form.temperature}`}
             value={form.temperature}
@@ -244,8 +248,9 @@ function ProviderForm({
           />
         </div>
         <div style={fieldStyle}>
-          <label style={labelStyle}>Max Tokens</label>
+          <label htmlFor="prov-max-tokens" style={labelStyle}>Max Tokens</label>
           <input
+            id="prov-max-tokens"
             type="number" min={256} max={32768}
             aria-label="Max Tokens"
             value={form.maxTokens}
