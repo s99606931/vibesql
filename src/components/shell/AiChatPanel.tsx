@@ -30,7 +30,7 @@ interface AiChatPanelProps {
 function makeMdComponents(onApplySql?: (sql: string) => void): Components {
   return {
     a: ({ href, children }) => (
-      <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
+      <a href={href} target="_blank" rel="noopener noreferrer" title="새 탭에서 열기">{children}</a>
     ),
     code({ className, children, ...props }) {
       const isBlock = "node" in props;

@@ -713,8 +713,8 @@ export default function WorkspacePage() {
                   variant="ghost"
                   size="sm"
                   aria-keyshortcuts="Meta+s"
-                  aria-label="저장"
-                  icon={savedOk ? <Check size={13} /> : <Star size={13} />}
+                  aria-label={savedOk ? "저장됨" : "저장"}
+                  icon={savedOk ? <Check aria-hidden="true" size={13} /> : <Star aria-hidden="true" size={13} />}
                   loading={saveQueryMutation.isPending}
                   onClick={() => {
                     setSaveName(nlQuery || "쿼리");
