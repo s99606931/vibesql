@@ -9,7 +9,7 @@ import { Pill } from "@/components/ui-vs/Pill";
 import { ConnectionWizard } from "@/components/connections/ConnectionWizard";
 import { useConnections, useTestConnection, useUpdateConnection } from "@/hooks/useConnections";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, RefreshCw, Loader2, Trash2, Pencil, X, Copy, Check, Search, Zap } from "lucide-react";
+import { Plus, RefreshCw, Loader2, Trash2, Pencil, X, Copy, Check, Search, Zap, Download } from "lucide-react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import type { DbDialect, Connection } from "@/types";
 
@@ -138,6 +138,23 @@ interface ConnTestFeedback {
   message?: string;
 }
 
+function exportConnectionsCsv(conns: Connection[]) {
+  const headers = ["이름", "유형", "호스트", "포트", "데이터베이스", "사용자", "SSL", "활성", "마지막 테스트", "생성일"];
+  const esc = (v: string) => (v.includes(",") || v.includes('"') || v.includes("\n") ? `"${v.replace(/"/g, '""')}"` : v);
+  const rows = conns.map((c) => [
+    c.name, c.type, c.host ?? "", String(c.port ?? ""), c.database, c.username ?? "",
+    c.ssl ? "Y" : "N", c.isActive ? "Y" : "N",
+    c.lastTestedAt ? new Date(c.lastTestedAt).toLocaleString("ko-KR") : "",
+    new Date(c.createdAt).toLocaleString("ko-KR"),
+  ].map(esc).join(","));
+  const csv = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `connections-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function ConnectionsPage() {
   const [showWizard, setShowWizard] = useState(false);
   const [editingConn, setEditingConn] = useState<Connection | null>(null);
@@ -250,17 +267,27 @@ export default function ConnectionsPage() {
         actions={
           <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
             {connections && connections.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={<Zap size={13} />}
-                disabled={testMutation.isPending}
-                onClick={() => {
-                  connections.forEach((conn) => handleTest(conn.id));
-                }}
-              >
-                전체 테스트
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<Download size={13} />}
+                  onClick={() => exportConnectionsCsv(connections)}
+                >
+                  CSV
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<Zap size={13} />}
+                  disabled={testMutation.isPending}
+                  onClick={() => {
+                    connections.forEach((conn) => handleTest(conn.id));
+                  }}
+                >
+                  전체 테스트
+                </Button>
+              </>
             )}
             <Button
               variant="primary"

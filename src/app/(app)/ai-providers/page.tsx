@@ -8,7 +8,7 @@ import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
 import {
   Plus, Trash2, Pencil, Zap, CheckCircle2, XCircle, Clock,
-  Wifi, WifiOff, Eye, EyeOff,
+  Wifi, WifiOff, Eye, EyeOff, Copy, Check,
 } from "lucide-react";
 import type { AiProviderType } from "@/app/api/ai-providers/route";
 
@@ -291,6 +291,7 @@ function ProviderCard({
   feedback?: TestFeedback;
 }) {
   const meta = PROVIDER_META[provider.type];
+  const [copiedModel, setCopiedModel] = useState(false);
 
   function TestIcon() {
     if (provider.lastTestedOk === null || provider.lastTestedOk === undefined) {
@@ -341,8 +342,21 @@ function ProviderCard({
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-3)", flexWrap: "wrap" }}>
             <Pill variant="info">{meta.label}</Pill>
-            <span style={{ fontSize: "var(--ds-fs-11)", fontFamily: "var(--ds-font-mono)", color: "var(--ds-text-mute)" }}>
-              {provider.model}
+            <span style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-1)" }}>
+              <span style={{ fontSize: "var(--ds-fs-11)", fontFamily: "var(--ds-font-mono)", color: "var(--ds-text-mute)" }}>
+                {provider.model}
+              </span>
+              <button
+                title="모델명 복사"
+                onClick={() => {
+                  void navigator.clipboard.writeText(provider.model);
+                  setCopiedModel(true);
+                  setTimeout(() => setCopiedModel(false), 1500);
+                }}
+                style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)" }}
+              >
+                {copiedModel ? <Check size={11} style={{ color: "var(--ds-success)" }} /> : <Copy size={11} />}
+              </button>
             </span>
             {provider.baseUrl && (
               <span style={{ fontSize: "var(--ds-fs-11)", fontFamily: "var(--ds-font-mono)", color: "var(--ds-text-faint)" }}>

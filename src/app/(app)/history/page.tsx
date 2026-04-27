@@ -306,11 +306,13 @@ export default function HistoryPage() {
                     {/* Time */}
                     <span
                       className="ds-mono"
+                      title={new Date(item.createdAt).toLocaleString("ko-KR")}
                       style={{
                         fontSize: "var(--ds-fs-11)",
                         color: "var(--ds-text-faint)",
                         width: 36,
                         flexShrink: 0,
+                        cursor: "default",
                       }}
                     >
                       {formatTime(item.createdAt)}

@@ -12,7 +12,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import {
   Plus, ExternalLink, BarChart2, TrendingUp, PieChart,
-  Table2, Search, Play, RefreshCw, AlertCircle, LayoutDashboard, Download,
+  Table2, Search, Play, RefreshCw, AlertCircle, LayoutDashboard, Download, Copy, Check,
 } from "lucide-react";
 
 const ResultChart = dynamic(
@@ -88,6 +88,7 @@ export default function ChartsPage() {
   const [cardStates, setCardStates] = useState<Map<string, CardState>>(new Map());
   const [addDashModal, setAddDashModal] = useState<{ chartId: string; chartName: string; sql: string } | null>(null);
   const [selectedDashId, setSelectedDashId] = useState("");
+  const [copiedChartId, setCopiedChartId] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -441,6 +442,18 @@ export default function ChartsPage() {
                       onClick={() => { setSelectedDashId(""); setAddDashModal({ chartId: chart.id, chartName: chart.name, sql: chart.sql }); }}
                     >
                       대시보드
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={copiedChartId === chart.id ? <Check size={11} style={{ color: "var(--ds-success)" }} /> : <Copy size={11} />}
+                      onClick={() => {
+                        void navigator.clipboard.writeText(chart.sql);
+                        setCopiedChartId(chart.id);
+                        setTimeout(() => setCopiedChartId(null), 1500);
+                      }}
+                    >
+                      {copiedChartId === chart.id ? "복사됨" : "SQL"}
                     </Button>
                   </div>
                 </Card>

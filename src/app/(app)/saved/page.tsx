@@ -55,6 +55,18 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString("ko-KR");
 }
 
+function formatRelativeAgo(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 60_000) return "방금 전";
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMs / 3_600_000);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffMs / 86_400_000);
+  if (diffDay < 30) return `${diffDay}일 전`;
+  return new Date(iso).toLocaleDateString("ko-KR");
+}
+
 // ─── Version history panel ────────────────────────────────────────────────────
 
 function VersionPanel({
@@ -179,8 +191,11 @@ function VersionPanel({
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-1)" }}>
                     <Pill variant="info">v{v.versionNo}</Pill>
-                    <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", flex: 1 }}>
-                      {new Date(v.createdAt).toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    <span
+                      title={new Date(v.createdAt).toLocaleString("ko-KR")}
+                      style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", flex: 1, cursor: "default" }}
+                    >
+                      {formatRelativeAgo(v.createdAt)}
                     </span>
                     <Button
                       variant="ghost"
