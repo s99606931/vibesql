@@ -97,27 +97,22 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli@latest
 
-      - name: Query Railway project services via API
+      - name: Query Railway services (project token scope)
         run: |
-          echo "=== Railway Project Services ==="
+          echo "=== railway status ==="
+          railway status 2>&1 || true
+          echo "=== railway environment ==="
+          railway environment 2>&1 || true
+          echo "=== GraphQL: project services (project token) ==="
           curl -s https://backboard.railway.com/graphql/v2 \
             -H "Authorization: Bearer $RAILWAY_TOKEN" \
             -H "Content-Type: application/json" \
-            -d '{"query":"{ me { projects { edges { node { id name services { edges { node { id name } } } } } } } }"}' \
+            -d '{"query":"{ project { id name services { edges { node { id name } } } } }"}' \
             | python3 -c "
 import sys, json
 data = json.load(sys.stdin)
-if 'errors' in data:
-    print('API Error:', data['errors'])
-else:
-    projects = data.get('data', {}).get('me', {}).get('projects', {}).get('edges', [])
-    for p in projects:
-        proj = p['node']
-        print(f'Project: {proj[\"name\"]} ({proj[\"id\"]})')
-        for s in proj.get('services', {}).get('edges', []):
-            svc = s['node']
-            print(f'  Service: {svc[\"name\"]} ({svc[\"id\"]})')
-" || echo "API query failed"
+print(json.dumps(data, indent=2))
+" 2>&1 || echo "graphql failed"
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
