@@ -102,9 +102,9 @@ export default function SharePage() {
             <span>vibeSQL</span>
           </div>
         </Link>
-        <span style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)" }}>
+        <h1 style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)", margin: 0, fontWeight: "var(--ds-fw-normal)" }}>
           공유된 쿼리
-        </span>
+        </h1>
       </div>
 
       {/* Main content */}
@@ -148,16 +148,16 @@ export default function SharePage() {
             <div style={{ fontSize: "var(--ds-fs-28)", marginBottom: "var(--ds-sp-3)" }}>
               ⚠️
             </div>
-            <div
+            <h2
               style={{
                 fontSize: "var(--ds-fs-14)",
                 fontWeight: "var(--ds-fw-semibold)",
                 color: "var(--ds-text)",
-                marginBottom: "var(--ds-sp-2)",
+                margin: "0 0 var(--ds-sp-2)",
               }}
             >
               링크를 열 수 없습니다
-            </div>
+            </h2>
             <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>
               {state.message}
             </div>
@@ -182,18 +182,18 @@ export default function SharePage() {
                   borderBottom: "1px solid var(--ds-border)",
                 }}
               >
-                <div
+                <h2
                   style={{
                     fontSize: "var(--ds-fs-11)",
                     fontWeight: "var(--ds-fw-semibold)",
                     color: "var(--ds-text-faint)",
                     textTransform: "uppercase",
                     letterSpacing: "0.06em",
-                    marginBottom: "var(--ds-sp-1)",
+                    margin: "0 0 var(--ds-sp-1)",
                   }}
                 >
                   질문
-                </div>
+                </h2>
                 <div style={{ fontSize: "var(--ds-fs-14)", color: "var(--ds-text)", lineHeight: 1.5 }}>
                   {state.data.nlQuery}
                 </div>
@@ -202,18 +202,18 @@ export default function SharePage() {
 
             {/* SQL block */}
             <div style={{ padding: "var(--ds-sp-4) var(--ds-sp-5)" }}>
-              <div
+              <h2
                 style={{
                   fontSize: "var(--ds-fs-11)",
                   fontWeight: "var(--ds-fw-semibold)",
                   color: "var(--ds-text-faint)",
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
-                  marginBottom: "var(--ds-sp-2)",
+                  margin: "0 0 var(--ds-sp-2)",
                 }}
               >
                 SQL
-              </div>
+              </h2>
               <pre
                 style={{
                   fontFamily: "var(--ds-font-mono)",
