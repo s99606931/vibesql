@@ -64,6 +64,9 @@ function SaveModal({
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="템플릿 저장"
       style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.4)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
@@ -113,6 +116,7 @@ function SaveModal({
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
             <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>카테고리</label>
             <select
+              aria-label="카테고리"
               value={form.category}
               onChange={(e) => set("category", e.target.value as TemplateCategory)}
               style={{ background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", padding: "var(--ds-sp-2)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", width: "100%" }}

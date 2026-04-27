@@ -125,6 +125,7 @@ export default function SchemaPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-3)" }}>
             <Database size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <select
+              aria-label="데이터베이스 연결 선택"
               value={activeConnectionId ?? ""}
               onChange={(e) => setActiveConnection(e.target.value || null)}
               style={{

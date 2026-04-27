@@ -479,6 +479,7 @@ export default function SavedPage() {
             )}
           </div>
           <select
+            aria-label="정렬 기준"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as "date" | "name" | "dialect")}
             style={{

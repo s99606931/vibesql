@@ -637,6 +637,7 @@ export default function WorkspacePage() {
           <>
             {/* Connection selector */}
             <select
+              aria-label="데이터베이스 연결 선택"
               value={activeConnectionId ?? ""}
               onChange={(e) => {
                 const id = e.target.value || null;
@@ -669,6 +670,7 @@ export default function WorkspacePage() {
 
             {/* Dialect selector */}
             <select
+              aria-label="SQL 방언 선택"
               value={dialect}
               onChange={(e) => setDialect(e.target.value as typeof dialect)}
               style={{
