@@ -4,7 +4,13 @@ import { verifySession, SESSION_COOKIE } from "@/lib/auth/jwt";
 
 // Exact-match or trailing-slash boundary to prevent prefix collisions (e.g. /signin-bypass)
 const PUBLIC_PATHS = ["/signin", "/share"];
-const PUBLIC_API_PREFIXES = ["/api/share/", "/api/auth/login", "/api/auth/register", "/api/health"];
+const PUBLIC_API_PREFIXES = [
+  "/api/share/",
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/health",
+  "/api/eval",
+];
 const ADMIN_PATHS = [
   "/admin",
   "/api/admin",

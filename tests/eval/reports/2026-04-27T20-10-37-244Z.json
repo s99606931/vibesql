@@ -1,0 +1,753 @@
+{
+  "startedAt": "2026-04-27T20:10:37.244Z",
+  "durationMs": 139597,
+  "totalItems": 20,
+  "passed": 0,
+  "failed": 20,
+  "passRate": 0,
+  "hallucinationRate": 0,
+  "p50DurationMs": 7732,
+  "p95DurationMs": 8117,
+  "totalInputTokens": 0,
+  "totalOutputTokens": 0,
+  "byCategory": {
+    "simple": {
+      "total": 4,
+      "passed": 0,
+      "passRate": 0
+    },
+    "aggregation": {
+      "total": 4,
+      "passed": 0,
+      "passRate": 0
+    },
+    "join": {
+      "total": 4,
+      "passed": 0,
+      "passRate": 0
+    },
+    "complex": {
+      "total": 4,
+      "passed": 0,
+      "passRate": 0
+    },
+    "cte": {
+      "total": 2,
+      "passed": 0,
+      "passRate": 0
+    },
+    "ambiguous": {
+      "total": 2,
+      "passed": 0,
+      "passRate": 0
+    }
+  },
+  "byLanguage": {
+    "ko": {
+      "total": 14,
+      "passed": 0,
+      "passRate": 0
+    },
+    "en": {
+      "total": 6,
+      "passed": 0,
+      "passRate": 0
+    }
+  },
+  "results": [
+    {
+      "goldenId": "gs-001",
+      "language": "ko",
+      "category": "simple",
+      "question": "이번 달 신규 가입자 수는?",
+      "expected": {
+        "tables": [
+          "customers"
+        ],
+        "columnsMust": [
+          "customers.signup_at"
+        ],
+        "sql": "SELECT COUNT(*) FROM customers WHERE signup_at >= date_trunc('month', now())"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 4107,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-002",
+      "language": "ko",
+      "category": "simple",
+      "question": "VIP 고객 명단을 보여줘",
+      "expected": {
+        "tables": [
+          "customers"
+        ],
+        "columnsMust": [
+          "customers.name",
+          "customers.is_vip"
+        ],
+        "sql": "SELECT name, email FROM customers WHERE is_vip = true"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 5548,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-003",
+      "language": "ko",
+      "category": "simple",
+      "question": "재고가 0인 상품을 알려줘",
+      "expected": {
+        "tables": [
+          "products"
+        ],
+        "columnsMust": [
+          "products.stock"
+        ],
+        "sql": "SELECT name, stock FROM products WHERE stock = 0"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 7701,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-004",
+      "language": "ko",
+      "category": "aggregation",
+      "question": "카테고리별 상품 개수를 알려줘",
+      "expected": {
+        "tables": [
+          "products",
+          "categories"
+        ],
+        "columnsMust": [
+          "categories.name",
+          "products.category_id"
+        ],
+        "sql": "SELECT c.name, COUNT(p.id) AS product_count FROM categories c LEFT JOIN products p ON p.category_id = c.id GROUP BY c.name ORDER BY product_count DESC"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 7845,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-005",
+      "language": "ko",
+      "category": "aggregation",
+      "question": "도시별 고객 수를 보여줘",
+      "expected": {
+        "tables": [
+          "customers"
+        ],
+        "columnsMust": [
+          "customers.city"
+        ],
+        "sql": "SELECT city, COUNT(*) AS cnt FROM customers GROUP BY city ORDER BY cnt DESC"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 7736,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-006",
+      "language": "ko",
+      "category": "aggregation",
+      "question": "전체 주문 합계 금액은?",
+      "expected": {
+        "tables": [
+          "orders"
+        ],
+        "columnsMust": [
+          "orders.total"
+        ],
+        "sql": "SELECT SUM(total) AS total_revenue FROM orders WHERE status = 'completed'"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 5066,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-007",
+      "language": "ko",
+      "category": "join",
+      "question": "지난 30일간 주문이 가장 많은 고객 5명",
+      "expected": {
+        "tables": [
+          "orders",
+          "customers"
+        ],
+        "columnsMust": [
+          "customers.name",
+          "orders.customer_id",
+          "orders.created_at"
+        ],
+        "sql": "SELECT c.name, COUNT(o.id) AS order_count FROM customers c JOIN orders o ON o.customer_id = c.id WHERE o.created_at >= now() - interval '30 days' GROUP BY c.id, c.name ORDER BY order_count DESC LIMIT 5"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 8077,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-008",
+      "language": "ko",
+      "category": "join",
+      "question": "VIP 고객의 최근 주문 10건을 보여줘",
+      "expected": {
+        "tables": [
+          "orders",
+          "customers"
+        ],
+        "columnsMust": [
+          "customers.is_vip",
+          "orders.created_at"
+        ],
+        "sql": "SELECT c.name, o.id, o.total, o.created_at FROM orders o JOIN customers c ON c.id = o.customer_id WHERE c.is_vip = true ORDER BY o.created_at DESC LIMIT 10"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 7469,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-009",
+      "language": "ko",
+      "category": "join",
+      "question": "Electronics 카테고리 상품의 평균 평점을 알려줘",
+      "expected": {
+        "tables": [
+          "reviews",
+          "products",
+          "categories"
+        ],
+        "columnsMust": [
+          "reviews.rating",
+          "categories.name"
+        ],
+        "sql": "SELECT AVG(r.rating) AS avg_rating FROM reviews r JOIN products p ON p.id = r.product_id JOIN categories c ON c.id = p.category_id WHERE c.name = 'Electronics'"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 8081,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-010",
+      "language": "ko",
+      "category": "complex",
+      "question": "지난 분기 매출 상위 고객 10명과 그 매출액을 알려줘",
+      "expected": {
+        "tables": [
+          "orders",
+          "customers"
+        ],
+        "columnsMust": [
+          "customers.name",
+          "orders.total",
+          "orders.created_at"
+        ],
+        "sql": "SELECT c.name, SUM(o.total) AS revenue FROM customers c JOIN orders o ON o.customer_id = c.id WHERE o.created_at >= date_trunc('quarter', now()) - interval '3 months' AND o.created_at < date_trunc('quarter', now()) AND o.status = 'completed' GROUP BY c.id, c.name ORDER BY revenue DESC LIMIT 10"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 5028,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-011",
+      "language": "ko",
+      "category": "complex",
+      "question": "카테고리별 매출 합계를 매출이 높은 순으로",
+      "expected": {
+        "tables": [
+          "order_items",
+          "products",
+          "categories"
+        ],
+        "columnsMust": [
+          "categories.name",
+          "order_items.unit_price",
+          "order_items.quantity"
+        ],
+        "sql": "SELECT c.name, SUM(oi.unit_price * oi.quantity) AS revenue FROM order_items oi JOIN products p ON p.id = oi.product_id JOIN categories c ON c.id = p.category_id GROUP BY c.id, c.name ORDER BY revenue DESC"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 7750,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-012",
+      "language": "ko",
+      "category": "cte",
+      "question": "월별 주문 수와 전월 대비 증감을 알려줘",
+      "expected": {
+        "tables": [
+          "orders"
+        ],
+        "columnsMust": [
+          "orders.created_at"
+        ],
+        "sql": "WITH monthly AS (SELECT date_trunc('month', created_at) AS m, COUNT(*) AS cnt FROM orders GROUP BY 1) SELECT m, cnt, cnt - LAG(cnt) OVER (ORDER BY m) AS delta FROM monthly ORDER BY m"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 7930,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-013",
+      "language": "ko",
+      "category": "cte",
+      "question": "각 고객의 첫 구매 일자와 평균 주문 금액",
+      "expected": {
+        "tables": [
+          "orders",
+          "customers"
+        ],
+        "columnsMust": [
+          "customers.id",
+          "orders.created_at",
+          "orders.total"
+        ],
+        "sql": "SELECT c.name, MIN(o.created_at) AS first_order, AVG(o.total) AS avg_total FROM customers c JOIN orders o ON o.customer_id = c.id GROUP BY c.id, c.name"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 7918,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-014",
+      "language": "ko",
+      "category": "ambiguous",
+      "question": "최근 매출은 어때?",
+      "expected": {
+        "tables": [
+          "orders"
+        ],
+        "columnsMust": [
+          "orders.total",
+          "orders.created_at"
+        ],
+        "sql": "SELECT SUM(total) AS revenue FROM orders WHERE created_at >= now() - interval '30 days' AND status = 'completed'"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 5332,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-015",
+      "language": "en",
+      "category": "simple",
+      "question": "How many products are out of stock?",
+      "expected": {
+        "tables": [
+          "products"
+        ],
+        "columnsMust": [
+          "products.stock"
+        ],
+        "sql": "SELECT COUNT(*) FROM products WHERE stock = 0"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 7356,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-016",
+      "language": "en",
+      "category": "aggregation",
+      "question": "Average order value per status",
+      "expected": {
+        "tables": [
+          "orders"
+        ],
+        "columnsMust": [
+          "orders.status",
+          "orders.total"
+        ],
+        "sql": "SELECT status, AVG(total) AS avg_total, COUNT(*) AS cnt FROM orders GROUP BY status"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 7732,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-017",
+      "language": "en",
+      "category": "join",
+      "question": "Top 5 best-selling products by quantity sold",
+      "expected": {
+        "tables": [
+          "order_items",
+          "products"
+        ],
+        "columnsMust": [
+          "products.name",
+          "order_items.quantity"
+        ],
+        "sql": "SELECT p.name, SUM(oi.quantity) AS total_qty FROM order_items oi JOIN products p ON p.id = oi.product_id GROUP BY p.id, p.name ORDER BY total_qty DESC LIMIT 5"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 7693,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-018",
+      "language": "en",
+      "category": "complex",
+      "question": "Customers in Seoul who placed more than 3 orders this year",
+      "expected": {
+        "tables": [
+          "customers",
+          "orders"
+        ],
+        "columnsMust": [
+          "customers.city",
+          "orders.created_at"
+        ],
+        "sql": "SELECT c.name, COUNT(o.id) AS cnt FROM customers c JOIN orders o ON o.customer_id = c.id WHERE c.city = 'Seoul' AND o.created_at >= date_trunc('year', now()) GROUP BY c.id, c.name HAVING COUNT(o.id) > 3"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 8117,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-019",
+      "language": "en",
+      "category": "complex",
+      "question": "Products with average rating above 4 and at least 3 reviews",
+      "expected": {
+        "tables": [
+          "reviews",
+          "products"
+        ],
+        "columnsMust": [
+          "reviews.rating",
+          "products.name"
+        ],
+        "sql": "SELECT p.name, AVG(r.rating) AS avg_rating, COUNT(r.id) AS review_count FROM products p JOIN reviews r ON r.product_id = p.id GROUP BY p.id, p.name HAVING COUNT(r.id) >= 3 AND AVG(r.rating) > 4 ORDER BY avg_rating DESC"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 5224,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    },
+    {
+      "goldenId": "gs-020",
+      "language": "en",
+      "category": "ambiguous",
+      "question": "Show me the orders",
+      "expected": {
+        "tables": [
+          "orders"
+        ],
+        "columnsMust": [
+          "orders.id"
+        ],
+        "sql": "SELECT id, customer_id, status, total, created_at FROM orders ORDER BY created_at DESC LIMIT 100"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 7797,
+      "inputTokens": 0,
+      "outputTokens": 0,
+      "refinerAttempts": 0,
+      "errors": [
+        "PARSE_FAILED: linker_failed"
+      ]
+    }
+  ],
+  "meta": {
+    "runner": "vibesql-eval-runner",
+    "nodeEnv": "development",
+    "promptVersion": "M1-baseline"
+  }
+}

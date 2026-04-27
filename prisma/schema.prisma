@@ -27,6 +27,7 @@ model User {
   aiContextRules   AiContextRule[]
   scheduledQueries ScheduledQuery[]
   queryTemplates   QueryTemplate[]
+  auditTraces      AuditTrace[]
 
   @@map("users")
 }
@@ -37,8 +38,8 @@ model UserSettings {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // 외관
-  theme   String @default("system")        // "light" | "dark" | "system"
-  density String @default("comfortable")   // "compact" | "comfortable" | "spacious"
+  theme   String @default("system") // "light" | "dark" | "system"
+  density String @default("comfortable") // "compact" | "comfortable" | "spacious"
 
   // AI 설정
   aiModel       String @default("claude-sonnet-4-6")
@@ -67,26 +68,30 @@ enum Role {
 }
 
 model Connection {
-  id           String           @id @default(cuid())
+  id           String    @id @default(cuid())
   name         String
   type         DbDialect
   host         String?
   port         Int?
   database     String
   username     String?
-  passwordHash String?          @map("password_hash")
-  ssl          Boolean          @default(false)
-  isActive     Boolean          @default(true) @map("is_active")
-  lastTestedAt DateTime?        @map("last_tested_at")
-  lastTestedOk Boolean?         @map("last_tested_ok")
-  createdAt    DateTime         @default(now()) @map("created_at")
-  updatedAt    DateTime         @updatedAt @map("updated_at")
+  passwordHash String?   @map("password_hash")
+  ssl          Boolean   @default(false)
+  isActive     Boolean   @default(true) @map("is_active")
+  lastTestedAt DateTime? @map("last_tested_at")
+  lastTestedOk Boolean?  @map("last_tested_ok")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
-  userId  String  @map("user_id")
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  schemaTables  SchemaTable[]
-  queryHistory  QueryHistory[]
+  schemaTables SchemaTable[]
+  queryHistory QueryHistory[]
+  tableCards   TableCard[]
+  columnCards  ColumnCard[]
+  fkEdges      FkEdge[]
+  auditTraces  AuditTrace[]
 
   @@map("connections")
 }
@@ -100,50 +105,50 @@ enum DbDialect {
 }
 
 model SchemaTable {
-  id           String        @id @default(cuid())
-  tableName    String        @map("table_name")
-  schema       String        @default("public")
-  rowCountEst  String?       @map("row_count_est")
-  columnsDef   Json          @map("columns_def")
-  description  String?
-  hasPii       Boolean       @default(false) @map("has_pii")
-  scannedAt    DateTime      @default(now()) @map("scanned_at")
+  id          String   @id @default(cuid())
+  tableName   String   @map("table_name")
+  schema      String   @default("public")
+  rowCountEst String?  @map("row_count_est")
+  columnsDef  Json     @map("columns_def")
+  description String?
+  hasPii      Boolean  @default(false) @map("has_pii")
+  scannedAt   DateTime @default(now()) @map("scanned_at")
 
-  connectionId String       @map("connection_id")
-  connection   Connection   @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  connectionId String     @map("connection_id")
+  connection   Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
 
-  chunks       SchemaChunk[]
+  chunks SchemaChunk[]
 
   @@unique([connectionId, tableName, schema])
   @@map("schema_tables")
 }
 
 model SchemaChunk {
-  id         String                      @id @default(cuid())
-  content    String
+  id      String @id @default(cuid())
+  content String
   // embedding stored as float4[] via pgvector — migrate manually if needed
 
-  tableId    String      @map("table_id")
-  table      SchemaTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  tableId String      @map("table_id")
+  table   SchemaTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
 
   @@map("schema_chunks")
 }
 
 model SavedQuery {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
   description String?
-  folder      String   @default("기본")
+  folder      String    @default("기본")
   tags        String[]
-  nlQuery     String   @map("nl_query")
+  nlQuery     String    @map("nl_query")
   sql         String
   dialect     DbDialect
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
-  userId       String  @map("user_id")
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  versions     QueryVersion[]
+  userId   String         @map("user_id")
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  versions QueryVersion[]
 
   @@map("saved_queries")
 }
@@ -157,27 +162,27 @@ model QueryVersion {
   note      String?
   createdAt DateTime @default(now()) @map("created_at")
 
-  query     SavedQuery @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  query SavedQuery @relation(fields: [queryId], references: [id], onDelete: Cascade)
 
   @@index([queryId])
   @@map("query_versions")
 }
 
 model QueryHistory {
-  id          String      @id @default(cuid())
-  nlQuery     String?     @map("nl_query")
-  sql         String
-  dialect     DbDialect
-  status      QueryStatus @default(SUCCESS)
-  rowCount    Int?        @map("row_count")
-  durationMs  Int?        @map("duration_ms")
-  errorMsg    String?     @map("error_msg")
-  starred     Boolean     @default(false)
-  createdAt   DateTime    @default(now()) @map("created_at")
+  id         String      @id @default(cuid())
+  nlQuery    String?     @map("nl_query")
+  sql        String
+  dialect    DbDialect
+  status     QueryStatus @default(SUCCESS)
+  rowCount   Int?        @map("row_count")
+  durationMs Int?        @map("duration_ms")
+  errorMsg   String?     @map("error_msg")
+  starred    Boolean     @default(false)
+  createdAt  DateTime    @default(now()) @map("created_at")
 
-  userId       String     @map("user_id")
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  connectionId String?    @map("connection_id")
+  userId       String      @map("user_id")
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connectionId String?     @map("connection_id")
   connection   Connection? @relation(fields: [connectionId], references: [id], onDelete: SetNull)
 
   @@map("query_history")
@@ -225,15 +230,15 @@ model SharedLink {
 }
 
 model GlossaryTerm {
-  id          String   @id @default(cuid())
-  term        String   @unique
-  category    String
-  definition  String
-  columns     Json     @default("[]")
-  examples    String[]
-  createdBy   String?  @map("created_by")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id         String   @id @default(cuid())
+  term       String   @unique
+  category   String
+  definition String
+  columns    Json     @default("[]")
+  examples   String[]
+  createdBy  String?  @map("created_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@map("glossary_terms")
 }
@@ -270,13 +275,13 @@ enum AiProviderType {
 }
 
 model AuditLog {
-  id          String   @id @default(cuid())
-  action      String
-  userId      String?  @map("user_id")
-  ipAddress   String?  @map("ip_address")
-  userAgent   String?  @map("user_agent")
-  metadata    Json?
-  createdAt   DateTime @default(now()) @map("created_at")
+  id        String   @id @default(cuid())
+  action    String
+  userId    String?  @map("user_id")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("audit_logs")
 }
@@ -292,8 +297,8 @@ model AiContextRule {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  userId      String   @map("user_id")
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("ai_context_rules")
 }
@@ -312,23 +317,23 @@ model ScheduledQuery {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  userId        String    @map("user_id")
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  runs          ScheduleRun[]
+  userId String        @map("user_id")
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  runs   ScheduleRun[]
 
   @@map("scheduled_queries")
 }
 
 model ScheduleRun {
-  id          String    @id @default(cuid())
-  scheduleId  String    @map("schedule_id")
-  status      String
-  rowCount    Int?      @map("row_count")
-  durationMs  Int?      @map("duration_ms")
-  errorMsg    String?   @map("error_msg")
-  createdAt   DateTime  @default(now()) @map("created_at")
+  id         String   @id @default(cuid())
+  scheduleId String   @map("schedule_id")
+  status     String
+  rowCount   Int?     @map("row_count")
+  durationMs Int?     @map("duration_ms")
+  errorMsg   String?  @map("error_msg")
+  createdAt  DateTime @default(now()) @map("created_at")
 
-  schedule    ScheduledQuery @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  schedule ScheduledQuery @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 
   @@map("schedule_runs")
 }
@@ -347,7 +352,129 @@ model QueryTemplate {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("query_templates")
+}
+
+// =============================================================================
+// NL2SQL M1 (RAG-First) Models — added 2026-04-28
+// =============================================================================
+
+model TableCard {
+  id             String     @id @default(cuid())
+  connectionId   String     @map("connection_id")
+  connection     Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  schemaName     String     @default("public") @map("schema_name")
+  tableName      String     @map("table_name")
+  description    String?
+  columnsSummary String?    @map("columns_summary")
+  sampleRow      Json?      @map("sample_row")
+  embeddingModel String?    @map("embedding_model")
+  // Vector columns (added via raw SQL):
+  //   embedding vector(256) -- qwen3-embedding-0.6b on LM Studio (Matryoshka)
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  createdAt      DateTime   @default(now()) @map("created_at")
+
+  @@unique([connectionId, schemaName, tableName])
+  @@index([connectionId])
+  @@map("table_cards")
+}
+
+model ColumnCard {
+  id             String     @id @default(cuid())
+  connectionId   String     @map("connection_id")
+  connection     Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  schemaName     String     @default("public") @map("schema_name")
+  tableName      String     @map("table_name")
+  columnName     String     @map("column_name")
+  dataType       String?    @map("data_type")
+  description    String?
+  sampleValues   Json?      @map("sample_values")
+  isNullable     Boolean    @default(true) @map("is_nullable")
+  isPrimaryKey   Boolean    @default(false) @map("is_primary_key")
+  isForeignKey   Boolean    @default(false) @map("is_foreign_key")
+  embeddingModel String?    @map("embedding_model")
+  // Vector column (added via raw SQL):
+  //   embedding vector(192) -- nomic-embed-text-v1.5 on LM Studio
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  createdAt      DateTime   @default(now()) @map("created_at")
+
+  @@unique([connectionId, schemaName, tableName, columnName])
+  @@index([connectionId, tableName])
+  @@map("column_cards")
+}
+
+model FkEdge {
+  id             String     @id @default(cuid())
+  connectionId   String     @map("connection_id")
+  connection     Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  fromSchema     String     @default("public") @map("from_schema")
+  fromTable      String     @map("from_table")
+  fromColumns    String[]   @map("from_columns")
+  toSchema       String     @default("public") @map("to_schema")
+  toTable        String     @map("to_table")
+  toColumns      String[]   @map("to_columns")
+  constraintName String?    @map("constraint_name")
+  createdAt      DateTime   @default(now()) @map("created_at")
+
+  @@index([connectionId, fromTable])
+  @@index([connectionId, toTable])
+  @@map("fk_edges")
+}
+
+model AuditTrace {
+  id               String      @id @default(cuid())
+  userId           String?     @map("user_id")
+  user             User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  connectionId     String?     @map("connection_id")
+  connection       Connection? @relation(fields: [connectionId], references: [id], onDelete: SetNull)
+  question         String
+  language         String?
+  promptVersion    String?     @map("prompt_version")
+  // Stage outputs (each step recorded for debugging/auditing)
+  clarification    Json?
+  linkerInput      Json?       @map("linker_input")
+  linkerOutput     Json?       @map("linker_output")
+  generatorInput   Json?       @map("generator_input")
+  generatorOutput  Json?       @map("generator_output")
+  sql              String?
+  rationale        String?
+  validationResult Json?       @map("validation_result")
+  executionResult  Json?       @map("execution_result")
+  refinerAttempts  Int         @default(0) @map("refiner_attempts")
+  // Metrics
+  tokenInputTotal  Int?        @map("token_input_total")
+  tokenOutputTotal Int?        @map("token_output_total")
+  durationMs       Int?        @map("duration_ms")
+  // Status: success | clarification_needed | linker_failed | validation_failed | execution_failed | refiner_exhausted
+  status           String
+  errorMessage     String?     @map("error_message")
+  createdAt        DateTime    @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([connectionId, createdAt])
+  @@map("audit_traces")
+}
+
+model GoldenItem {
+  id                  String   @id @default(cuid())
+  goldenId            String   @unique @map("golden_id")
+  language            String // "ko" | "en"
+  dialect             String // "postgres" | "mysql" | etc
+  schemaFixture       String   @map("schema_fixture")
+  question            String
+  expectedTables      String[] @map("expected_tables")
+  expectedColumnsMust String[] @map("expected_columns_must")
+  expectedSql         String?  @map("expected_sql")
+  validator           String // "ast_normalize_match" | "result_set_match" | "row_count_match" | "column_subset_match"
+  category            String // "simple" | "aggregation" | "join" | "complex" | "cte" | "ambiguous"
+  notes               String?
+  isActive            Boolean  @default(true) @map("is_active")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@index([dialect, isActive])
+  @@map("golden_items")
 }
