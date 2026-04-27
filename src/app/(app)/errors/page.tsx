@@ -291,7 +291,7 @@ export default function ErrorsPage() {
                           </div>
                         </div>
                         <button
-                          title="SQL 복사"
+                          aria-label="SQL 복사"
                           onClick={() => {
                             void navigator.clipboard.writeText(err.sql);
                             setCopiedId(err.id);

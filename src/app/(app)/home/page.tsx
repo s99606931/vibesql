@@ -954,7 +954,7 @@ function StatsSection() {
                   </span>
                   <StatusBadge status={item.status} />
                   <button
-                    title="SQL 복사"
+                    aria-label="SQL 복사"
                     onClick={(e) => {
                       e.stopPropagation();
                       void navigator.clipboard.writeText(item.sql);

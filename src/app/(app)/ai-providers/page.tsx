@@ -350,7 +350,7 @@ function ProviderCard({
                 {provider.model}
               </span>
               <button
-                title="모델명 복사"
+                aria-label="모델명 복사"
                 onClick={() => {
                   void navigator.clipboard.writeText(provider.model);
                   setCopiedModel(true);
