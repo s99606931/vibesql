@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
@@ -268,6 +268,14 @@ export default function TemplatesPage() {
   const [category, setCategory] = useState<TemplateCategory | "all">("all");
   const [saveModal, setSaveModal] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const queryKey = ["templates", category, search];
 
@@ -362,9 +370,10 @@ export default function TemplatesPage() {
           <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
             <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
             <input
+              ref={searchRef}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="템플릿 검색..."
+              placeholder="템플릿 검색... (⌘F)"
               style={{
                 width: "100%", paddingLeft: 30, paddingRight: "var(--ds-sp-3)",
                 paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)",

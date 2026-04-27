@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
@@ -330,6 +330,15 @@ export default function SavedPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved"] }),
   });
 
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   function exportSavedCsv() {
     if (filtered.length === 0) return;
     const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
@@ -431,9 +440,10 @@ export default function SavedPage() {
           >
             <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <input
+              ref={searchRef}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="저장된 쿼리 검색..."
+              placeholder="저장된 쿼리 검색... (⌘F)"
               style={{
                 border: "none",
                 background: "transparent",

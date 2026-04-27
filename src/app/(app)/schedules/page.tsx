@@ -6,7 +6,7 @@ import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
-import { Plus, Trash2, Play, Pencil, Clock, Calendar, CheckCircle2, XCircle, Loader, ChevronDown, ChevronRight, Database } from "lucide-react";
+import { Plus, Trash2, Play, Pencil, Clock, Calendar, CheckCircle2, XCircle, Loader, ChevronDown, ChevronRight, Database, Search } from "lucide-react";
 import type { ScheduledQuery, DbDialect } from "@/types";
 import { useConnections } from "@/hooks/useConnections";
 
@@ -328,6 +328,7 @@ export default function SchedulesPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [expandedSqlId, setExpandedSqlId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   const { data: schedules = [], isLoading } = useQuery({
     queryKey: ["schedules"],
@@ -489,8 +490,23 @@ export default function SchedulesPage() {
         )}
 
         {!isLoading && schedules.length > 0 && (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-3)" }}>
+              <div style={{ position: "relative", flex: 1, maxWidth: 320 }}>
+                <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="스케줄 검색..."
+                  style={{ width: "100%", paddingLeft: 30, paddingRight: "var(--ds-sp-3)", paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)" }}
+                />
+              </div>
+              <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
+                {schedules.filter((s) => !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.sql.toLowerCase().includes(search.toLowerCase())).length}개
+              </span>
+            </div>
           <Card padding={0}>
-            {schedules.map((schedule, i) => (
+            {schedules.filter((s) => !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.sql.toLowerCase().includes(search.toLowerCase())).map((schedule, i, arr) => (
               <div
                 key={schedule.id}
                 style={{
@@ -498,7 +514,7 @@ export default function SchedulesPage() {
                   alignItems: "center",
                   gap: "var(--ds-sp-3)",
                   padding: "var(--ds-sp-3) var(--ds-sp-4)",
-                  borderBottom: i < schedules.length - 1 ? "1px solid var(--ds-border)" : undefined,
+                  borderBottom: i < arr.length - 1 ? "1px solid var(--ds-border)" : undefined,
                   opacity: schedule.isActive ? 1 : 0.6,
                 }}
               >
@@ -673,6 +689,7 @@ export default function SchedulesPage() {
               </div>
             ))}
           </Card>
+          </>
         )}
       </div>
 

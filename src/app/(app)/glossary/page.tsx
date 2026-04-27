@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
@@ -119,6 +119,15 @@ export default function GlossaryPage() {
     setIsEditing(false);
   }
 
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   const allCategories = [...new Set(terms.map((t) => t.category))].sort();
 
   const filtered = terms.filter((t) => {
@@ -197,9 +206,10 @@ export default function GlossaryPage() {
             >
               <Search size={12} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
               <input
+                ref={searchRef}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="용어 검색..."
+                placeholder="용어 검색... (⌘F)"
                 style={{
                   border: "none",
                   background: "transparent",

@@ -6,7 +6,7 @@ import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
-import { Plus, Trash2, Pencil, Lightbulb, ShieldX, Tag, ToggleLeft, ToggleRight, ChevronDown, ChevronRight, Copy, Check } from "lucide-react";
+import { Plus, Trash2, Pencil, Lightbulb, ShieldX, Tag, ToggleLeft, ToggleRight, ChevronDown, ChevronRight, Copy, Check, Search } from "lucide-react";
 import type { AiContextRule, AiContextRuleType } from "@/types";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -338,9 +338,16 @@ export default function AiContextPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ai-context"] }),
   });
 
+  const [search, setSearch] = useState("");
+
   const groupedRules = RULE_TYPES.map((t) => ({
     type: t,
-    items: rules.filter((r) => r.ruleType === t),
+    items: rules.filter((r) => {
+      if (r.ruleType !== t) return false;
+      if (!search) return true;
+      const lc = search.toLowerCase();
+      return r.key.toLowerCase().includes(lc) || r.value.toLowerCase().includes(lc) || (r.description ?? "").toLowerCase().includes(lc);
+    }),
   }));
 
   function handleExport() {
@@ -416,6 +423,18 @@ export default function AiContextPage() {
           <strong style={{ color: "var(--ds-accent)" }}>AI 컨텍스트 튜너</strong>란? 예시 쿼리, 금지 패턴, 테이블 별칭을 등록하면
           SQL 생성 시 자동으로 AI 프롬프트에 주입되어 정확도를 향상시킵니다.
         </div>
+
+        {!isLoading && rules.length > 0 && (
+          <div style={{ position: "relative", marginBottom: "var(--ds-sp-4)", maxWidth: 320 }}>
+            <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="규칙 검색..."
+              style={{ width: "100%", paddingLeft: 30, paddingRight: "var(--ds-sp-3)", paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", boxSizing: "border-box" }}
+            />
+          </div>
+        )}
 
         {isLoading && (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }}>
