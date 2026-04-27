@@ -395,6 +395,7 @@ export default function TemplatesPage() {
             <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
             <input
               ref={searchRef}
+              aria-label="템플릿 검색"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="템플릿 검색... (⌘F)"

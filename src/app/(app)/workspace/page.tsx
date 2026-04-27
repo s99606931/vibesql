@@ -213,6 +213,7 @@ function TemplatePicker({
             <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <input
               autoFocus
+              aria-label="템플릿 검색"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="템플릿 검색... (⌘F)"

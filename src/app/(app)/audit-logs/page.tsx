@@ -246,6 +246,7 @@ export default function AuditLogsPage() {
             <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
             <input
               ref={searchRef}
+              aria-label="액션 / 사용자 검색"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder="액션 / 사용자 검색... (⌘F)"
@@ -264,6 +265,7 @@ export default function AuditLogsPage() {
             )}
           </div>
           <input
+            aria-label="사용자 ID 필터"
             value={userIdFilter}
             onChange={(e) => { setUserIdFilter(e.target.value); setPage(1); }}
             placeholder="사용자 ID 필터..."

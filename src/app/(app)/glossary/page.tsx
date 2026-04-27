@@ -224,6 +224,7 @@ export default function GlossaryPage() {
               <Search size={12} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
               <input
                 ref={searchRef}
+                aria-label="용어 검색"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="용어 검색... (⌘F)"

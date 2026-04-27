@@ -295,6 +295,7 @@ export default function DashboardsPage() {
             <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <input
               ref={searchRef}
+              aria-label="대시보드 검색"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="대시보드 검색... (⌘F)"
