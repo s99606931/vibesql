@@ -79,9 +79,9 @@ interface QueryResult {
 // ── Helper ───────────────────────────────────────────────────────────────────
 
 function WidgetTypeIcon({ type }: { type: string }) {
-  if (type === "line") return <TrendingUp size={14} />;
-  if (type === "bar") return <BarChart2 size={14} />;
-  return <Table2 size={14} />;
+  if (type === "line") return <TrendingUp aria-hidden="true" size={14} />;
+  if (type === "bar") return <BarChart2 aria-hidden="true" size={14} />;
+  return <Table2 aria-hidden="true" size={14} />;
 }
 
 // ── Connection Selector ───────────────────────────────────────────────────────
@@ -97,7 +97,7 @@ function ConnectionSelector({ connections, selectedId, onChange }: ConnectionSel
 
   return (
     <div style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
-      <Database size={13} style={{ color: "var(--ds-text-mute)", flexShrink: 0 }} />
+      <Database aria-hidden="true" size={13} style={{ color: "var(--ds-text-mute)", flexShrink: 0 }} />
       <div style={{ position: "relative" }}>
         <select
           aria-label="데이터베이스 연결 선택"
@@ -126,6 +126,7 @@ function ConnectionSelector({ connections, selectedId, onChange }: ConnectionSel
           ))}
         </select>
         <ChevronDown
+          aria-hidden="true"
           size={12}
           style={{
             position: "absolute",
@@ -247,7 +248,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
                 transition: "opacity var(--ds-dur-fast) var(--ds-ease)",
               }}
             >
-              <RefreshCw size={11} style={{ animation: isLoading ? "spin 1s linear infinite" : undefined }} />
+              <RefreshCw aria-hidden="true" size={11} style={{ animation: isLoading ? "spin 1s linear infinite" : undefined }} />
             </button>
           )}
           <button
@@ -300,7 +301,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
               gap: "var(--ds-sp-2)",
             }}
           >
-            <Database size={18} style={{ color: "var(--ds-text-faint)", opacity: 0.5 }} />
+            <Database aria-hidden="true" size={18} style={{ color: "var(--ds-text-faint)", opacity: 0.5 }} />
             <span>연결을 선택하면 SQL을 실행합니다.</span>
           </div>
         )}
@@ -334,7 +335,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
                 color: "var(--ds-danger)",
               }}
             >
-              <AlertCircle size={13} />
+              <AlertCircle aria-hidden="true" size={13} />
               <span>{error instanceof Error ? error.message : "쿼리 실행에 실패했습니다."}</span>
             </div>
             {widget.sql && (
@@ -628,8 +629,8 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                   >
                     <Pill variant={dashboard.isPublic ? "success" : "default"}>
                       {dashboard.isPublic
-                        ? <><Globe size={10} style={{ marginRight: 3 }} />공유됨</>
-                        : <><Lock size={10} style={{ marginRight: 3 }} />비공개</>}
+                        ? <><Globe aria-hidden="true" size={10} style={{ marginRight: 3 }} />공유됨</>
+                        : <><Lock aria-hidden="true" size={10} style={{ marginRight: 3 }} />비공개</>}
                     </Pill>
                   </button>
                   {dashboard.isPublic && (
@@ -655,7 +656,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                       }}
                       aria-label={copiedUrl ? "복사됨" : "공유 URL 복사"}
                     >
-                      {copiedUrl ? <Check size={11} /> : <Copy size={11} />}
+                      {copiedUrl ? <Check aria-hidden="true" size={11} /> : <Copy aria-hidden="true" size={11} />}
                       {copiedUrl ? "복사됨!" : "URL 복사"}
                     </button>
                   )}
@@ -668,7 +669,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                       color: "var(--ds-text-faint)",
                     }}
                   >
-                    <Clock size={11} />
+                    <Clock aria-hidden="true" size={11} />
                     <span title={new Date(dashboard.updatedAt).toLocaleString("ko-KR")}>{formatRelativeTime(dashboard.updatedAt)}</span>
                   </span>
                 </div>
@@ -753,7 +754,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                     color: "var(--ds-accent)",
                   }}
                 >
-                  <Database size={14} />
+                  <Database aria-hidden="true" size={14} />
                   <span>
                     SQL 위젯을 실행하려면{" "}
                     <a
@@ -811,7 +812,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                           transition: "color var(--ds-dur-fast) var(--ds-ease)",
                         }}
                       >
-                        <X size={12} />
+                        <X aria-hidden="true" size={12} />
                       </button>
                     </div>
                   ))}
