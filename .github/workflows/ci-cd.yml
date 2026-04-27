@@ -97,20 +97,33 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli@latest
 
-      - name: List Railway services (debug)
-        run: railway list 2>&1 || true
+      - name: Query Railway project services via API
+        run: |
+          echo "=== Railway Project Services ==="
+          curl -s https://backboard.railway.com/graphql/v2 \
+            -H "Authorization: Bearer $RAILWAY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"query":"{ me { projects { edges { node { id name services { edges { node { id name } } } } } } } }"}' \
+            | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+if 'errors' in data:
+    print('API Error:', data['errors'])
+else:
+    projects = data.get('data', {}).get('me', {}).get('projects', {}).get('edges', [])
+    for p in projects:
+        proj = p['node']
+        print(f'Project: {proj[\"name\"]} ({proj[\"id\"]})')
+        for s in proj.get('services', {}).get('edges', []):
+            svc = s['node']
+            print(f'  Service: {svc[\"name\"]} ({svc[\"id\"]})')
+" || echo "API query failed"
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
       - name: Deploy to Railway
         id: deploy
         run: |
-          # Try with service name first; fall back to no-service (project token auto-detect)
-          if railway up --service "${{ secrets.RAILWAY_SERVICE_NAME }}" --detach 2>&1; then
-            echo "Deployed with service name"
-          else
-            echo "Service name failed, retrying without --service flag"
-            railway up --detach
-          fi
+          railway up --service "${{ secrets.RAILWAY_SERVICE_NAME }}" --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
