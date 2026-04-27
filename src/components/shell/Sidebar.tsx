@@ -338,7 +338,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 background: activeConnection ? "var(--ds-success)" : "var(--ds-text-faint)",
                 display: "inline-block", flexShrink: 0,
               }} />
-              <span style={{
+              <span title={activeConnection ? activeConnection.name : "연결 없음"} style={{
                 fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)",
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
@@ -487,7 +487,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 {userRole === "ADMIN" ? <Crown size={11} /> : userInitial}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
+                <div title={currentUser?.name ?? "사용자"} style={{
                   fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text)",
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                 }}>

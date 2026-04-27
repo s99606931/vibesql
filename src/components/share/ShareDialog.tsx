@@ -161,6 +161,7 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
 
         {/* SQL preview */}
         <div
+          title={sql}
           style={{
             background: "var(--ds-fill)",
             border: "1px solid var(--ds-border)",
@@ -260,6 +261,7 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
               }}
             >
               <span
+                title={shareUrl}
                 style={{
                   flex: 1,
                   minWidth: 0,

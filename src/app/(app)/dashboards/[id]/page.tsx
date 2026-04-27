@@ -209,6 +209,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
             <WidgetTypeIcon type={widget.type} />
           </span>
           <span
+            title={widget.label}
             style={{
               fontSize: "var(--ds-fs-13)",
               fontWeight: "var(--ds-fw-medium)",
