@@ -9,7 +9,7 @@ import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Button } from "@/components/ui-vs/Button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RotateCcw, Star, MoreHorizontal, Trash2, Download, ChevronDown, ChevronRight, Copy, Check } from "lucide-react";
+import { RotateCcw, Star, MoreHorizontal, Trash2, Download, ChevronDown, ChevronRight, Copy, Check, X } from "lucide-react";
 
 type HistoryFilter = "전체" | "성공" | "실패" | "즐겨찾기";
 const HISTORY_FILTERS: HistoryFilter[] = ["전체", "성공", "실패", "즐겨찾기"];
@@ -213,23 +213,33 @@ export default function HistoryPage() {
             </button>
           ))}
           <div style={{ flex: 1 }} />
-          <input
-            ref={searchRef}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="히스토리 검색... (⌘F)"
-            style={{
-              padding: "var(--ds-sp-1) var(--ds-sp-3)",
-              border: "1px solid var(--ds-border)",
-              borderRadius: "var(--ds-r-6)",
-              background: "var(--ds-surface)",
-              color: "var(--ds-text)",
-              fontSize: "var(--ds-fs-12)",
-              outline: "none",
-              fontFamily: "var(--ds-font-sans)",
-              width: 200,
-            }}
-          />
+          <div style={{ position: "relative" }}>
+            <input
+              ref={searchRef}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="히스토리 검색... (⌘F)"
+              style={{
+                paddingTop: "var(--ds-sp-1)",
+                paddingBottom: "var(--ds-sp-1)",
+                paddingLeft: "var(--ds-sp-3)",
+                paddingRight: search ? 28 : "var(--ds-sp-3)",
+                border: "1px solid var(--ds-border)",
+                borderRadius: "var(--ds-r-6)",
+                background: "var(--ds-surface)",
+                color: "var(--ds-text)",
+                fontSize: "var(--ds-fs-12)",
+                outline: "none",
+                fontFamily: "var(--ds-font-sans)",
+                width: 200,
+              }}
+            />
+            {search && (
+              <button onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0 }}>
+                <X size={13} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Loading skeleton */}

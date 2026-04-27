@@ -8,7 +8,7 @@ import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Card, CardHead } from "@/components/ui-vs/Card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, Plus, Search, Clock, BarChart2, TrendingUp, Table2, ExternalLink, Link2, Check, Pencil, Globe, Lock, Download } from "lucide-react";
+import { LayoutDashboard, Plus, Search, Clock, BarChart2, TrendingUp, Table2, ExternalLink, Link2, Check, Pencil, Globe, Lock, Download, X } from "lucide-react";
 
 interface StatsData {
   totalQueries: number;
@@ -308,6 +308,11 @@ export default function DashboardsPage() {
                 flex: 1,
               }}
             />
+            {search && (
+              <button onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0 }}>
+                <X size={12} />
+              </button>
+            )}
           </div>
         </div>
 

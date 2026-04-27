@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
-import { Search, Activity, Shield, Database, Zap, FileText, Settings, Download } from "lucide-react";
+import { Search, Activity, Shield, Database, Zap, FileText, Settings, Download, X } from "lucide-react";
 import type { AuditLogItem } from "@/app/api/audit-logs/route";
 
 // ─── Action meta ──────────────────────────────────────────────────────────────
@@ -244,13 +244,18 @@ export default function AuditLogsPage() {
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder="액션 / 사용자 검색... (⌘F)"
               style={{
-                width: "100%", paddingLeft: 30, paddingRight: "var(--ds-sp-3)",
+                width: "100%", paddingLeft: 30, paddingRight: search ? 28 : "var(--ds-sp-3)",
                 paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)",
                 background: "var(--ds-fill)", border: "1px solid var(--ds-border)",
                 borderRadius: "var(--ds-r-6)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)",
                 outline: "none", fontFamily: "var(--ds-font-sans)",
               }}
             />
+            {search && (
+              <button onClick={() => { setSearch(""); setPage(1); }} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0 }}>
+                <X size={13} />
+              </button>
+            )}
           </div>
           <input
             value={userIdFilter}

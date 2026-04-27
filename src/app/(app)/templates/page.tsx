@@ -9,7 +9,7 @@ import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
 import {
   Plus, Trash2, ExternalLink, Search, BarChart2,
-  Wrench, FileText, Bug, Star, Tag, ChevronDown, ChevronRight, Copy, Check,
+  Wrench, FileText, Bug, Star, Tag, ChevronDown, ChevronRight, Copy, Check, X,
 } from "lucide-react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import type { QueryTemplate, TemplateCategory } from "@/app/api/templates/route";
@@ -390,12 +390,17 @@ export default function TemplatesPage() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder="템플릿 검색... (⌘F)"
               style={{
-                width: "100%", paddingLeft: 30, paddingRight: "var(--ds-sp-3)",
+                width: "100%", paddingLeft: 30, paddingRight: search ? 28 : "var(--ds-sp-3)",
                 paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)",
                 background: "var(--ds-fill)", border: "1px solid var(--ds-border)",
                 borderRadius: "var(--ds-r-6)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)",
               }}
             />
+            {search && (
+              <button onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0 }}>
+                <X size={13} />
+              </button>
+            )}
           </div>
           {/* Category filter */}
           <div style={{ display: "flex", gap: "var(--ds-sp-1)", flexWrap: "wrap", alignItems: "center" }}>
