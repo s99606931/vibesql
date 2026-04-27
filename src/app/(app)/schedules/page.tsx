@@ -35,6 +35,17 @@ function cronToHuman(expr: string): string {
   return "";
 }
 
+function isCronValid(expr: string): boolean {
+  const parts = expr.trim().split(/\s+/);
+  if (parts.length !== 5) return false;
+  const ranges = [[0, 59], [0, 23], [1, 31], [1, 12], [0, 7]];
+  return parts.every((p, i) => {
+    if (p === "*") return true;
+    const n = parseInt(p, 10);
+    return !isNaN(n) && n >= ranges[i][0] && n <= ranges[i][1];
+  });
+}
+
 const CRON_PRESETS = [
   { label: "매시간", value: "0 * * * *" },
   { label: "매일 자정", value: "0 0 * * *" },
@@ -248,7 +259,12 @@ function ScheduleModal({
             <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
               형식: 분 시 일 월 요일 (예: 0 9 * * 1 = 매주 월요일 오전 9시)
             </span>
-            {cronToHuman(form.cronExpr) && (
+            {form.cronExpr.trim() && !isCronValid(form.cronExpr) && (
+              <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-danger)", fontWeight: "var(--ds-fw-medium)" }}>
+                ⚠ 잘못된 Cron 형식입니다
+              </span>
+            )}
+            {cronToHuman(form.cronExpr) && isCronValid(form.cronExpr) && (
               <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-accent)", fontWeight: "var(--ds-fw-medium)" }}>
                 → {cronToHuman(form.cronExpr)}
               </span>
@@ -280,7 +296,7 @@ function ScheduleModal({
             size="md"
             loading={saving}
             onClick={() => onSave(form)}
-            disabled={!form.name.trim() || !form.sql.trim() || !form.cronExpr.trim()}
+            disabled={!form.name.trim() || !form.sql.trim() || !isCronValid(form.cronExpr)}
           >
             저장
           </Button>

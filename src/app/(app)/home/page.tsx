@@ -177,10 +177,12 @@ type CheckStatus = "loading" | "ok" | "empty" | "error";
 
 function GuideItem({
   item,
+  defaultOpen = false,
 }: {
   item: (typeof MENU_GUIDES)[number];
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const Icon = item.icon;
   return (
     <div
@@ -610,8 +612,8 @@ export default function HomePage() {
               메뉴별 사용 가이드
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}>
-              {MENU_GUIDES.map((item) => (
-                <GuideItem key={item.href} item={item} />
+              {MENU_GUIDES.map((item, idx) => (
+                <GuideItem key={item.href} item={item} defaultOpen={idx === 0} />
               ))}
             </div>
           </div>

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Card, CardHead } from "@/components/ui-vs/Card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, Plus, Search, Clock, BarChart2, TrendingUp, Table2, ExternalLink, Link2, Check } from "lucide-react";
+import { LayoutDashboard, Plus, Search, Clock, BarChart2, TrendingUp, Table2, ExternalLink, Link2, Check, Pencil, Globe, Lock } from "lucide-react";
 
 interface StatsData {
   totalQueries: number;
@@ -90,6 +90,10 @@ export default function DashboardsPage() {
   const [newDashDesc, setNewDashDesc] = useState("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [copiedDashId, setCopiedDashId] = useState<string | null>(null);
+  const [editModal, setEditModal] = useState<Dashboard | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [editPublic, setEditPublic] = useState(false);
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -133,6 +137,18 @@ export default function DashboardsPage() {
     mutationFn: async (id: string) => {
       const r = await fetch(`/api/dashboards/${id}`, { method: "DELETE" });
       if (!r.ok) throw new Error("삭제 실패");
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboards"] }),
+  });
+
+  const editMutation = useMutation({
+    mutationFn: async ({ id, name, description, isPublic }: { id: string; name: string; description?: string; isPublic: boolean }) => {
+      const r = await fetch(`/api/dashboards/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, description: description || undefined, isPublic }),
+      });
+      if (!r.ok) throw new Error("편집 실패");
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboards"] }),
   });
@@ -330,6 +346,14 @@ export default function DashboardsPage() {
                       >
                         {copiedDashId === dash.id ? "복사됨" : "링크"}
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={<Pencil size={12} />}
+                        onClick={() => { setEditName(dash.name); setEditDesc(dash.description ?? ""); setEditPublic(dash.isPublic); setEditModal(dash); }}
+                      >
+                        편집
+                      </Button>
                       <Button variant="ghost" size="sm" icon={<ExternalLink size={12} />} onClick={() => router.push(`/dashboards/${dash.id}`)}>
                         열기
                       </Button>
@@ -429,6 +453,47 @@ export default function DashboardsPage() {
                 style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)" }}
               >
                 만들기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
+          onClick={() => setEditModal(null)}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 380, width: "100%" }}>
+            <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-3)" }}>대시보드 편집</div>
+            <input
+              autoFocus
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder="대시보드 이름..."
+              style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-2)", boxSizing: "border-box" }}
+            />
+            <input
+              value={editDesc}
+              onChange={(e) => setEditDesc(e.target.value)}
+              placeholder="설명 (선택)"
+              style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-3)", boxSizing: "border-box" }}
+            />
+            <button
+              onClick={() => setEditPublic((v) => !v)}
+              style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-2) var(--ds-sp-3)", width: "100%", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: editPublic ? "var(--ds-accent-soft)" : "var(--ds-fill)", cursor: "pointer", fontFamily: "var(--ds-font-sans)", fontSize: "var(--ds-fs-13)", color: editPublic ? "var(--ds-accent)" : "var(--ds-text-mute)", marginBottom: "var(--ds-sp-4)", textAlign: "left" }}
+            >
+              {editPublic ? <Globe size={14} /> : <Lock size={14} />}
+              {editPublic ? "공개 — 링크가 있는 누구나 볼 수 있음" : "비공개 — 나만 볼 수 있음"}
+            </button>
+            <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button onClick={() => setEditModal(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}>취소</button>
+              <button
+                onClick={() => { if (editName.trim()) { editMutation.mutate({ id: editModal.id, name: editName.trim(), description: editDesc.trim(), isPublic: editPublic }); setEditModal(null); } }}
+                disabled={!editName.trim() || editMutation.isPending}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)" }}
+              >
+                {editMutation.isPending ? "저장 중..." : "저장"}
               </button>
             </div>
           </div>

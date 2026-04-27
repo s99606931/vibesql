@@ -29,6 +29,7 @@ export default function SchemaPage() {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<SchemaFilter>("all");
   const [copiedTable, setCopiedTable] = useState<string | null>(null);
+  const [expandedTable, setExpandedTable] = useState<string | null>(null);
   const { activeConnectionId, setActiveConnection } = useWorkspaceStore();
   const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
   const router = useRouter();
@@ -58,6 +59,11 @@ export default function SchemaPage() {
   });
 
   function handleTableClick(table: TableMeta) {
+    setExpandedTable((prev) => (prev === table.name ? null : table.name));
+  }
+
+  function handleTableRun(e: React.MouseEvent, table: TableMeta) {
+    e.stopPropagation();
     const sql = `SELECT *\nFROM ${table.name}\nLIMIT 100;`;
     setSql(sql);
     setNlQuery(`${table.name} 테이블 전체 조회`);
@@ -73,11 +79,6 @@ export default function SchemaPage() {
         setTimeout(() => setCopiedTable(null), 1500);
       })
       .catch(() => {});
-  }
-
-  function handleRunSelect(e: React.MouseEvent, table: TableMeta) {
-    e.stopPropagation();
-    handleTableClick(table);
   }
 
   return (
@@ -254,7 +255,7 @@ export default function SchemaPage() {
                         )}
                       </button>
                       <button
-                        onClick={(e) => handleRunSelect(e, table)}
+                        onClick={(e) => handleTableRun(e, table)}
                         title="워크스페이스에서 SELECT 실행"
                         style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-accent)", display: "flex", alignItems: "center", padding: 2 }}
                       >
@@ -264,7 +265,7 @@ export default function SchemaPage() {
                   }
                 />
 
-                {/* Columns preview */}
+                {/* Columns */}
                 <div
                   style={{
                     display: "flex",
@@ -273,7 +274,7 @@ export default function SchemaPage() {
                     marginBottom: "var(--ds-sp-3)",
                   }}
                 >
-                  {table.cols.slice(0, 5).map((col) => (
+                  {(expandedTable === table.name ? table.cols : table.cols.slice(0, 5)).map((col) => (
                     <span
                       key={col}
                       style={{
@@ -288,9 +289,14 @@ export default function SchemaPage() {
                       {col}
                     </span>
                   ))}
-                  {table.cols.length > 5 && (
-                    <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)" }}>
-                      +{table.cols.length - 5} more
+                  {table.cols.length > 5 && expandedTable !== table.name && (
+                    <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)", cursor: "pointer" }}>
+                      +{table.cols.length - 5} 더 보기
+                    </span>
+                  )}
+                  {expandedTable === table.name && table.cols.length > 5 && (
+                    <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", cursor: "pointer" }}>
+                      접기 ▲
                     </span>
                   )}
                 </div>
