@@ -129,10 +129,14 @@ export default function GlossaryPage() {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+      if (e.key === "Escape") {
+        if (showAdd) { setShowAdd(false); return; }
+        if (isEditing) setIsEditing(false);
+      }
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, []);
+  }, [showAdd, isEditing]);
 
   const allCategories = [...new Set(terms.map((t) => t.category))].sort();
 
