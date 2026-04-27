@@ -72,6 +72,7 @@ function LogRow({ log }: { log: AuditLogItem }) {
   const group = categorizeAction(log.action);
   const meta = ACTION_META[group];
   const Icon = meta.icon;
+  const detailId = `log-detail-${log.id}`;
 
   return (
     <div
@@ -85,6 +86,7 @@ function LogRow({ log }: { log: AuditLogItem }) {
         role={log.metadata ? "button" : undefined}
         tabIndex={log.metadata ? 0 : undefined}
         aria-expanded={log.metadata ? expanded : undefined}
+        aria-controls={log.metadata ? detailId : undefined}
         aria-label={log.metadata ? "로그 상세 보기" : undefined}
         style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-3)", cursor: log.metadata ? "pointer" : "default" }}
         onClick={() => { if (log.metadata) setExpanded((v) => !v); }}
@@ -121,7 +123,7 @@ function LogRow({ log }: { log: AuditLogItem }) {
       </div>
 
       {expanded && log.metadata && (
-        <pre style={{
+        <pre id={detailId} style={{
           marginTop: "var(--ds-sp-2)", marginLeft: 28,
           background: "var(--ds-fill)", borderRadius: "var(--ds-r-6)",
           padding: "var(--ds-sp-2) var(--ds-sp-3)", fontSize: "var(--ds-fs-11)",

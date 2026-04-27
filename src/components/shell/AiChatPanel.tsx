@@ -83,7 +83,7 @@ function SqlBlock({ code, lang, isSql, onApply }: { code: string; lang: string; 
       }}>
         <button
           type="button"
-          aria-label="코드 복사"
+          aria-label={copied ? "복사됨" : "코드 복사"}
           onClick={handleCopy}
           title="복사"
           style={{
