@@ -351,6 +351,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                 }}
               >
                 <Loader2
+                  aria-hidden="true"
                   size={14}
                   style={{ animation: "spin 1s linear infinite" }}
                 />
@@ -377,7 +378,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                       color: "var(--ds-success)",
                     }}
                   >
-                    <Check size={14} />
+                    <Check aria-hidden="true" size={14} />
                     {item}
                   </div>
                 ))}
@@ -395,7 +396,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                   color: "var(--ds-danger)",
                 }}
               >
-                <X size={14} />
+                <X aria-hidden="true" size={14} />
                 {testMutation.error.message}
               </div>
             )}
@@ -437,6 +438,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                     스키마 분석 중...
                   </span>
                   <Loader2
+                    aria-hidden="true"
                     size={12}
                     style={{ animation: "spin 1s linear infinite", color: "var(--ds-text-faint)" }}
                   />
@@ -466,7 +468,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                 <div
                   style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}
                 >
-                  <Check size={14} style={{ color: "var(--ds-success)" }} />
+                  <Check aria-hidden="true" size={14} style={{ color: "var(--ds-success)" }} />
                   <span
                     style={{
                       fontSize: "var(--ds-fs-13)",
@@ -493,7 +495,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                   color: "var(--ds-danger)",
                 }}
               >
-                <X size={14} />
+                <X aria-hidden="true" size={14} />
                 {scanMutation.error.message}
               </div>
             )}
@@ -513,7 +515,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
               color: "var(--ds-danger)",
             }}
           >
-            <X size={12} />
+            <X aria-hidden="true" size={12} />
             {stepError}
           </div>
         )}

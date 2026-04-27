@@ -158,7 +158,7 @@ export default function ErrorsPage() {
           ].map((item) => (
             <Card key={item.label}>
               <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-3)" }}>
-                <item.icon size={20} style={{ color: item.color }} />
+                <item.icon aria-hidden="true" size={20} style={{ color: item.color }} />
                 <div>
                   <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>{item.label}</div>
                   <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>{item.value}</div>
@@ -229,7 +229,7 @@ export default function ErrorsPage() {
             {!historyLoading && allErrors.length === 0 && (
               <Card>
                 <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-mute)" }}>
-                  <CheckCircle2 size={32} style={{ color: "var(--ds-success)", margin: "0 auto var(--ds-sp-3)" }} />
+                  <CheckCircle2 aria-hidden="true" size={32} style={{ color: "var(--ds-success)", margin: "0 auto var(--ds-sp-3)" }} />
                   <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)" }}>오류 없음</div>
                   <div style={{ fontSize: "var(--ds-fs-12)", marginTop: 4 }}>최근 실행된 쿼리에 오류가 없습니다.</div>
                 </div>
@@ -239,7 +239,7 @@ export default function ErrorsPage() {
             {!historyLoading && allErrors.length > 0 && (
               <>
                 <div role="search" aria-label="오류 검색" style={{ position: "relative", maxWidth: 320, marginBottom: "var(--ds-sp-3)" }}>
-                  <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+                  <Search aria-hidden="true" size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
                   <input
                     ref={searchRef}
                     type="search"
@@ -251,7 +251,7 @@ export default function ErrorsPage() {
                   />
                   {search && (
                     <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
-                      <X size={13} />
+                      <X aria-hidden="true" size={13} />
                     </button>
                   )}
                 </div>
@@ -309,7 +309,7 @@ export default function ErrorsPage() {
                           className="opacity-0 group-hover:opacity-100"
                           style={{ background: "none", border: "none", cursor: "pointer", color: copied ? "var(--ds-success)" : "var(--ds-text-faint)", padding: "var(--ds-sp-1)", borderRadius: "var(--ds-r-6)", display: "flex", alignItems: "center", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                         >
-                          {copied ? <Check size={13} /> : <Copy size={13} />}
+                          {copied ? <Check aria-hidden="true" size={13} /> : <Copy aria-hidden="true" size={13} />}
                         </button>
                       </div>
                     );
@@ -325,7 +325,7 @@ export default function ErrorsPage() {
           <div id="errors-tabpanel-audit" role="tabpanel" aria-labelledby="errors-tab-audit">
           <Card>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ds-sp-3)", padding: "var(--ds-sp-6)", textAlign: "center" }}>
-              <ScrollText size={28} style={{ color: "var(--ds-text-faint)" }} />
+              <ScrollText aria-hidden="true" size={28} style={{ color: "var(--ds-text-faint)" }} />
               <div>
                 <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: 4 }}>
                   감사 로그 전용 페이지
