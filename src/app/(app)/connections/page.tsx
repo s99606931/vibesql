@@ -10,6 +10,7 @@ import { ConnectionWizard } from "@/components/connections/ConnectionWizard";
 import { useConnections, useTestConnection, useUpdateConnection } from "@/hooks/useConnections";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, RefreshCw, Loader2, Trash2, Pencil, X } from "lucide-react";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import type { DbDialect, Connection } from "@/types";
 
 const dialectLabels: Record<DbDialect, string> = {
@@ -129,6 +130,7 @@ export default function ConnectionsPage() {
   const [showWizard, setShowWizard] = useState(false);
   const [editingConn, setEditingConn] = useState<Connection | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const activeConnectionId = useWorkspaceStore((s) => s.activeConnectionId);
   const [testFeedback, setTestFeedback] = useState<Record<string, ConnTestFeedback>>({});
   const { data: connections, isLoading, isError, error } = useConnections();
   const testMutation = useTestConnection();
@@ -306,17 +308,22 @@ export default function ConnectionsPage() {
                         style={{ borderBottom: "1px solid var(--ds-border)" }}
                       >
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
-                          <span
-                            style={{
-                              fontFamily: "var(--ds-font-mono)",
-                              fontSize: "var(--ds-fs-13)",
-                              color: "var(--ds-text)",
-                              fontWeight:
-                                "var(--ds-fw-medium)" as React.CSSProperties["fontWeight"],
-                            }}
-                          >
-                            {conn.name}
-                          </span>
+                          <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
+                            <span
+                              style={{
+                                fontFamily: "var(--ds-font-mono)",
+                                fontSize: "var(--ds-fs-13)",
+                                color: "var(--ds-text)",
+                                fontWeight:
+                                  "var(--ds-fw-medium)" as React.CSSProperties["fontWeight"],
+                              }}
+                            >
+                              {conn.name}
+                            </span>
+                            {activeConnectionId === conn.id && (
+                              <Pill variant="success" dot="ok">활성</Pill>
+                            )}
+                          </div>
                         </td>
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
                           <Pill variant="default">

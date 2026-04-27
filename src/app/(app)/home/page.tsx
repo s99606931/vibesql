@@ -27,6 +27,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 // ─── 워크플로 스텝 ─────────────────────────────────────────────────────────────
@@ -796,17 +797,21 @@ function StatsSection() {
                   {card.label}
                 </span>
               </div>
-              <div
-                style={{
-                  fontSize: "var(--ds-fs-22)",
-                  fontWeight: "var(--ds-fw-bold)",
-                  color: statsLoading ? "var(--ds-text-faint)" : "var(--ds-text)",
-                  fontFamily: "var(--ds-font-mono)",
-                  lineHeight: 1,
-                }}
-              >
-                {card.value}
-              </div>
+              {statsLoading ? (
+                <Skeleton className="h-7 w-16 mt-1" />
+              ) : (
+                <div
+                  style={{
+                    fontSize: "var(--ds-fs-22)",
+                    fontWeight: "var(--ds-fw-bold)",
+                    color: "var(--ds-text)",
+                    fontFamily: "var(--ds-font-mono)",
+                    lineHeight: 1,
+                  }}
+                >
+                  {card.value}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -836,18 +841,8 @@ function StatsSection() {
         </div>
 
         {historyLoading ? (
-          <div
-            style={{
-              padding: "var(--ds-sp-4)",
-              border: "1px solid var(--ds-border)",
-              borderRadius: "var(--ds-r-8)",
-              background: "var(--ds-surface)",
-              color: "var(--ds-text-faint)",
-              fontSize: "var(--ds-fs-12)",
-              textAlign: "center",
-            }}
-          >
-            불러오는 중...
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}>
+            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full rounded-lg" />)}
           </div>
         ) : !recentHistory || recentHistory.length === 0 ? (
           <div

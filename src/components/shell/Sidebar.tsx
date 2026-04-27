@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { useConnections } from "@/hooks/useConnections";
@@ -136,9 +136,18 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
   const userRole = currentUser?.role ?? "USER";
 
   const allGroupIds = navGroups.map((g) => g.id);
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
-    Object.fromEntries(allGroupIds.map((id) => [id, true]))
-  );
+  const defaultOpen = Object.fromEntries(allGroupIds.map((id) => [id, true]));
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(defaultOpen);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("vibesql:sidebar:collapsed");
+      if (raw) {
+        const saved = JSON.parse(raw) as Record<string, boolean>;
+        setOpenGroups((prev) => ({ ...prev, ...saved }));
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   const { data: savedCount } = useQuery({
     queryKey: ["saved"],
@@ -179,7 +188,11 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
 
   function toggleGroup(groupId: string, hasActiveItem: boolean) {
     if (hasActiveItem) return;
-    setOpenGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
+    setOpenGroups((prev) => {
+      const next = { ...prev, [groupId]: !prev[groupId] };
+      try { localStorage.setItem("vibesql:sidebar:collapsed", JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
   }
 
   async function handleLogout() {

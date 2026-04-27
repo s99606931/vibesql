@@ -395,6 +395,7 @@ export default function WorkspacePage() {
   const [widgetLabel, setWidgetLabel] = useState<string>("");
   const [noDashMsg, setNoDashMsg] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
+  const [noConnWarn, setNoConnWarn] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -476,6 +477,10 @@ export default function WorkspacePage() {
 
   async function handleGenerate() {
     if (!nlQuery.trim()) return;
+    if (!activeConnectionId) {
+      setNoConnWarn(true);
+      setTimeout(() => setNoConnWarn(false), 3000);
+    }
     setStatus("generating");
     setIsEdited(false);
     try {
@@ -772,6 +777,13 @@ export default function WorkspacePage() {
           </div>
         </div>
 
+        {/* No connection warning */}
+        {noConnWarn && (
+          <AICallout tone="default" label="◆ 연결 없음">
+            연결된 DB가 없습니다. 상단에서 연결을 선택하면 스키마 기반 SQL이 생성됩니다.
+          </AICallout>
+        )}
+
         {/* AI generating */}
         {status === "generating" && (
           <AICallout tone="accent" streaming>
@@ -960,6 +972,11 @@ export default function WorkspacePage() {
               <span className="ds-num" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
                 {rowCount}행 · {duration ? `${duration}ms` : "—"}
               </span>
+              {results && results.length >= 1000 && (
+                <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-warn, #d97706)", background: "var(--ds-warn-soft, #fef3c7)", padding: "1px 6px", borderRadius: "var(--ds-r-4)", fontFamily: "var(--ds-font-sans)" }}>
+                  최대 1,000행
+                </span>
+              )}
               <Button
                 variant="ghost"
                 size="sm"

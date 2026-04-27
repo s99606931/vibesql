@@ -62,6 +62,7 @@ export default function HistoryPage() {
   const [activeFilter, setActiveFilter] = useState<HistoryFilter>("전체");
   const [search, setSearch] = useState("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [expandedErrorId, setExpandedErrorId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const router = useRouter();
   const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
@@ -196,17 +197,22 @@ export default function HistoryPage() {
 
               <Card padding={0}>
                 {items.map((item, i) => (
+                  <div key={item.id}>
                   <div
-                    key={item.id}
                     className="group"
                     style={{
                       display: "flex",
                       alignItems: "center",
                       gap: "var(--ds-sp-3)",
                       padding: "var(--ds-sp-3) var(--ds-sp-4)",
-                      borderBottom: i < items.length - 1 ? "1px solid var(--ds-border)" : undefined,
-                      cursor: "pointer",
+                      borderBottom: (i < items.length - 1 && expandedErrorId !== item.id) ? "1px solid var(--ds-border)" : undefined,
+                      cursor: item.status === "ERROR" && item.errorMsg ? "pointer" : "default",
                       transition: "background var(--ds-dur-fast) var(--ds-ease)",
+                    }}
+                    onClick={() => {
+                      if (item.status === "ERROR" && item.errorMsg) {
+                        setExpandedErrorId((prev) => prev === item.id ? null : item.id);
+                      }
                     }}
                   >
                     {/* Time */}
@@ -318,6 +324,23 @@ export default function HistoryPage() {
                         }}
                       >삭제</Button>
                     </div>
+                  </div>
+                  {expandedErrorId === item.id && item.errorMsg && (
+                    <div
+                      style={{
+                        padding: "var(--ds-sp-2) var(--ds-sp-4)",
+                        background: "var(--ds-danger-soft, #fff1f0)",
+                        borderTop: "1px solid var(--ds-danger-border, #fca5a5)",
+                        borderBottom: i < items.length - 1 ? "1px solid var(--ds-border)" : undefined,
+                        fontSize: "var(--ds-fs-12)",
+                        fontFamily: "var(--ds-font-mono)",
+                        color: "var(--ds-danger, #e53e3e)",
+                        wordBreak: "break-all",
+                      }}
+                    >
+                      {item.errorMsg}
+                    </div>
+                  )}
                   </div>
                 ))}
               </Card>
