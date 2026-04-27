@@ -106,6 +106,8 @@ export default function SignInPage() {
 
         {/* Tab switcher */}
         <div
+          role="tablist"
+          aria-label="로그인 / 회원가입"
           style={{
             display: "flex",
             background: "var(--ds-fill)",

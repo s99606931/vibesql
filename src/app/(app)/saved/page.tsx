@@ -682,6 +682,8 @@ export default function SavedPage() {
                           {query.tags.map((tag) => (
                             <button
                               key={tag}
+                              type="button"
+                              aria-pressed={search === tag}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSearch((prev) => prev === tag ? "" : tag);

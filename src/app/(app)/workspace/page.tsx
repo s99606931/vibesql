@@ -990,6 +990,8 @@ export default function WorkspacePage() {
             }}
           >
             <div
+              role="tablist"
+              aria-label="결과 보기 탭"
               style={{
                 display: "flex",
                 borderBottom: "1px solid var(--ds-border)",
