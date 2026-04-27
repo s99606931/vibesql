@@ -465,6 +465,7 @@ export default function SettingsPage() {
 
                 <SettingRow label="기본 SQL 방언" description="AI가 생성하는 SQL의 기본 방언">
                   <select
+                    aria-label="기본 SQL 방언"
                     value={dialect}
                     onChange={(e) => {
                       setDialect(e.target.value as "postgresql" | "mysql" | "sqlite" | "mssql" | "oracle");
@@ -539,6 +540,7 @@ export default function SettingsPage() {
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
                   <select
+                    aria-label="자동 로그아웃 시간"
                     value={sessionTimeout}
                     onChange={(e) => { setSessionTimeout(Number(e.target.value)); persistSettings(); }}
                     style={{

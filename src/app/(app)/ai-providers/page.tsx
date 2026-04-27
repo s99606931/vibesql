@@ -225,6 +225,7 @@ function ProviderModal({
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
             <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Temperature</label>
             <input
+              aria-label="Temperature"
               type="number" min={0} max={2} step={0.1}
               value={form.temperature}
               onChange={(e) => set("temperature", parseFloat(e.target.value) || 0)}
@@ -234,6 +235,7 @@ function ProviderModal({
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
             <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Max Tokens</label>
             <input
+              aria-label="Max Tokens"
               type="number" min={256} max={32768} step={256}
               value={form.maxTokens}
               onChange={(e) => set("maxTokens", parseInt(e.target.value) || 2048)}
