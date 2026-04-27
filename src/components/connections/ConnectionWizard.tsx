@@ -314,6 +314,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                   <input
                     id="conn-wiz-pass"
                     type="password"
+                    autoComplete="new-password"
                     value={form.password}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, password: e.target.value }))

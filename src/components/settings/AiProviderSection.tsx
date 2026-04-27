@@ -197,6 +197,7 @@ function ProviderForm({
           </label>
           <input
             type="password"
+            autoComplete="off"
             aria-label="API 키"
             value={form.apiKey}
             onChange={(e) => set("apiKey", e.target.value)}
