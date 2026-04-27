@@ -28,7 +28,7 @@ export default function AppError({
         color: "var(--ds-text)",
       }}
     >
-      <TriangleAlert size={32} style={{ color: "var(--ds-danger)", opacity: 0.8 }} />
+      <TriangleAlert aria-hidden="true" size={32} style={{ color: "var(--ds-danger)", opacity: 0.8 }} />
       <div style={{ fontSize: "var(--ds-fs-16)", fontWeight: "var(--ds-fw-semibold)" }}>
         오류가 발생했습니다
       </div>

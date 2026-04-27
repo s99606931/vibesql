@@ -91,7 +91,7 @@ export default function SignInPage() {
               justifyContent: "center",
             }}
           >
-            <Zap size={16} color="white" />
+            <Zap aria-hidden="true" size={16} color="white" />
           </div>
           <span
             style={{
@@ -173,7 +173,7 @@ export default function SignInPage() {
               marginBottom: "var(--ds-sp-3)",
             }}
           >
-            <AlertCircle size={14} style={{ color: "var(--ds-danger)", flexShrink: 0 }} />
+            <AlertCircle aria-hidden="true" size={14} style={{ color: "var(--ds-danger)", flexShrink: 0 }} />
             <span style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-danger)" }}>{error}</span>
           </div>
         )}
@@ -278,7 +278,7 @@ export default function SignInPage() {
                   transition: "color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
-                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                {showPassword ? <EyeOff aria-hidden="true" size={14} /> : <Eye aria-hidden="true" size={14} />}
               </button>
             </div>
             {tab === "register" && (
