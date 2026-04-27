@@ -113,7 +113,7 @@ function EditConnectionForm({
         </div>
         <div>
           <label htmlFor="conn-password" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>비밀번호 (변경 시만 입력)</label>
-          <input id="conn-password" style={inputStyle} type="password" value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="••••••••" />
+          <input id="conn-password" style={inputStyle} type="password" autoComplete="new-password" value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="••••••••" />
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-3)", marginTop: "var(--ds-sp-3)" }}>

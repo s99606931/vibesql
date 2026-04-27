@@ -195,6 +195,8 @@ function GuideItem({
       }}
     >
       <button
+        type="button"
+        aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={open ? undefined : "hover:bg-fill transition-colors"}
         style={{
