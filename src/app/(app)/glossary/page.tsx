@@ -256,6 +256,7 @@ export default function GlossaryPage() {
                     fontSize: "var(--ds-fs-10)",
                     cursor: "pointer",
                     fontFamily: "var(--ds-font-sans)",
+                    transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                   }}
                 >
                   전체
@@ -278,6 +279,7 @@ export default function GlossaryPage() {
                       display: "flex",
                       alignItems: "center",
                       gap: 4,
+                      transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                     }}
                   >
                     {cat}

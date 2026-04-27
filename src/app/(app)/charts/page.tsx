@@ -512,7 +512,7 @@ export default function ChartsPage() {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)", maxHeight: 160, overflowY: "auto" }}>
                 {dashboards.map((d) => (
-                  <button key={d.id} onClick={() => setSelectedDashId(d.id)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-3)", borderRadius: "var(--ds-r-6)", border: `1px solid ${selectedDashId === d.id ? "var(--ds-accent)" : "var(--ds-border)"}`, background: selectedDashId === d.id ? "var(--ds-accent-soft)" : "transparent", color: selectedDashId === d.id ? "var(--ds-accent)" : "var(--ds-text)", cursor: "pointer", textAlign: "left", fontSize: "var(--ds-fs-13)", fontFamily: "var(--ds-font-sans)" }}>
+                  <button key={d.id} onClick={() => setSelectedDashId(d.id)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-3)", borderRadius: "var(--ds-r-6)", border: `1px solid ${selectedDashId === d.id ? "var(--ds-accent)" : "var(--ds-border)"}`, background: selectedDashId === d.id ? "var(--ds-accent-soft)" : "transparent", color: selectedDashId === d.id ? "var(--ds-accent)" : "var(--ds-text)", cursor: "pointer", textAlign: "left", fontSize: "var(--ds-fs-13)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)" }}>
                     {d.name}
                   </button>
                 ))}
