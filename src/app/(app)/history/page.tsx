@@ -219,6 +219,7 @@ export default function HistoryPage() {
           <div style={{ position: "relative" }}>
             <input
               ref={searchRef}
+              type="search"
               aria-label="히스토리 검색"
               value={search}
               onChange={(e) => setSearch(e.target.value)}

@@ -462,6 +462,7 @@ export default function SavedPage() {
             <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <input
               ref={searchRef}
+              type="search"
               aria-label="저장된 쿼리 검색"
               value={search}
               onChange={(e) => setSearch(e.target.value)}

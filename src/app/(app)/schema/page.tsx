@@ -178,6 +178,7 @@ export default function SchemaPage() {
             />
             <input
               ref={searchRef}
+              type="search"
               aria-label="테이블 검색"
               value={search}
               onChange={(e) => setSearch(e.target.value)}

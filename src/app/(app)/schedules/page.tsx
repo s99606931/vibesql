@@ -556,6 +556,7 @@ export default function SchedulesPage() {
                 <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
                 <input
                   ref={searchRef}
+                  type="search"
                   aria-label="스케줄 검색"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
