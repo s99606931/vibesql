@@ -374,7 +374,7 @@ export default function AuditLogsPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "var(--ds-sp-2)", marginTop: "var(--ds-sp-4)" }}>
+              <nav aria-label="페이지 탐색" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "var(--ds-sp-2)", marginTop: "var(--ds-sp-4)" }}>
                 <button
                   type="button"
                   aria-label="이전 페이지"
@@ -408,7 +408,7 @@ export default function AuditLogsPage() {
                 >
                   다음
                 </button>
-              </div>
+              </nav>
             )}
           </>
         )}

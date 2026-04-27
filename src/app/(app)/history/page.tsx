@@ -273,6 +273,7 @@ export default function HistoryPage() {
                 type="button"
                 aria-label={`${date} 그룹 ${collapsed ? "펼치기" : "접기"}`}
                 aria-expanded={!collapsed}
+                aria-controls={`history-group-${date}`}
                 onClick={() => setCollapsedDates((prev) => {
                   const next = new Set(prev);
                   if (next.has(date)) next.delete(date); else next.add(date);
@@ -299,13 +300,14 @@ export default function HistoryPage() {
                 </span>
               </button>
 
-              {!collapsed && <Card padding={0}>
+              {!collapsed && <Card id={`history-group-${date}`} padding={0}>
                 {items.map((item, i) => (
                   <div key={item.id}>
                   <div
                     role="button"
                     tabIndex={0}
                     aria-expanded={expandedErrorId === item.id}
+                    aria-controls={`history-detail-${item.id}`}
                     className="group hover:bg-fill transition-colors"
                     style={{
                       display: "flex",
@@ -457,6 +459,7 @@ export default function HistoryPage() {
                   </div>
                   {expandedErrorId === item.id && (
                     <div
+                      id={`history-detail-${item.id}`}
                       style={{
                         padding: "var(--ds-sp-2) var(--ds-sp-4)",
                         background: item.errorMsg ? "var(--ds-danger-soft, #fff1f0)" : "var(--ds-fill)",
