@@ -368,7 +368,7 @@ export default function TemplatesPage() {
         }
       />
 
-      <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
         {/* Stats */}
         <div style={{ display: "flex", gap: "var(--ds-sp-3)", marginBottom: "var(--ds-sp-5)" }}>
           {[

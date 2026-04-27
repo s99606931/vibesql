@@ -137,7 +137,7 @@ export default function AdminUsersPage() {
         }
       />
 
-      <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-4)" }}>
           <ShieldCheck size={18} style={{ color: "var(--ds-warn)" }} />

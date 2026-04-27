@@ -219,7 +219,7 @@ export default function DashboardsPage() {
         }
       />
 
-      <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={dashLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
 
         {/* KPI summary bar */}
         <div
