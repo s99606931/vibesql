@@ -602,7 +602,7 @@ export default function SchedulesPage() {
                       borderRadius: "var(--ds-r-full)",
                       background: schedule.isActive ? "var(--ds-success)" : "var(--ds-border)",
                       padding: "2px",
-                      transition: "background 0.15s ease",
+                      transition: "background var(--ds-dur-fast) var(--ds-ease)",
                       boxSizing: "border-box",
                     }}
                   >
@@ -615,7 +615,7 @@ export default function SchedulesPage() {
                         borderRadius: "var(--ds-r-full)",
                         background: "var(--ds-surface)",
                         transform: schedule.isActive ? "translateX(14px)" : "translateX(0)",
-                        transition: "transform 0.15s ease",
+                        transition: "transform var(--ds-dur-fast) var(--ds-ease)",
                         flexShrink: 0,
                       }}
                     />

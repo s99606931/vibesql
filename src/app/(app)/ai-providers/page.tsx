@@ -355,7 +355,8 @@ function ProviderCard({
                   setCopiedModel(true);
                   setTimeout(() => setCopiedModel(false), 1500);
                 }}
-                style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)" }}
+                style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)", transition: "color var(--ds-dur-fast) var(--ds-ease), opacity var(--ds-dur-fast) var(--ds-ease)" }}
+                className="hover:opacity-70"
               >
                 {copiedModel ? <Check size={11} style={{ color: "var(--ds-success)" }} /> : <Copy size={11} />}
               </button>

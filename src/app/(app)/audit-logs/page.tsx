@@ -318,6 +318,7 @@ export default function AuditLogsPage() {
                 background: group === opt.value ? "var(--ds-accent-soft)" : "transparent",
                 color: group === opt.value ? "var(--ds-accent)" : "var(--ds-text-mute)",
                 fontSize: "var(--ds-fs-12)", cursor: "pointer",
+                transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
               }}
             >
               {opt.label}
@@ -363,7 +364,7 @@ export default function AuditLogsPage() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  style={{ padding: "var(--ds-sp-1) var(--ds-sp-3)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: page === 1 ? "not-allowed" : "pointer", fontSize: "var(--ds-fs-12)", color: page === 1 ? "var(--ds-text-faint)" : "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", opacity: page === 1 ? 0.5 : 1 }}
+                  style={{ padding: "var(--ds-sp-1) var(--ds-sp-3)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: page === 1 ? "not-allowed" : "pointer", fontSize: "var(--ds-fs-12)", color: page === 1 ? "var(--ds-text-faint)" : "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", opacity: page === 1 ? 0.5 : 1, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                 >
                   이전
                 </button>
@@ -373,7 +374,7 @@ export default function AuditLogsPage() {
                     <button
                       key={p}
                       onClick={() => setPage(p)}
-                      style={{ padding: "var(--ds-sp-1) var(--ds-sp-3)", background: p === page ? "var(--ds-accent)" : "var(--ds-fill)", border: "1px solid", borderColor: p === page ? "var(--ds-accent)" : "var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-12)", color: p === page ? "var(--ds-accent-on)" : "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}
+                      style={{ padding: "var(--ds-sp-1) var(--ds-sp-3)", background: p === page ? "var(--ds-accent)" : "var(--ds-fill)", border: "1px solid", borderColor: p === page ? "var(--ds-accent)" : "var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-12)", color: p === page ? "var(--ds-accent-on)" : "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)" }}
                     >
                       {p}
                     </button>
@@ -382,7 +383,7 @@ export default function AuditLogsPage() {
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  style={{ padding: "var(--ds-sp-1) var(--ds-sp-3)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: page === totalPages ? "not-allowed" : "pointer", fontSize: "var(--ds-fs-12)", color: page === totalPages ? "var(--ds-text-faint)" : "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", opacity: page === totalPages ? 0.5 : 1 }}
+                  style={{ padding: "var(--ds-sp-1) var(--ds-sp-3)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: page === totalPages ? "not-allowed" : "pointer", fontSize: "var(--ds-fs-12)", color: page === totalPages ? "var(--ds-text-faint)" : "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", opacity: page === totalPages ? 0.5 : 1, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                 >
                   다음
                 </button>
