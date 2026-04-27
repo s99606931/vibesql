@@ -185,6 +185,7 @@ function TemplatePicker({
               background: "transparent",
               color: "var(--ds-text-faint)",
               cursor: "pointer",
+              transition: "color var(--ds-dur-fast) var(--ds-ease)",
             }}
           >
             <X size={16} />
@@ -797,6 +798,7 @@ export default function WorkspacePage() {
                   fontSize: "var(--ds-fs-11)",
                   cursor: "pointer",
                   fontFamily: "var(--ds-font-sans)",
+                  transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
                 {chip}
@@ -1027,6 +1029,7 @@ export default function WorkspacePage() {
                     fontFamily: "var(--ds-font-sans)",
                     fontWeight: "var(--ds-fw-medium)",
                     marginBottom: -1,
+                    transition: "color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                   }}
                 >
                   <tab.icon size={13} />
@@ -1213,6 +1216,7 @@ export default function WorkspacePage() {
                       textAlign: "left",
                       fontSize: "var(--ds-fs-13)",
                       fontFamily: "var(--ds-font-sans)",
+                      transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                     }}
                   >
                     {d.name}
