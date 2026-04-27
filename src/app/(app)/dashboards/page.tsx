@@ -87,6 +87,7 @@ export default function DashboardsPage() {
   const [search, setSearch] = useState("");
   const [newDashModal, setNewDashModal] = useState(false);
   const [newDashName, setNewDashName] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -318,11 +319,7 @@ export default function DashboardsPage() {
                       <Button
                         variant="danger"
                         size="sm"
-                        onClick={() => {
-                          if (confirm(`"${dash.name}" 대시보드를 삭제할까요?`)) {
-                            deleteMutation.mutate(dash.id);
-                          }
-                        }}
+                        onClick={() => setDeleteConfirmId(dash.id)}
                       >
                         삭제
                       </Button>
@@ -407,6 +404,19 @@ export default function DashboardsPage() {
               >
                 만들기
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmId && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteConfirmId(null)}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 280, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>대시보드 삭제</div>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>이 대시보드를 삭제할까요? 위젯 데이터도 함께 삭제됩니다.</div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button variant="ghost" size="sm" onClick={() => setDeleteConfirmId(null)}>취소</Button>
+              <Button variant="danger" size="sm" onClick={() => { deleteMutation.mutate(deleteConfirmId); setDeleteConfirmId(null); }}>삭제</Button>
             </div>
           </div>
         </div>

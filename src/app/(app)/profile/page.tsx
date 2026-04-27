@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
@@ -81,6 +82,7 @@ export default function ProfilePage() {
   const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
   const { data: currentUser } = useCurrentUser();
   const router = useRouter();
+  const [deleteAccountModal, setDeleteAccountModal] = useState(false);
 
   const { data: history = [], isLoading: historyLoading } = useQuery({
     queryKey: ["history"],
@@ -147,9 +149,7 @@ export default function ProfilePage() {
   }
 
   function handleDeleteAccount() {
-    if (confirm("정말 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
-      alert("계정 삭제는 Clerk 관리자 패널에서 처리됩니다. 지원팀에 문의해주세요.");
-    }
+    setDeleteAccountModal(true);
   }
 
   return (
@@ -342,6 +342,21 @@ export default function ProfilePage() {
           </Card>
         </div>
       </div>
+
+      {deleteAccountModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteAccountModal(false)}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 320, maxWidth: 400, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-danger)" }}>계정 삭제 요청</div>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", lineHeight: 1.6 }}>
+              계정 삭제는 관리자 패널에서 처리됩니다.<br />
+              지원팀(<strong>support@vibesql.com</strong>)에 문의하거나 관리자에게 요청해주세요.
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <Button variant="ghost" size="sm" onClick={() => setDeleteAccountModal(false)}>닫기</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

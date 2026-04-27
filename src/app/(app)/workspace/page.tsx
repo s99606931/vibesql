@@ -393,6 +393,8 @@ export default function WorkspacePage() {
   const [addToDashModal, setAddToDashModal] = useState<{ dashboards: Array<{ id: string; name: string; widgets: unknown[] }> } | null>(null);
   const [selectedDashId, setSelectedDashId] = useState<string>("");
   const [widgetLabel, setWidgetLabel] = useState<string>("");
+  const [noDashMsg, setNoDashMsg] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -463,7 +465,8 @@ export default function WorkspacePage() {
       },
     });
     if (!fresh || fresh.length === 0) {
-      alert("대시보드가 없습니다. 먼저 대시보드를 생성하세요.");
+      setNoDashMsg(true);
+      setTimeout(() => setNoDashMsg(false), 2500);
       return;
     }
     setSelectedDashId(fresh[0].id);
@@ -851,14 +854,18 @@ export default function WorkspacePage() {
                 </span>
               )}
               <div style={{ flex: 1 }} />
+              {copyFailed && (
+                <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-danger, #e53e3e)" }}>복사 실패</span>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
                 icon={<Copy size={12} />}
                 onClick={() =>
-                  navigator.clipboard.writeText(sql).catch(() =>
-                    alert("클립보드 복사에 실패했습니다.")
-                  )
+                  navigator.clipboard.writeText(sql).catch(() => {
+                    setCopyFailed(true);
+                    setTimeout(() => setCopyFailed(false), 2000);
+                  })
                 }
               >
                 복사
@@ -970,6 +977,9 @@ export default function WorkspacePage() {
               >
                 대시보드 추가
               </Button>
+              {noDashMsg && (
+                <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)" }}>대시보드를 먼저 생성하세요</span>
+              )}
             </div>
 
             {activeTab === "table" && results && (

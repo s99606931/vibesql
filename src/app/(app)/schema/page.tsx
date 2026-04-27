@@ -28,6 +28,7 @@ type SchemaFilter = "all" | "pii" | "public";
 export default function SchemaPage() {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<SchemaFilter>("all");
+  const [copiedTable, setCopiedTable] = useState<string | null>(null);
   const { activeConnectionId, setActiveConnection } = useWorkspaceStore();
   const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
   const router = useRouter();
@@ -67,7 +68,10 @@ export default function SchemaPage() {
   function handleCopyTable(e: React.MouseEvent, table: TableMeta) {
     e.stopPropagation();
     navigator.clipboard.writeText(table.name)
-      .then(() => alert(`"${table.name}" 테이블명 복사됨`))
+      .then(() => {
+        setCopiedTable(table.name);
+        setTimeout(() => setCopiedTable(null), 1500);
+      })
       .catch(() => {});
   }
 
@@ -242,9 +246,12 @@ export default function SchemaPage() {
                       <button
                         onClick={(e) => handleCopyTable(e, table)}
                         title="테이블명 복사"
-                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2 }}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: copiedTable === table.name ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, gap: 2 }}
                       >
                         <Copy size={11} />
+                        {copiedTable === table.name && (
+                          <span style={{ fontSize: "var(--ds-fs-10)", fontFamily: "var(--ds-font-sans)" }}>복사됨</span>
+                        )}
                       </button>
                       <button
                         onClick={(e) => handleRunSelect(e, table)}

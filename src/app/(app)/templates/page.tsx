@@ -251,6 +251,7 @@ export default function TemplatesPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<TemplateCategory | "all">("all");
   const [saveModal, setSaveModal] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const queryKey = ["templates", category, search];
 
@@ -400,9 +401,7 @@ export default function TemplatesPage() {
                 key={t.id}
                 template={t}
                 onUse={() => handleUse(t)}
-                onDelete={!t.isBuiltIn ? () => {
-                  if (confirm(`"${t.name}" 템플릿을 삭제할까요?`)) deleteMutation.mutate(t.id);
-                } : undefined}
+                onDelete={!t.isBuiltIn ? () => setDeleteConfirmId(t.id) : undefined}
               />
             ))}
           </div>
@@ -415,6 +414,19 @@ export default function TemplatesPage() {
           onClose={() => setSaveModal(false)}
           saving={saveMutation.isPending}
         />
+      )}
+
+      {deleteConfirmId && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteConfirmId(null)}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 280, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>템플릿 삭제</div>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>이 템플릿을 삭제할까요? 되돌릴 수 없습니다.</div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button variant="ghost" size="sm" onClick={() => setDeleteConfirmId(null)}>취소</Button>
+              <Button variant="danger" size="sm" onClick={() => { deleteMutation.mutate(deleteConfirmId); setDeleteConfirmId(null); }}>삭제</Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

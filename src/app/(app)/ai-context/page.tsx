@@ -279,6 +279,8 @@ function RuleModal({
 export default function AiContextPage() {
   const queryClient = useQueryClient();
   const [modal, setModal] = useState<{ open: boolean; editing: AiContextRule | null }>({ open: false, editing: null });
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
   const { data: rules = [], isLoading } = useQuery({
@@ -369,7 +371,7 @@ export default function AiContextPage() {
       );
       queryClient.invalidateQueries({ queryKey: ["ai-context"] });
     } catch {
-      alert("JSON 파일 형식이 올바르지 않습니다.");
+      setImportError("JSON 파일 형식이 올바르지 않습니다.");
     } finally {
       if (importRef.current) importRef.current.value = "";
     }
@@ -539,11 +541,7 @@ export default function AiContextPage() {
                               size="sm"
                               icon={<Trash2 size={11} />}
                               loading={deleteMutation.isPending && deleteMutation.variables === rule.id}
-                              onClick={() => {
-                                if (confirm(`"${rule.key}" 규칙을 삭제할까요?`)) {
-                                  deleteMutation.mutate(rule.id);
-                                }
-                              }}
+                              onClick={() => setDeleteConfirmId(rule.id)}
                             >
                               삭제
                             </Button>
@@ -579,6 +577,31 @@ export default function AiContextPage() {
           }
           onClose={() => setModal({ open: false, editing: null })}
         />
+      )}
+
+      {importError && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setImportError(null)}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 280, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-danger)" }}>가져오기 오류</div>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>{importError}</div>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <Button variant="ghost" size="sm" onClick={() => setImportError(null)}>닫기</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmId && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteConfirmId(null)}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 280, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>규칙 삭제</div>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>이 AI 컨텍스트 규칙을 삭제할까요?</div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button variant="ghost" size="sm" onClick={() => setDeleteConfirmId(null)}>취소</Button>
+              <Button variant="danger" size="sm" onClick={() => { deleteMutation.mutate(deleteConfirmId); setDeleteConfirmId(null); }}>삭제</Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -128,6 +128,7 @@ interface ConnTestFeedback {
 export default function ConnectionsPage() {
   const [showWizard, setShowWizard] = useState(false);
   const [editingConn, setEditingConn] = useState<Connection | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [testFeedback, setTestFeedback] = useState<Record<string, ConnTestFeedback>>({});
   const { data: connections, isLoading, isError, error } = useConnections();
   const testMutation = useTestConnection();
@@ -420,11 +421,7 @@ export default function ConnectionsPage() {
                               size="sm"
                               icon={<Trash2 size={12} />}
                               disabled={deleteMutation.isPending && deleteMutation.variables === conn.id}
-                              onClick={() => {
-                                if (confirm(`"${conn.name}" 연결을 삭제하시겠습니까?`)) {
-                                  deleteMutation.mutate(conn.id);
-                                }
-                              }}
+                              onClick={() => setDeleteConfirmId(conn.id)}
                             >
                               삭제
                             </Button>
@@ -477,6 +474,19 @@ export default function ConnectionsPage() {
           onClose={() => setShowWizard(false)}
           onDone={() => setShowWizard(false)}
         />
+      )}
+
+      {deleteConfirmId && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteConfirmId(null)}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 280, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>연결 삭제</div>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>이 연결을 삭제하시겠습니까? 연관된 저장 쿼리에 영향을 줄 수 있습니다.</div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button variant="ghost" size="sm" onClick={() => setDeleteConfirmId(null)}>취소</Button>
+              <Button variant="danger" size="sm" onClick={() => { deleteMutation.mutate(deleteConfirmId); setDeleteConfirmId(null); }}>삭제</Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -380,6 +380,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
   const [renameModal, setRenameModal] = useState(false);
   const [renameName, setRenameName] = useState("");
   const [renameDesc, setRenameDesc] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   // Dashboard data
   const { data: dashboard, isLoading, isError } = useQuery<Dashboard>({
@@ -543,11 +544,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
               size="sm"
               icon={<Trash2 size={12} />}
               loading={deleteMutation.isPending}
-              onClick={() => {
-                if (confirm(`"${dashboard.name}" 대시보드를 삭제할까요?`)) {
-                  deleteMutation.mutate();
-                }
-              }}
+              onClick={() => setDeleteConfirm(true)}
             >
               삭제
             </Button>
@@ -786,6 +783,20 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
           </Card>
         </div>
       </div>
+
+      {/* Delete confirm modal */}
+      {deleteConfirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteConfirm(false)}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 280, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>대시보드 삭제</div>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>"{dashboard?.name}" 대시보드를 삭제할까요? 위젯 데이터도 함께 삭제됩니다.</div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button variant="ghost" size="sm" onClick={() => setDeleteConfirm(false)}>취소</Button>
+              <Button variant="danger" size="sm" onClick={() => { deleteMutation.mutate(); setDeleteConfirm(false); }}>삭제</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Rename modal */}
       {renameModal && (
