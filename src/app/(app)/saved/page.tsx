@@ -139,7 +139,7 @@ function VersionPanel({
             gap: "var(--ds-sp-2)",
           }}
         >
-          <History size={16} style={{ color: "var(--ds-accent)" }} />
+          <History aria-hidden="true" size={16} style={{ color: "var(--ds-accent)" }} />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>
               버전 히스토리
@@ -159,7 +159,7 @@ function VersionPanel({
               alignItems: "center",
             }}
           >
-            <X size={16} />
+            <X aria-hidden="true" size={16} />
           </button>
         </div>
 
@@ -568,7 +568,7 @@ export default function SavedPage() {
                   paddingLeft: "var(--ds-sp-1)",
                 }}
               >
-                <FolderOpen size={13} style={{ color: "var(--ds-text-faint)" }} />
+                <FolderOpen aria-hidden="true" size={13} style={{ color: "var(--ds-text-faint)" }} />
                 <span
                   style={{
                     fontSize: "var(--ds-fs-11)",
@@ -597,7 +597,7 @@ export default function SavedPage() {
                     style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, opacity: 0.6, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                     className="hover:!opacity-100"
                   >
-                    <Pencil size={10} />
+                    <Pencil aria-hidden="true" size={10} />
                   </button>
                 )}
               </div>
@@ -637,6 +637,7 @@ export default function SavedPage() {
                     >
                       {/* Star */}
                       <Star
+                        aria-hidden="true"
                         size={14}
                         style={{
                           color: "var(--ds-warn)",
@@ -723,7 +724,7 @@ export default function SavedPage() {
                               cursor: "default",
                             }}
                           >
-                            <Clock size={10} />
+                            <Clock aria-hidden="true" size={10} />
                             {formatDate(query.createdAt)}
                           </span>
                           <span
@@ -736,7 +737,7 @@ export default function SavedPage() {
                               fontFamily: "var(--ds-font-mono)",
                             }}
                           >
-                            <Hash size={10} />
+                            <Hash aria-hidden="true" size={10} />
                             {query.dialect}
                           </span>
                         </div>
@@ -1022,7 +1023,7 @@ export default function SavedPage() {
                     transition: "all var(--ds-dur-fast) var(--ds-ease)",
                   }}
                 >
-                  <FolderOpen size={13} style={{ flexShrink: 0 }} />
+                  <FolderOpen aria-hidden="true" size={13} style={{ flexShrink: 0 }} />
                   {name}
                   {name === moveModal.currentFolder && (
                     <span style={{ marginLeft: "auto", fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>현재</span>
