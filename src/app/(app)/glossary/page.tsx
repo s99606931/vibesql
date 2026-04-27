@@ -372,7 +372,7 @@ export default function GlossaryPage() {
                 <span
                   role="button"
                   tabIndex={0}
-                  aria-label="용어명 복사"
+                  aria-label={copiedTermId === term.id ? "복사됨" : "용어명 복사"}
                   onClick={(e) => {
                     e.stopPropagation();
                     void navigator.clipboard.writeText(term.term);

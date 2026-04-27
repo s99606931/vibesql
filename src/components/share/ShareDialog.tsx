@@ -279,7 +279,7 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
               <button
                 type="button"
                 onClick={handleCopy}
-                aria-label="클립보드에 복사"
+                aria-label={copied ? "복사됨" : "클립보드에 복사"}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -300,6 +300,8 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
             </div>
             {copied && (
               <span
+                role="status"
+                aria-live="polite"
                 style={{
                   fontSize: "var(--ds-fs-11)",
                   color: "var(--ds-success)",
