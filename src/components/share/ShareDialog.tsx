@@ -127,7 +127,7 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
-            <Link size={16} style={{ color: "var(--ds-accent)" }} />
+            <Link aria-hidden="true" size={16} style={{ color: "var(--ds-accent)" }} />
             <span
               style={{
                 fontSize: "var(--ds-fs-16)",
@@ -156,7 +156,7 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
               cursor: "pointer",
             }}
           >
-            <X size={16} />
+            <X aria-hidden="true" size={16} />
           </button>
         </div>
 
@@ -295,7 +295,7 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
                   transition: "color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
-                {copied ? <Check size={14} /> : <Copy size={14} />}
+                {copied ? <Check aria-hidden="true" size={14} /> : <Copy aria-hidden="true" size={14} />}
               </button>
             </div>
             {copied && (

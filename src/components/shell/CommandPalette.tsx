@@ -97,7 +97,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
               borderBottom: "1px solid var(--ds-border)",
             }}
           >
-            <Search size={15} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+            <Search aria-hidden="true" size={15} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <Command.Input
               placeholder="페이지로 이동, 쿼리 검색..."
               style={{
@@ -173,9 +173,9 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                       }}
                       className="aria-selected:bg-fill"
                     >
-                      <cmd.icon size={14} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+                      <cmd.icon aria-hidden="true" size={14} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
                       <span style={{ flex: 1 }}>{cmd.label}</span>
-                      <ArrowRight size={12} style={{ color: "var(--ds-text-faint)" }} />
+                      <ArrowRight aria-hidden="true" size={12} style={{ color: "var(--ds-text-faint)" }} />
                     </Command.Item>
                   ))}
               </Command.Group>
