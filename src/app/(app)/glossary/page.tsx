@@ -363,14 +363,25 @@ export default function GlossaryPage() {
                 </div>
                 <Pill variant={categoryColors[term.category] ?? "default"}>{term.category}</Pill>
                 <span
-                  title="용어명 복사"
+                  role="button"
+                  tabIndex={0}
+                  aria-label="용어명 복사"
                   onClick={(e) => {
                     e.stopPropagation();
                     void navigator.clipboard.writeText(term.term);
                     setCopiedTermId(term.id);
                     setTimeout(() => setCopiedTermId(null), 1500);
                   }}
-                  style={{ color: copiedTermId === term.id ? "var(--ds-success)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", flexShrink: 0 }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      void navigator.clipboard.writeText(term.term);
+                      setCopiedTermId(term.id);
+                      setTimeout(() => setCopiedTermId(null), 1500);
+                    }
+                  }}
+                  style={{ color: copiedTermId === term.id ? "var(--ds-success)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", flexShrink: 0, cursor: "pointer", transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
                 >
                   {copiedTermId === term.id ? <Check size={11} /> : <Copy size={11} />}
                 </span>
@@ -510,7 +521,7 @@ export default function GlossaryPage() {
                         setCopiedSqlId(selected.id);
                         setTimeout(() => setCopiedSqlId((p) => p === selected.id ? null : p), 1500);
                       }}
-                      title="복사"
+                      aria-label="복사"
                       style={{ background: "none", border: "none", cursor: "pointer", color: copiedSqlId === selected.id ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, marginRight: 4, transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
                     >
                       {copiedSqlId === selected.id ? <Check size={12} /> : <Copy size={12} />}
@@ -521,7 +532,7 @@ export default function GlossaryPage() {
                         setStatus("ready");
                         router.push("/workspace");
                       }}
-                      title="워크스페이스에서 열기"
+                      aria-label="워크스페이스에서 열기"
                       style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-accent)", display: "flex", alignItems: "center", padding: 2, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                       className="hover:opacity-70"
                     >

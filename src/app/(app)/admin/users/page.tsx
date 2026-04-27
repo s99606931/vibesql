@@ -267,7 +267,7 @@ export default function AdminUsersPage() {
                     {user.email}
                   </span>
                   <button
-                    title="이메일 복사"
+                    aria-label="이메일 복사"
                     onClick={() => {
                       void navigator.clipboard.writeText(user.email);
                       setCopiedEmailId(user.id);
@@ -309,7 +309,7 @@ export default function AdminUsersPage() {
                     <ShieldCheck size={12} />
                   </button>
                   <button
-                    title="삭제"
+                    aria-label="삭제"
                     disabled={deleteMutation.isPending}
                     onClick={() => setConfirmDelete(user)}
                     style={{
@@ -317,6 +317,7 @@ export default function AdminUsersPage() {
                       width: 26, height: 26, borderRadius: "var(--ds-r-6)",
                       background: "transparent", border: "1px solid var(--ds-border)",
                       cursor: "pointer", color: "var(--ds-text-mute)",
+                      transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
                     }}
                   >
                     <Trash2 size={12} />
