@@ -249,7 +249,7 @@ export default function AuditLogsPage() {
 
         {/* Filter bar */}
         <div style={{ display: "flex", gap: "var(--ds-sp-3)", marginBottom: "var(--ds-sp-3)", flexWrap: "wrap" }}>
-          <div style={{ position: "relative", flex: 1, minWidth: 180 }}>
+          <div role="search" aria-label="감사 로그 검색" style={{ position: "relative", flex: 1, minWidth: 180 }}>
             <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
             <input
               ref={searchRef}

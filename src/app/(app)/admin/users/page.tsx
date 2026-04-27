@@ -153,7 +153,7 @@ export default function AdminUsersPage() {
             </span>
           )}
         </div>
-        <div style={{ position: "relative", maxWidth: 300, marginBottom: "var(--ds-sp-4)" }}>
+        <div role="search" aria-label="사용자 검색" style={{ position: "relative", maxWidth: 300, marginBottom: "var(--ds-sp-4)" }}>
           <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
           <input
             ref={searchRef}

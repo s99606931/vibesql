@@ -93,7 +93,7 @@ function EditConnectionForm({
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ds-sp-3)", marginTop: "var(--ds-sp-3)" }}>
         <div>
           <label htmlFor="conn-name" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>이름</label>
-          <input id="conn-name" style={inputStyle} value={form.name} onChange={(e) => set("name", e.target.value)} />
+          <input id="conn-name" autoFocus style={inputStyle} value={form.name} onChange={(e) => set("name", e.target.value)} />
         </div>
         <div>
           <label htmlFor="conn-host" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>호스트</label>
@@ -339,7 +339,7 @@ export default function ConnectionsPage() {
         {!isLoading && !isError && connections && connections.length > 0 && (
           <>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-3)" }}>
-              <div style={{ position: "relative", maxWidth: 320, flex: 1 }}>
+              <div role="search" aria-label="연결 검색" style={{ position: "relative", maxWidth: 320, flex: 1 }}>
                 <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
                 <input
                   ref={searchRef}
