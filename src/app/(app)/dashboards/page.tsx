@@ -89,9 +89,9 @@ function formatRelativeElapsed(iso: string): string {
 const FILTERS = ["전체", "내 대시보드", "공유됨"];
 
 function WidgetTypeIcon({ type }: { type: string }) {
-  if (type === "line") return <TrendingUp size={11} />;
-  if (type === "bar") return <BarChart2 size={11} />;
-  return <Table2 size={11} />;
+  if (type === "line") return <TrendingUp aria-hidden="true" size={11} />;
+  if (type === "bar") return <BarChart2 aria-hidden="true" size={11} />;
+  return <Table2 aria-hidden="true" size={11} />;
 }
 
 export default function DashboardsPage() {
@@ -298,7 +298,7 @@ export default function DashboardsPage() {
               width: 220,
             }}
           >
-            <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+            <Search aria-hidden="true" size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <input
               ref={searchRef}
               type="search"
@@ -318,7 +318,7 @@ export default function DashboardsPage() {
             />
             {search && (
               <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0 }}>
-                <X size={12} />
+                <X aria-hidden="true" size={12} />
               </button>
             )}
           </div>
@@ -473,7 +473,7 @@ export default function DashboardsPage() {
                     title={new Date(dash.updatedAt).toLocaleString("ko-KR")}
                     style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", cursor: "default" }}
                   >
-                    <Clock size={11} />
+                    <Clock aria-hidden="true" size={11} />
                     {formatRelativeElapsed(dash.updatedAt)}
                   </div>
                 </div>
@@ -565,7 +565,7 @@ export default function DashboardsPage() {
               onClick={() => setEditPublic((v) => !v)}
               style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-2) var(--ds-sp-3)", width: "100%", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: editPublic ? "var(--ds-accent-soft)" : "var(--ds-fill)", cursor: "pointer", fontFamily: "var(--ds-font-sans)", fontSize: "var(--ds-fs-13)", color: editPublic ? "var(--ds-accent)" : "var(--ds-text-mute)", marginBottom: "var(--ds-sp-4)", textAlign: "left" }}
             >
-              {editPublic ? <Globe size={14} /> : <Lock size={14} />}
+              {editPublic ? <Globe aria-hidden="true" size={14} /> : <Lock aria-hidden="true" size={14} />}
               {editPublic ? "공개 — 링크가 있는 누구나 볼 수 있음" : "비공개 — 나만 볼 수 있음"}
             </button>
             <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
