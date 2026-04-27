@@ -312,6 +312,7 @@ export default function AdminUsersPage() {
                     aria-label="삭제"
                     disabled={deleteMutation.isPending}
                     onClick={() => setConfirmDelete(user)}
+                    className="hover:text-danger"
                     style={{
                       display: "flex", alignItems: "center", justifyContent: "center",
                       width: 26, height: 26, borderRadius: "var(--ds-r-6)",

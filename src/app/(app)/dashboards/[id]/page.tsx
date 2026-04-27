@@ -792,6 +792,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                         onClick={() => removeWidgetMutation.mutate(i)}
                         disabled={removeWidgetMutation.isPending}
                         aria-label="위젯 삭제"
+                        className="hover:text-danger"
                         style={{
                           background: "none",
                           border: "none",
