@@ -28,6 +28,9 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
+      - name: Stub Next.js route types for CI
+        run: mkdir -p .next/types && echo 'export {}' > .next/types/routes.d.ts
+
       - name: TypeScript type check
         run: npx tsc --noEmit
 
