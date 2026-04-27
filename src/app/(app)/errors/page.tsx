@@ -170,6 +170,7 @@ export default function ErrorsPage() {
 
         {/* Tab bar */}
         <div
+          role="tablist"
           style={{
             display: "flex",
             gap: 2,
@@ -182,6 +183,11 @@ export default function ErrorsPage() {
             return (
               <button
                 key={tab.id}
+                type="button"
+                role="tab"
+                id={`errors-tab-${tab.id}`}
+                aria-controls={`errors-tabpanel-${tab.id}`}
+                aria-selected={isActive}
                 onClick={() => setActiveTab(tab.id)}
                 style={{
                   padding: "var(--ds-sp-2) var(--ds-sp-3)",
@@ -207,7 +213,7 @@ export default function ErrorsPage() {
 
         {/* ── Tab: 오류 이력 ── */}
         {activeTab === "errors" && (
-          <>
+          <div id="errors-tabpanel-errors" role="tabpanel" aria-labelledby="errors-tab-errors">
             <div style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "var(--ds-sp-2)" }}>
               최근 오류 로그
             </div>
@@ -309,11 +315,12 @@ export default function ErrorsPage() {
                 </Card>
               </>
             )}
-          </>
+          </div>
         )}
 
         {/* ── Tab: 감사 로그 → 전용 페이지로 이동 ── */}
         {activeTab === "audit" && (
+          <div id="errors-tabpanel-audit" role="tabpanel" aria-labelledby="errors-tab-audit">
           <Card>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ds-sp-3)", padding: "var(--ds-sp-6)", textAlign: "center" }}>
               <ScrollText size={28} style={{ color: "var(--ds-text-faint)" }} />
@@ -330,6 +337,7 @@ export default function ErrorsPage() {
               </Button>
             </div>
           </Card>
+          </div>
         )}
 
       </div>
