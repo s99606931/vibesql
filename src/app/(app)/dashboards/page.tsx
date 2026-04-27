@@ -74,6 +74,18 @@ interface Dashboard {
   updatedAt: string;
 }
 
+function formatRelativeElapsed(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 60_000) return "방금 전";
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMs / 3_600_000);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffMs / 86_400_000);
+  if (diffDay < 30) return `${diffDay}일 전`;
+  return new Date(iso).toLocaleDateString("ko-KR");
+}
+
 const FILTERS = ["전체", "내 대시보드", "공유됨"];
 
 function WidgetTypeIcon({ type }: { type: string }) {
@@ -415,9 +427,12 @@ export default function DashboardsPage() {
                   }}
                 >
                   <Pill variant={dash.isPublic ? "success" : "default"}>{dash.isPublic ? "공유됨" : "내 대시보드"}</Pill>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
+                  <div
+                    title={new Date(dash.updatedAt).toLocaleString("ko-KR")}
+                    style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", cursor: "default" }}
+                  >
                     <Clock size={11} />
-                    {new Date(dash.updatedAt).toLocaleDateString("ko-KR")}
+                    {formatRelativeElapsed(dash.updatedAt)}
                   </div>
                 </div>
               </Card>

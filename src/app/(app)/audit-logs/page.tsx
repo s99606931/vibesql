@@ -54,10 +54,13 @@ function formatAction(action: string): string {
 
 function formatTimestamp(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleString("ko-KR", {
-    month: "short", day: "numeric",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
-  });
+  const diffMs = Date.now() - d.getTime();
+  if (diffMs < 60_000) return "방금 전";
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMs / 3_600_000);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  return d.toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 // ─── LogRow ───────────────────────────────────────────────────────────────────
@@ -93,7 +96,10 @@ function LogRow({ log }: { log: AuditLogItem }) {
               {log.ipAddress}
             </span>
           )}
-          <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
+          <span
+            title={new Date(log.createdAt).toLocaleString("ko-KR")}
+            style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", cursor: "default" }}
+          >
             {formatTimestamp(log.createdAt)}
           </span>
           {log.metadata && (

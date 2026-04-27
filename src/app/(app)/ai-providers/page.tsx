@@ -43,6 +43,18 @@ const PROVIDER_META: Record<AiProviderType, { label: string; needsKey: boolean; 
 
 const TYPE_OPTIONS = Object.entries(PROVIDER_META).map(([k, v]) => ({ value: k as AiProviderType, label: v.label }));
 
+function formatRelativeElapsed(iso: string | null | undefined): string {
+  if (!iso) return "테스트 안 함";
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 60_000) return "방금 전";
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMs / 3_600_000);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffMs / 86_400_000);
+  return `${diffDay}일 전`;
+}
+
 // ─── form data ────────────────────────────────────────────────────────────────
 
 interface ProviderForm {
@@ -340,9 +352,12 @@ function ProviderCard({
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginTop: "var(--ds-sp-2)" }}>
             <TestIcon />
-            <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
+            <span
+              title={provider.lastTestedAt ? new Date(provider.lastTestedAt).toLocaleString("ko-KR") : undefined}
+              style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", cursor: "default" }}
+            >
               {provider.lastTestedAt
-                ? `${provider.lastTestedOk ? "연결 성공" : "연결 실패"} · ${new Date(provider.lastTestedAt).toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
+                ? `${provider.lastTestedOk ? "연결 성공" : "연결 실패"} · ${formatRelativeElapsed(provider.lastTestedAt)}`
                 : "테스트 안 함"}
             </span>
             <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>

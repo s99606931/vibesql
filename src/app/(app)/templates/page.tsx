@@ -383,7 +383,7 @@ export default function TemplatesPage() {
             />
           </div>
           {/* Category filter */}
-          <div style={{ display: "flex", gap: "var(--ds-sp-1)", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "var(--ds-sp-1)", flexWrap: "wrap", alignItems: "center" }}>
             {CATEGORY_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
@@ -402,6 +402,11 @@ export default function TemplatesPage() {
                 {opt.label}
               </button>
             ))}
+            {!isLoading && (
+              <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginLeft: "var(--ds-sp-1)" }}>
+                {templates.length}개
+              </span>
+            )}
           </div>
         </div>
 

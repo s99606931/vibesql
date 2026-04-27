@@ -227,7 +227,7 @@ export default function GlossaryPage() {
               />
             </div>
             {allCategories.length > 0 && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--ds-sp-1)", marginTop: "var(--ds-sp-2)" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--ds-sp-1)", marginTop: "var(--ds-sp-2)", alignItems: "center" }}>
                 <button
                   onClick={() => setCatFilter(null)}
                   style={{
@@ -261,6 +261,11 @@ export default function GlossaryPage() {
                     {cat}
                   </button>
                 ))}
+                {(search || catFilter) && (
+                  <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", marginLeft: "var(--ds-sp-1)" }}>
+                    {filtered.length}개
+                  </span>
+                )}
               </div>
             )}
           </div>
