@@ -34,16 +34,17 @@ export function TopBar({ title, breadcrumbs, actions }: TopBarProps) {
     >
       {/* Title + breadcrumb */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div
+        <h1
           style={{
             fontSize: "var(--ds-fs-14)",
             fontWeight: "var(--ds-fw-semibold)",
             color: "var(--ds-text)",
             lineHeight: 1.3,
+            margin: 0,
           }}
         >
           {title}
-        </div>
+        </h1>
         {breadcrumbs && breadcrumbs.length > 0 && (
           <nav
             aria-label="탐색경로"

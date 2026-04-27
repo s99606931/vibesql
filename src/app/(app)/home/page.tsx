@@ -381,7 +381,7 @@ export default function HomePage() {
 
           {/* ── 헤더 ─────────────────────────────────────────────────────── */}
           <div>
-            <h1
+            <h2
               style={{
                 fontSize: "var(--ds-fs-22)",
                 fontWeight: "var(--ds-fw-bold)",
@@ -392,7 +392,7 @@ export default function HomePage() {
               }}
             >
               vibeSQL 시작 가이드
-            </h1>
+            </h2>
             <p
               style={{
                 fontSize: "var(--ds-fs-13)",
