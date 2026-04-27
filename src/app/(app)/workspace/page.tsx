@@ -1150,6 +1150,7 @@ export default function WorkspacePage() {
               <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-1)" }}>이름</div>
               <input
                 autoFocus
+                aria-label="쿼리 이름"
                 value={saveName}
                 onChange={(e) => setSaveName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Escape") setSaveModal(false); }}
@@ -1160,6 +1161,7 @@ export default function WorkspacePage() {
             <div>
               <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-1)" }}>폴더</div>
               <input
+                aria-label="저장 폴더"
                 value={saveFolder}
                 onChange={(e) => setSaveFolder(e.target.value)}
                 list="save-folder-list"
@@ -1239,6 +1241,7 @@ export default function WorkspacePage() {
               <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>위젯 이름</div>
               <input
                 autoFocus
+                aria-label="위젯 이름"
                 value={widgetLabel}
                 onChange={(e) => setWidgetLabel(e.target.value)}
                 onKeyDown={(e) => {

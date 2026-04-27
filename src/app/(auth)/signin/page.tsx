@@ -179,6 +179,8 @@ export default function SignInPage() {
               </label>
               <input
                 type="text"
+                id="signin-name"
+                aria-label="이름"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="홍길동"
@@ -205,6 +207,8 @@ export default function SignInPage() {
             </label>
             <input
               type="email"
+              id="signin-email"
+              aria-label="이메일"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
@@ -231,6 +235,8 @@ export default function SignInPage() {
             <div style={{ position: "relative" }}>
               <input
                 type={showPassword ? "text" : "password"}
+                id="signin-password"
+                aria-label="비밀번호"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"

@@ -193,6 +193,8 @@ function ProviderModal({
             <div style={{ position: "relative" }}>
               <input
                 type={showKey ? "text" : "password"}
+                id="prov-apikey"
+                aria-label="API 키"
                 value={form.apiKey}
                 onChange={(e) => set("apiKey", e.target.value)}
                 placeholder="sk-..."
