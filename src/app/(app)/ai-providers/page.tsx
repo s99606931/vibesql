@@ -202,6 +202,8 @@ function ProviderModal({
               />
               <button
                 type="button"
+                aria-label={showKey ? "API 키 숨기기" : "API 키 보기"}
+                aria-pressed={showKey}
                 onClick={() => setShowKey((v) => !v)}
                 style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                 className="hover:opacity-70"

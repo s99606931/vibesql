@@ -263,6 +263,8 @@ export default function SignInPage() {
               />
               <button
                 type="button"
+                aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+                aria-pressed={showPassword}
                 onClick={() => setShowPassword((v) => !v)}
                 style={{
                   position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
