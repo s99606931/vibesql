@@ -10,7 +10,7 @@ import { Pill } from "@/components/ui-vs/Pill";
 import { AIBadge } from "@/components/ui-vs/AICallout";
 import { Button } from "@/components/ui-vs/Button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Database, Copy, Play, RefreshCw, Link2, Download } from "lucide-react";
+import { Search, Database, Copy, Play, RefreshCw, Link2, Download, X } from "lucide-react";
 import { useConnections } from "@/hooks/useConnections";
 
 interface TableMeta {
@@ -180,8 +180,10 @@ export default function SchemaPage() {
               placeholder="테이블 검색... (⌘F)"
               style={{
                 width: "100%",
-                padding: "var(--ds-sp-2) var(--ds-sp-3)",
+                paddingTop: "var(--ds-sp-2)",
+                paddingBottom: "var(--ds-sp-2)",
                 paddingLeft: 30,
+                paddingRight: search ? 28 : "var(--ds-sp-3)",
                 border: "1px solid var(--ds-border)",
                 borderRadius: "var(--ds-r-6)",
                 background: "var(--ds-surface)",
@@ -191,6 +193,11 @@ export default function SchemaPage() {
                 fontFamily: "var(--ds-font-sans)",
               }}
             />
+            {search && (
+              <button onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0 }}>
+                <X size={13} />
+              </button>
+            )}
           </div>
           <button
             onClick={() => setActiveFilter("all")}
