@@ -123,7 +123,7 @@ export default function SchemaPage() {
         {/* Connection selector + refresh */}
         {connections && connections.length > 0 && (
           <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-3)" }}>
-            <Database size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+            <Database aria-hidden="true" size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <select
               aria-label="데이터베이스 연결 선택"
               value={activeConnectionId ?? ""}
@@ -151,7 +151,7 @@ export default function SchemaPage() {
               style={{ display: "flex", alignItems: "center", padding: "var(--ds-sp-1)", background: "none", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", color: "var(--ds-text-mute)", transition: "color var(--ds-dur-fast) var(--ds-ease), background var(--ds-dur-fast) var(--ds-ease)" }}
               className="hover:bg-fill"
             >
-              <RefreshCw size={12} />
+              <RefreshCw aria-hidden="true" size={12} />
             </button>
           </div>
         )}
@@ -167,6 +167,7 @@ export default function SchemaPage() {
         >
           <div role="search" aria-label="테이블 검색" style={{ position: "relative", flex: 1, maxWidth: 360 }}>
             <Search
+              aria-hidden="true"
               size={14}
               style={{
                 position: "absolute",
@@ -200,7 +201,7 @@ export default function SchemaPage() {
             />
             {search && (
               <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0 }}>
-                <X size={13} />
+                <X aria-hidden="true" size={13} />
               </button>
             )}
           </div>
@@ -251,7 +252,7 @@ export default function SchemaPage() {
               color: "var(--ds-accent)",
             }}
           >
-            <Database size={16} style={{ flexShrink: 0 }} />
+            <Database aria-hidden="true" size={16} style={{ flexShrink: 0 }} />
             <span style={{ flex: 1 }}>연결된 DB가 없습니다. 스키마를 보려면 워크스페이스에서 DB 연결을 활성화하세요.</span>
             <Button variant="accent" size="sm" onClick={() => router.push("/connections")}>
               연결 추가
@@ -300,7 +301,7 @@ export default function SchemaPage() {
                       {table.fks.length > 0 && (
                         <Pill variant="info">
                           <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
-                            <Link2 size={9} />
+                            <Link2 aria-hidden="true" size={9} />
                             FK {table.fks.length}
                           </span>
                         </Pill>
@@ -312,7 +313,7 @@ export default function SchemaPage() {
                         aria-label={copiedTable === table.name ? "복사됨" : "테이블명 복사"}
                         style={{ background: "none", border: "none", cursor: "pointer", color: copiedTable === table.name ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, gap: 2, transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
                       >
-                        <Copy size={11} />
+                        <Copy aria-hidden="true" size={11} />
                         {copiedTable === table.name && (
                           <span style={{ fontSize: "var(--ds-fs-10)", fontFamily: "var(--ds-font-sans)" }}>복사됨</span>
                         )}
@@ -324,7 +325,7 @@ export default function SchemaPage() {
                         style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-accent)", display: "flex", alignItems: "center", padding: 2, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                         className="hover:opacity-70"
                       >
-                        <Play size={11} />
+                        <Play aria-hidden="true" size={11} />
                       </button>
                     </div>
                   }
