@@ -522,7 +522,7 @@ export default function ChartsPage() {
               </div>
             )}
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
-              <Button variant="ghost" size="sm" onClick={() => setAddDashModal(null)}>취소</Button>
+              <Button autoFocus variant="ghost" size="sm" onClick={() => setAddDashModal(null)}>취소</Button>
               <Button variant="accent" size="sm" disabled={!selectedDashId || addToDashMutation.isPending} onClick={() => addToDashMutation.mutate({ dashId: selectedDashId, sql: addDashModal.sql, label: addDashModal.chartName })}>
                 {addToDashMutation.isPending ? "추가 중..." : "추가"}
               </Button>
