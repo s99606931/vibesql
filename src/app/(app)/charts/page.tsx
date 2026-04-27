@@ -401,7 +401,7 @@ export default function ChartsPage() {
                     )}
 
                     {state.status === "error" && (
-                      <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-3)", color: "var(--ds-danger)", fontSize: "var(--ds-fs-12)" }}>
+                      <div role="alert" style={{ display: "flex", alignItems: "flex-start", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-3)", color: "var(--ds-danger)", fontSize: "var(--ds-fs-12)" }}>
                         <AlertCircle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
                         <span>{state.message}</span>
                       </div>

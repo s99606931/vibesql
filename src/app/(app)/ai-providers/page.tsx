@@ -335,7 +335,7 @@ function ProviderCard({
       );
     }
     return (
-      <div role="status" aria-live="polite" style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-danger)", display: "flex", alignItems: "center", gap: "var(--ds-sp-1)" }}>
+      <div role="alert" aria-live="assertive" style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-danger)", display: "flex", alignItems: "center", gap: "var(--ds-sp-1)" }}>
         <XCircle size={12} />
         <span>{feedback.message ?? "연결 실패"}</span>
       </div>
