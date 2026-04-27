@@ -45,6 +45,7 @@ function Toggle({
 }) {
   return (
     <button
+      type="button"
       role="switch"
       aria-checked={checked}
       disabled={disabled}
@@ -301,6 +302,9 @@ export default function SettingsPage() {
                     return (
                       <button
                         key={t.id}
+                        type="button"
+                        aria-pressed={selected}
+                        aria-label={t.label + " 테마"}
                         onClick={() => { setTheme(t.id); persistSettings(); }}
                         style={{
                           display: "flex",
@@ -395,6 +399,9 @@ export default function SettingsPage() {
                   description="밝기 모드를 전환합니다"
                 >
                   <button
+                    type="button"
+                    aria-pressed={mode === "dark"}
+                    aria-label={mode === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}
                     onClick={() => { setMode(mode === "dark" ? "light" : "dark"); persistSettings(); }}
                     style={{
                       display: "flex",
@@ -424,6 +431,9 @@ export default function SettingsPage() {
                     {(["compact", "regular", "comfy"] as const).map((d) => (
                       <button
                         key={d}
+                        type="button"
+                        aria-pressed={density === d}
+                        aria-label={d === "compact" ? "컴팩트 밀도" : d === "regular" ? "보통 밀도" : "넓은 밀도"}
                         onClick={() => { setDensity(d); persistSettings(); }}
                         style={{
                           padding: "4px 10px",
@@ -670,6 +680,7 @@ export default function SettingsPage() {
       {/* Reset section */}
       <div style={{ padding: "var(--ds-sp-4) var(--ds-sp-6)", borderTop: "1px solid var(--ds-border)", display: "flex", justifyContent: "flex-end" }}>
         <button
+          type="button"
           onClick={() => {
             setTheme("indigo");
             setMode("dark");
