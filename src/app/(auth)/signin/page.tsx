@@ -253,6 +253,7 @@ export default function SignInPage() {
                   position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
                   background: "none", border: "none", cursor: "pointer",
                   color: "var(--ds-text-faint)", padding: 2,
+                  transition: "color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
                 {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}

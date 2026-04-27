@@ -1178,7 +1178,7 @@ export default function WorkspacePage() {
               <button
                 disabled={!saveName.trim() || saveQueryMutation.isPending}
                 onClick={() => { saveQueryMutation.mutate({ name: saveName.trim(), query: sql, folder: saveFolder.trim() || "기본" }); setSaveModal(false); }}
-                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)" }}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
               >
                 저장
               </button>

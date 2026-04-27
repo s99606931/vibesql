@@ -261,6 +261,7 @@ export default function SharePage() {
                   fontSize: "var(--ds-fs-12)",
                   color: "var(--ds-text-mute)",
                   fontFamily: "var(--ds-font-sans)",
+                  transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
                 {copied
@@ -285,6 +286,7 @@ export default function SharePage() {
                   color: "var(--ds-accent-fg, #fff)",
                   fontFamily: "var(--ds-font-sans)",
                   fontWeight: "var(--ds-fw-medium)",
+                  transition: "opacity var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
                 <ExternalLink size={13} />

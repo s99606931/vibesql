@@ -605,7 +605,7 @@ export default function GlossaryPage() {
               <div style={{ fontSize: "var(--ds-fs-14)" }}>용어를 선택하거나 새 용어를 추가하세요</div>
               <button
                 onClick={() => setShowAdd(true)}
-                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", color: "var(--ds-accent-on)", fontSize: "var(--ds-fs-12)", cursor: "pointer", fontFamily: "var(--ds-font-sans)", fontWeight: "var(--ds-fw-medium)" }}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", color: "var(--ds-accent-on)", fontSize: "var(--ds-fs-12)", cursor: "pointer", fontFamily: "var(--ds-font-sans)", fontWeight: "var(--ds-fw-medium)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
               >
                 + 첫 용어 추가하기
               </button>
