@@ -42,7 +42,7 @@ function RoleBadge({ role }: { role: UserRole }) {
         color: role === "ADMIN" ? "var(--ds-accent)" : "var(--ds-text-mute)",
       }}
     >
-      {role === "ADMIN" ? <Crown size={10} /> : <User size={10} />}
+      {role === "ADMIN" ? <Crown aria-hidden="true" size={10} /> : <User aria-hidden="true" size={10} />}
       {role === "ADMIN" ? "관리자" : "사용자"}
     </span>
   );
@@ -140,7 +140,7 @@ export default function AdminUsersPage() {
       <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-4)" }}>
-          <ShieldCheck size={18} style={{ color: "var(--ds-warn)" }} />
+          <ShieldCheck aria-hidden="true" size={18} style={{ color: "var(--ds-warn)" }} />
           <h2 style={{ fontSize: "var(--ds-fs-16)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>
             사용자 목록
           </h2>
@@ -154,7 +154,7 @@ export default function AdminUsersPage() {
           )}
         </div>
         <div role="search" aria-label="사용자 검색" style={{ position: "relative", maxWidth: 300, marginBottom: "var(--ds-sp-4)" }}>
-          <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+          <Search aria-hidden="true" size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
           <input
             ref={searchRef}
             type="search"
@@ -166,7 +166,7 @@ export default function AdminUsersPage() {
           />
           {search && (
             <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
-              <X size={13} />
+              <X aria-hidden="true" size={13} />
             </button>
           )}
         </div>
@@ -188,7 +188,7 @@ export default function AdminUsersPage() {
               background: "var(--ds-danger-soft)",
               color: "var(--ds-danger)",
             }}>
-            <AlertTriangle size={16} />
+            <AlertTriangle aria-hidden="true" size={16} />
             {error instanceof Error ? error.message : "오류가 발생했습니다."}
           </div>
         )}
@@ -262,7 +262,7 @@ export default function AdminUsersPage() {
                     color: user.role === "ADMIN" ? "var(--ds-accent)" : "var(--ds-text-mute)",
                     flexShrink: 0,
                   }}>
-                    {user.role === "ADMIN" ? <Crown size={12} /> : (user.name ?? user.email).charAt(0).toUpperCase()}
+                    {user.role === "ADMIN" ? <Crown aria-hidden="true" size={12} /> : (user.name ?? user.email).charAt(0).toUpperCase()}
                   </div>
                   <span style={{ color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>
                     {user.name ?? "(이름 없음)"}
@@ -285,7 +285,7 @@ export default function AdminUsersPage() {
                     className="opacity-0 group-hover:opacity-100"
                     style={{ background: "none", border: "none", cursor: "pointer", color: copiedEmailId === user.id ? "var(--ds-success)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0, borderRadius: "var(--ds-r-6)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                   >
-                    {copiedEmailId === user.id ? <Check size={11} /> : <Copy size={11} />}
+                    {copiedEmailId === user.id ? <Check aria-hidden="true" size={11} /> : <Copy aria-hidden="true" size={11} />}
                   </button>
                 </div>
 
@@ -316,7 +316,7 @@ export default function AdminUsersPage() {
                       cursor: "pointer", color: "var(--ds-text-mute)",
                     }}
                   >
-                    <ShieldCheck size={12} />
+                    <ShieldCheck aria-hidden="true" size={12} />
                   </button>
                   <button
                     type="button"
@@ -332,7 +332,7 @@ export default function AdminUsersPage() {
                       transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
                     }}
                   >
-                    <Trash2 size={12} />
+                    <Trash2 aria-hidden="true" size={12} />
                   </button>
                 </div>
               </div>

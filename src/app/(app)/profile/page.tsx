@@ -126,11 +126,11 @@ export default function ProfilePage() {
   });
 
   const STATS = [
-    { label: "오늘 쿼리", value: todayQueries.length.toLocaleString(), icon: <Activity size={16} />, href: "/history" },
-    { label: "이번 달 쿼리", value: thisMonth.length.toLocaleString(), icon: <Activity size={16} />, href: "/history" },
-    { label: "연결된 DB", value: String(connections.length), icon: <Database size={16} />, href: "/connections" },
-    { label: "저장된 쿼리", value: String(saved.length), icon: <BookMarked size={16} />, href: "/saved" },
-    { label: "대시보드", value: String(dashboards.length), icon: <LayoutDashboard size={16} />, href: "/dashboards" },
+    { label: "오늘 쿼리", value: todayQueries.length.toLocaleString(), icon: <Activity aria-hidden="true" size={16} />, href: "/history" },
+    { label: "이번 달 쿼리", value: thisMonth.length.toLocaleString(), icon: <Activity aria-hidden="true" size={16} />, href: "/history" },
+    { label: "연결된 DB", value: String(connections.length), icon: <Database aria-hidden="true" size={16} />, href: "/connections" },
+    { label: "저장된 쿼리", value: String(saved.length), icon: <BookMarked aria-hidden="true" size={16} />, href: "/saved" },
+    { label: "대시보드", value: String(dashboards.length), icon: <LayoutDashboard aria-hidden="true" size={16} />, href: "/dashboards" },
   ];
 
   const recentItems = history.slice(0, 5);
@@ -238,7 +238,7 @@ export default function ProfilePage() {
                       onClick={handleCopyEmail}
                       style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: copiedEmail ? "var(--ds-success)" : "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)", transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
                     >
-                      {copiedEmail ? <Check size={12} /> : <Copy size={12} />}
+                      {copiedEmail ? <Check aria-hidden="true" size={12} /> : <Copy aria-hidden="true" size={12} />}
                     </button>
                   )}
                 </div>
