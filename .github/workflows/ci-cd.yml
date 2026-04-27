@@ -103,3 +103,11 @@ jobs:
           railway up --service "${{ secrets.RAILWAY_SERVICE_NAME }}" --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Get service URL
+        run: |
+          echo "=== Service domain ==="
+          railway domain --service "${{ secrets.RAILWAY_SERVICE_NAME }}" 2>&1 || true
+          railway service status --service "${{ secrets.RAILWAY_SERVICE_NAME }}" 2>&1 || true
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
