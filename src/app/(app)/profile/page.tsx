@@ -107,13 +107,16 @@ export default function ProfilePage() {
 
   const isLoading = historyLoading || connectionsLoading || savedLoading || dashboardsLoading;
 
+  const now = new Date();
+  const todayStr = now.toDateString();
+  const todayQueries = history.filter((h) => new Date(h.createdAt).toDateString() === todayStr);
   const thisMonth = history.filter((h) => {
     const d = new Date(h.createdAt);
-    const now = new Date();
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
 
   const STATS = [
+    { label: "오늘 쿼리", value: todayQueries.length.toLocaleString(), icon: <Activity size={16} /> },
     { label: "이번 달 쿼리", value: thisMonth.length.toLocaleString(), icon: <Activity size={16} /> },
     { label: "연결된 DB", value: String(connections.length), icon: <Database size={16} /> },
     { label: "저장된 쿼리", value: String(saved.length), icon: <BookMarked size={16} /> },
@@ -227,7 +230,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* Usage stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--ds-sp-3)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "var(--ds-sp-3)" }}>
             {isLoading
               ? [0, 1, 2, 3].map((i) => (
                   <Card key={i}>

@@ -326,9 +326,14 @@ export default function ConnectionsPage() {
                           </div>
                         </td>
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
-                          <Pill variant="default">
-                            {dialectLabels[conn.type] ?? conn.type}
-                          </Pill>
+                          <div style={{ display: "flex", gap: "var(--ds-sp-1)", flexWrap: "wrap" }}>
+                            <Pill variant="default">
+                              {dialectLabels[conn.type] ?? conn.type}
+                            </Pill>
+                            {conn.ssl && (
+                              <Pill variant="success">SSL</Pill>
+                            )}
+                          </div>
                         </td>
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
                           <span

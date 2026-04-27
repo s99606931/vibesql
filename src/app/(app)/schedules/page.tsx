@@ -6,7 +6,7 @@ import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
-import { Plus, Trash2, Play, Pencil, Clock, Calendar, CheckCircle2, XCircle, Loader } from "lucide-react";
+import { Plus, Trash2, Play, Pencil, Clock, Calendar, CheckCircle2, XCircle, Loader, ChevronDown, ChevronRight } from "lucide-react";
 import type { ScheduledQuery, DbDialect } from "@/types";
 import { useConnections } from "@/hooks/useConnections";
 
@@ -326,6 +326,7 @@ export default function SchedulesPage() {
   const [runningId, setRunningId] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [expandedSqlId, setExpandedSqlId] = useState<string | null>(null);
 
   const { data: schedules = [], isLoading } = useQuery({
     queryKey: ["schedules"],
@@ -575,16 +576,26 @@ export default function SchedulesPage() {
                     </span>
                   </div>
                   <div
+                    onClick={() => setExpandedSqlId((prev) => prev === schedule.id ? null : schedule.id)}
                     style={{
                       fontSize: "var(--ds-fs-11)",
                       color: "var(--ds-text-faint)",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
                       fontFamily: "var(--ds-font-mono)",
+                      cursor: schedule.sql.length > 60 ? "pointer" : "default",
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 3,
                     }}
                   >
-                    {schedule.sql.slice(0, 80)}{schedule.sql.length > 80 ? "..." : ""}
+                    {schedule.sql.length > 60 && (
+                      <span style={{ flexShrink: 0, marginTop: 1 }}>
+                        {expandedSqlId === schedule.id ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                      </span>
+                    )}
+                    {expandedSqlId === schedule.id
+                      ? <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{schedule.sql}</span>
+                      : <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{schedule.sql.slice(0, 80)}{schedule.sql.length > 80 ? "..." : ""}</span>
+                    }
                   </div>
                   <div
                     style={{

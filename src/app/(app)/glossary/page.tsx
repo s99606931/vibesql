@@ -48,6 +48,7 @@ export default function GlossaryPage() {
   const qc = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [catFilter, setCatFilter] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [newTerm, setNewTerm] = useState({ term: "", category: "매출", definition: "", sql: "" });
   const [isEditing, setIsEditing] = useState(false);
@@ -118,12 +119,13 @@ export default function GlossaryPage() {
     setIsEditing(false);
   }
 
-  const filtered = terms.filter(
-    (t) =>
-      t.term.includes(search) ||
-      t.definition.includes(search) ||
-      t.category.includes(search)
-  );
+  const allCategories = [...new Set(terms.map((t) => t.category))].sort();
+
+  const filtered = terms.filter((t) => {
+    if (catFilter && t.category !== catFilter) return false;
+    if (!search) return true;
+    return t.term.includes(search) || t.definition.includes(search) || t.category.includes(search);
+  });
 
   const selected = terms.find((t) => t.id === selectedId) ?? terms[0] ?? null;
 
@@ -209,6 +211,43 @@ export default function GlossaryPage() {
                 }}
               />
             </div>
+            {allCategories.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--ds-sp-1)", marginTop: "var(--ds-sp-2)" }}>
+                <button
+                  onClick={() => setCatFilter(null)}
+                  style={{
+                    padding: "2px 8px",
+                    borderRadius: "var(--ds-r-full)",
+                    border: "1px solid var(--ds-border)",
+                    background: catFilter === null ? "var(--ds-accent-soft)" : "transparent",
+                    color: catFilter === null ? "var(--ds-accent)" : "var(--ds-text-faint)",
+                    fontSize: "var(--ds-fs-10)",
+                    cursor: "pointer",
+                    fontFamily: "var(--ds-font-sans)",
+                  }}
+                >
+                  전체
+                </button>
+                {allCategories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setCatFilter((prev) => prev === cat ? null : cat)}
+                    style={{
+                      padding: "2px 8px",
+                      borderRadius: "var(--ds-r-full)",
+                      border: "1px solid var(--ds-border)",
+                      background: catFilter === cat ? "var(--ds-accent-soft)" : "transparent",
+                      color: catFilter === cat ? "var(--ds-accent)" : "var(--ds-text-faint)",
+                      fontSize: "var(--ds-fs-10)",
+                      cursor: "pointer",
+                      fontFamily: "var(--ds-font-sans)",
+                    }}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div style={{ flex: 1, overflow: "auto" }}>

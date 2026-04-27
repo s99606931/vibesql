@@ -228,6 +228,7 @@ function VersionPanel({
 
 export default function SavedPage() {
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"date" | "name" | "dialect">("date");
   const [versionPanel, setVersionPanel] = useState<{ queryId: string; queryName: string } | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [confirmDeleteName, setConfirmDeleteName] = useState<string>("");
@@ -342,15 +343,21 @@ export default function SavedPage() {
   }
 
   const savedList = Array.isArray(data) ? data : [];
-  const filtered = savedList.filter((q) => {
-    if (!search) return true;
-    const lc = search.toLowerCase();
-    return (
-      q.name.toLowerCase().includes(lc) ||
-      q.nlQuery.toLowerCase().includes(lc) ||
-      q.tags.some((t) => t.toLowerCase().includes(lc))
-    );
-  });
+  const filtered = savedList
+    .filter((q) => {
+      if (!search) return true;
+      const lc = search.toLowerCase();
+      return (
+        q.name.toLowerCase().includes(lc) ||
+        q.nlQuery.toLowerCase().includes(lc) ||
+        q.tags.some((t) => t.toLowerCase().includes(lc))
+      );
+    })
+    .sort((a, b) => {
+      if (sortBy === "name") return a.name.localeCompare(b.name, "ko");
+      if (sortBy === "dialect") return a.dialect.localeCompare(b.dialect);
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
   const baseFolders = groupByFolder(filtered);
   const existingNames = new Set(baseFolders.map((f) => f.name));
@@ -412,6 +419,25 @@ export default function SavedPage() {
               }}
             />
           </div>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as "date" | "name" | "dialect")}
+            style={{
+              border: "1px solid var(--ds-border)",
+              borderRadius: "var(--ds-r-6)",
+              background: "var(--ds-surface)",
+              color: "var(--ds-text-mute)",
+              fontSize: "var(--ds-fs-12)",
+              padding: "var(--ds-sp-1) var(--ds-sp-2)",
+              fontFamily: "var(--ds-font-sans)",
+              outline: "none",
+              cursor: "pointer",
+            }}
+          >
+            <option value="date">최신순</option>
+            <option value="name">이름순</option>
+            <option value="dialect">방언순</option>
+          </select>
           <div style={{ flex: 1 }} />
           <Button
             variant="ghost"
