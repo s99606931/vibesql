@@ -423,11 +423,18 @@ export default function SchemaPage() {
                   fontSize: "var(--ds-fs-13)",
                 }}
               >
-                {search
-                  ? `"${search}"와 일치하는 테이블이 없습니다.`
-                  : activeFilter === "pii"
-                  ? "PII 포함 테이블이 없습니다."
-                  : "표시할 테이블이 없습니다."}
+                <div>
+                  {search
+                    ? `"${search}"와 일치하는 테이블이 없습니다.`
+                    : activeFilter === "pii"
+                    ? "PII 포함 테이블이 없습니다."
+                    : "표시할 테이블이 없습니다."}
+                </div>
+                {(search || activeFilter !== "all") && (
+                  <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => { setSearch(""); setActiveFilter("all"); }}>
+                    필터 초기화
+                  </Button>
+                )}
               </div>
             )}
           </div>

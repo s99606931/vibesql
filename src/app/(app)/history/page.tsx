@@ -427,7 +427,7 @@ export default function HistoryPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        icon={<MoreHorizontal size={12} />}
+                        icon={<Trash2 size={12} />}
                         aria-label="삭제"
                         loading={deleteMutation.isPending && deleteMutation.variables === item.id}
                         onClick={(e) => {

@@ -281,7 +281,7 @@ export default function GlossaryPage() {
                 })}
                 {(search || catFilter) && (
                   <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", marginLeft: "var(--ds-sp-1)" }}>
-                    {filtered.length}개
+                    {filtered.length}/{terms.length}개
                   </span>
                 )}
               </div>

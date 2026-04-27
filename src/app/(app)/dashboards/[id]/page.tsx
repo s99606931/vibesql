@@ -723,6 +723,11 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                 }}
               >
                 위젯이 없습니다. 워크스페이스에서 쿼리 결과를 이 대시보드에 추가하세요.
+                <div style={{ marginTop: "var(--ds-sp-3)" }}>
+                  <Button variant="ghost" size="sm" onClick={() => router.push("/workspace")}>
+                    워크스페이스로 이동
+                  </Button>
+                </div>
               </div>
             ) : connList.length === 0 && widgets.some((w) => w.sql?.trim()) ? (
               /* No connections at all: show banner + widget labels */

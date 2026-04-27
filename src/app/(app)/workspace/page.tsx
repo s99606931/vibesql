@@ -5,6 +5,7 @@ import { useSettingsStore } from "@/store/useSettingsStore";
 import { useConnections } from "@/hooks/useConnections";
 import { TopBar } from "@/components/shell/TopBar";
 import { AICallout } from "@/components/ui-vs/AICallout";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import {
@@ -230,15 +231,8 @@ function TemplatePicker({
         {/* Template list */}
         <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-2)" }}>
           {isLoading && (
-            <div
-              style={{
-                padding: "var(--ds-sp-5)",
-                textAlign: "center",
-                color: "var(--ds-text-faint)",
-                fontSize: "var(--ds-fs-12)",
-              }}
-            >
-              템플릿 불러오는 중...
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-2)" }}>
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full rounded-lg" />)}
             </div>
           )}
 
