@@ -197,6 +197,7 @@ function GuideItem({
       <button
         type="button"
         aria-expanded={open}
+        aria-label={`${item.label} ${open ? "접기" : "펼치기"}`}
         onClick={() => setOpen((v) => !v)}
         className={open ? undefined : "hover:bg-fill transition-colors"}
         style={{

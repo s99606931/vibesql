@@ -261,6 +261,7 @@ function TemplatePicker({
             filtered.map((t) => (
               <button
                 key={t.id}
+                type="button"
                 onClick={() => onSelect(t)}
                 className="hover:bg-fill hover:border-border transition-colors"
                 style={{
@@ -792,6 +793,8 @@ export default function WorkspacePage() {
             {["오늘 활성 사용자", "주간 매출 추이", "국가별 가입자 수", "결제 실패율"].map((chip) => (
               <button
                 key={chip}
+                type="button"
+                aria-label={`예시 질문: ${chip}`}
                 onClick={() => setNlQuery(chip)}
                 style={{
                   padding: "2px 10px",
@@ -1002,6 +1005,9 @@ export default function WorkspacePage() {
               ].map((tab) => (
                 <button
                   key={tab.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === tab.key}
                   onClick={async () => {
                     setActiveTab(tab.key);
                     if (tab.key === "explain" && sql.trim() && (isEdited || !explanation) && !explanationFetching) {
@@ -1185,6 +1191,7 @@ export default function WorkspacePage() {
             <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
               <button type="button" onClick={() => setSaveModal(false)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
               <button
+                type="button"
                 disabled={!saveName.trim() || saveQueryMutation.isPending}
                 onClick={() => { saveQueryMutation.mutate({ name: saveName.trim(), query: sql, folder: saveFolder.trim() || "기본" }); setSaveModal(false); }}
                 style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
@@ -1217,6 +1224,8 @@ export default function WorkspacePage() {
                 {addToDashModal.dashboards.map((d) => (
                   <button
                     key={d.id}
+                    type="button"
+                    aria-pressed={selectedDashId === d.id}
                     onClick={() => setSelectedDashId(d.id)}
                     style={{
                       padding: "var(--ds-sp-2) var(--ds-sp-3)",
