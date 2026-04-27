@@ -632,6 +632,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                         setCopiedUrl(true);
                         setTimeout(() => setCopiedUrl(false), 2000);
                       }}
+                      className="hover:bg-fill transition-colors"
                       style={{
                         display: "flex",
                         alignItems: "center",
@@ -643,7 +644,6 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                         cursor: "pointer",
                         fontSize: "var(--ds-fs-11)",
                         color: copiedUrl ? "var(--ds-success)" : "var(--ds-text-mute)",
-                        transition: "color 0.15s",
                       }}
                       title="공유 URL 복사"
                     >

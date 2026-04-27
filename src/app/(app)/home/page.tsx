@@ -196,6 +196,7 @@ function GuideItem({
     >
       <button
         onClick={() => setOpen((v) => !v)}
+        className={open ? undefined : "hover:bg-fill transition-colors"}
         style={{
           display: "flex",
           alignItems: "center",

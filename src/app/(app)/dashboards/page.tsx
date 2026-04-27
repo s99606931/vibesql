@@ -344,7 +344,7 @@ export default function DashboardsPage() {
                 쿼리 결과를 위젯으로 고정하고 한눈에 모니터링하세요.
               </div>
             </div>
-            {!search && (
+            {!search ? (
               <Button
                 variant="accent"
                 size="sm"
@@ -354,6 +354,8 @@ export default function DashboardsPage() {
               >
                 새 대시보드
               </Button>
+            ) : (
+              <Button variant="ghost" size="sm" onClick={() => setSearch("")}>검색 지우기</Button>
             )}
           </div>
         )}

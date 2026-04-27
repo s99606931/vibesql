@@ -222,8 +222,11 @@ export default function AdminUsersPage() {
             </div>
 
             {filteredUsers.length === 0 && (
-              <div style={{ padding: "var(--ds-sp-8)", textAlign: "center", color: "var(--ds-text-faint)" }}>
-                {search ? "검색 결과가 없습니다." : "사용자가 없습니다."}
+              <div style={{ padding: "var(--ds-sp-8)", textAlign: "center", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
+                <div>{search ? "검색 결과가 없습니다." : "사용자가 없습니다."}</div>
+                {search && (
+                  <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setSearch("")}>검색 지우기</Button>
+                )}
               </div>
             )}
 
