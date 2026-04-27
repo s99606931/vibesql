@@ -114,6 +114,9 @@ function ProviderModal({
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="AI 프로바이더 설정"
       style={{
         position: "fixed", inset: 0, zIndex: 50,
         display: "flex", alignItems: "center", justifyContent: "center",
@@ -432,12 +435,16 @@ function DeleteModal({
 }) {
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="프로바이더 삭제"
       style={{
         position: "fixed", inset: 0, zIndex: 50,
         display: "flex", alignItems: "center", justifyContent: "center",
         background: "rgba(0,0,0,0.4)",
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+      onKeyDown={(e) => { if (e.key === "Escape") onCancel(); }}
     >
       <div
         style={{

@@ -588,6 +588,9 @@ export default function ConnectionsPage() {
 
         {editingConn && (
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="연결 편집"
             style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
             onClick={() => setEditingConn(null)}
             onKeyDown={(e) => { if (e.key === "Escape") setEditingConn(null); }}
