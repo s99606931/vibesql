@@ -374,7 +374,7 @@ export default function HomePage() {
         breadcrumbs={[{ label: "vibeSQL" }, { label: "홈" }]}
       />
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={connLoading || aiLoading} aria-live="polite" style={{ flex: 1, overflowY: "auto", padding: "var(--ds-sp-6)" }}>
         <div style={{ maxWidth: 800, margin: "0 auto", display: "flex", flexDirection: "column", gap: "var(--ds-sp-6)" }}>
 
           {/* ── 헤더 ─────────────────────────────────────────────────────── */}

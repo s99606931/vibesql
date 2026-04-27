@@ -132,7 +132,7 @@ export default function ErrorsPage() {
           ) : undefined
         }
       />
-      <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={historyLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
 
         {/* Status summary — always visible */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--ds-sp-3)", marginBottom: "var(--ds-sp-5)" }}>
