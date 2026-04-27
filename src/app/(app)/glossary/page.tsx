@@ -532,7 +532,7 @@ export default function GlossaryPage() {
                         setCopiedSqlId(selected.id);
                         setTimeout(() => setCopiedSqlId((p) => p === selected.id ? null : p), 1500);
                       }}
-                      aria-label="SQL 복사"
+                      aria-label={copiedSqlId === selected.id ? "복사됨" : "SQL 복사"}
                       style={{ background: "none", border: "none", cursor: "pointer", color: copiedSqlId === selected.id ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, marginRight: 4, transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
                     >
                       {copiedSqlId === selected.id ? <Check size={12} /> : <Copy size={12} />}

@@ -451,7 +451,7 @@ export default function ConnectionsPage() {
                                   setCopiedHostId(conn.id);
                                   setTimeout(() => setCopiedHostId((prev) => prev === conn.id ? null : prev), 1500);
                                 }}
-                                aria-label="host:port 복사"
+                                aria-label={copiedHostId === conn.id ? "복사됨" : "host:port 복사"}
                                 className="opacity-0 group-hover:opacity-100"
                                 style={{ background: "none", border: "none", cursor: "pointer", color: copiedHostId === conn.id ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                               >

@@ -271,7 +271,7 @@ export default function AdminUsersPage() {
                   </span>
                   <button
                     type="button"
-                    aria-label="이메일 복사"
+                    aria-label={copiedEmailId === user.id ? "복사됨" : "이메일 복사"}
                     onClick={() => {
                       void navigator.clipboard.writeText(user.email);
                       setCopiedEmailId(user.id);

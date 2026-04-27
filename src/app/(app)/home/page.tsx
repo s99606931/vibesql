@@ -958,7 +958,7 @@ function StatsSection() {
                   <StatusBadge status={item.status} />
                   <button
                     type="button"
-                    aria-label="SQL 복사"
+                    aria-label={copiedHistId === item.id ? "복사됨" : "SQL 복사"}
                     onClick={(e) => {
                       e.stopPropagation();
                       void navigator.clipboard.writeText(item.sql);

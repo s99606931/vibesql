@@ -307,7 +307,7 @@ export default function SchemaPage() {
                       <button
                         type="button"
                         onClick={(e) => handleCopyTable(e, table)}
-                        aria-label="테이블명 복사"
+                        aria-label={copiedTable === table.name ? "복사됨" : "테이블명 복사"}
                         style={{ background: "none", border: "none", cursor: "pointer", color: copiedTable === table.name ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, gap: 2, transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
                       >
                         <Copy size={11} />

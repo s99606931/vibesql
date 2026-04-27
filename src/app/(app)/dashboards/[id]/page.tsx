@@ -653,7 +653,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                         fontSize: "var(--ds-fs-11)",
                         color: copiedUrl ? "var(--ds-success)" : "var(--ds-text-mute)",
                       }}
-                      aria-label="공유 URL 복사"
+                      aria-label={copiedUrl ? "복사됨" : "공유 URL 복사"}
                     >
                       {copiedUrl ? <Check size={11} /> : <Copy size={11} />}
                       {copiedUrl ? "복사됨!" : "URL 복사"}
