@@ -23,12 +23,17 @@ function userSession() {
 }
 
 beforeEach(() => {
+  vi.stubEnv("DATABASE_URL", ""); // force in-memory path — tests operate on memUsers
   mockRequireUser.mockResolvedValue(adminSession());
   // Remove any extra users added during tests
   while (memUsers.length > 2) memUsers.pop();
   // Ensure dev-user role is USER
   const devUser = memUsers.find((u) => u.id === "dev-user");
   if (devUser) devUser.role = "USER";
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 describe("GET /api/admin/users", () => {

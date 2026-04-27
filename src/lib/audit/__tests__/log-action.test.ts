@@ -3,7 +3,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 describe("logAction — DATABASE_URL 없음 (console fallback)", () => {
   beforeEach(() => {
     vi.unstubAllEnvs();
+    vi.stubEnv("DATABASE_URL", ""); // force console fallback path regardless of CI env
     vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("DATABASE_URL 없으면 console.log 호출", async () => {

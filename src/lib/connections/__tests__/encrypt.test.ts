@@ -6,6 +6,11 @@ describe("encryptPassword / decryptPassword — key 미설정 (dev fallback)", (
   beforeEach(() => {
     vi.resetModules();
     vi.unstubAllEnvs();
+    vi.stubEnv("CONNECTION_ENCRYPTION_KEY", ""); // force base64 fallback regardless of CI env
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("빈 문자열 → 빈 문자열 반환", async () => {
