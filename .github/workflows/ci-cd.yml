@@ -58,7 +58,14 @@ jobs:
         run: mkdir -p .next/types && echo 'export {}' > .next/types/routes.d.ts
 
       - name: TypeScript type check
-        run: npx tsc --noEmit
+        run: npx tsc --noEmit 2>&1 | tee /tmp/tsc-output.txt; exit ${PIPESTATUS[0]}
+
+      - name: Upload tsc output on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsc-errors
+          path: /tmp/tsc-output.txt
 
       - name: Run unit tests
         run: npx vitest run
