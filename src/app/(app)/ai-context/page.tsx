@@ -59,6 +59,7 @@ function ValuePreview({ value }: { value: string }) {
       </div>
       {isLong && (
         <button
+          aria-expanded={expanded}
           onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
           style={{ display: "inline-flex", alignItems: "center", gap: 2, marginTop: 2, background: "none", border: "none", cursor: "pointer", fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)", padding: 0, fontFamily: "var(--ds-font-sans)" }}
         >
@@ -240,6 +241,7 @@ function RuleModal({
           <div style={{ width: 80, display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
             <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>우선순위</label>
             <input
+              aria-label="우선순위"
               type="number"
               min={0}
               max={100}

@@ -82,6 +82,7 @@ function LogRow({ log }: { log: AuditLogItem }) {
       }}
     >
       <div
+        aria-expanded={log.metadata ? expanded : undefined}
         style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-3)", cursor: log.metadata ? "pointer" : "default" }}
         onClick={() => { if (log.metadata) setExpanded((v) => !v); }}
       >

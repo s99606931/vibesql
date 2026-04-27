@@ -266,6 +266,7 @@ export default function HistoryPage() {
             return (
             <div key={date} style={{ marginBottom: "var(--ds-sp-5)" }}>
               <button
+                aria-expanded={!collapsed}
                 onClick={() => setCollapsedDates((prev) => {
                   const next = new Set(prev);
                   if (next.has(date)) next.delete(date); else next.add(date);
@@ -298,6 +299,7 @@ export default function HistoryPage() {
                   <div
                     role="button"
                     tabIndex={0}
+                    aria-expanded={expandedErrorId === item.id}
                     className="group hover:bg-fill transition-colors"
                     style={{
                       display: "flex",

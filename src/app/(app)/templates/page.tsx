@@ -227,6 +227,7 @@ function TemplateCard({
       {/* SQL preview */}
       <div>
         <button
+          aria-expanded={expanded}
           onClick={() => setExpanded((v) => !v)}
           style={{
             background: "none", border: "none", cursor: "pointer",
