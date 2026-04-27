@@ -462,6 +462,16 @@ export default function HistoryPage() {
 
 
 
+        {/* True empty state (no history at all) */}
+        {!isLoading && data.length === 0 && !search && activeFilter === "전체" && (
+          <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
+            <div>아직 실행된 쿼리가 없습니다.</div>
+            <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => router.push("/workspace")}>
+              워크스페이스로 이동
+            </Button>
+          </div>
+        )}
+
         {/* No-results */}
         {!isLoading && filtered.length === 0 && (search || activeFilter !== "전체") && (
           <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>

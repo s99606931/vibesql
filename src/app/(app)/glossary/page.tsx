@@ -331,6 +331,7 @@ export default function GlossaryPage() {
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div
+                    title={term.term}
                     style={{
                       fontSize: "var(--ds-fs-13)",
                       fontWeight: (selectedId ?? terms[0]?.id) === term.id ? "var(--ds-fw-semibold)" : "var(--ds-fw-normal)",

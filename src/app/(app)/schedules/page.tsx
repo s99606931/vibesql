@@ -530,6 +530,9 @@ export default function SchedulesPage() {
               <div style={{ fontSize: "var(--ds-fs-12)", marginTop: 4 }}>
                 쿼리를 자동으로 실행할 스케줄을 추가해보세요.
               </div>
+              <Button variant="accent" size="sm" icon={<Plus size={13} />} style={{ marginTop: "var(--ds-sp-3)" }} onClick={() => setModal({ open: true, editing: null })}>
+                첫 스케줄 추가
+              </Button>
             </div>
           </Card>
         )}

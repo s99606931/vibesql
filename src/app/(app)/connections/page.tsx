@@ -401,6 +401,7 @@ export default function ConnectionsPage() {
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
                             <span
+                              title={conn.name}
                               style={{
                                 fontFamily: "var(--ds-font-mono)",
                                 fontSize: "var(--ds-fs-13)",

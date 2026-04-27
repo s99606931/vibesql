@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -293,7 +294,10 @@ export default function ProfilePage() {
 
             {!isLoading && recentItems.length === 0 && (
               <div style={{ padding: "var(--ds-sp-4)", textAlign: "center", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
-                아직 실행한 쿼리가 없습니다.
+                <div>아직 실행한 쿼리가 없습니다.</div>
+                <Link href="/workspace" style={{ display: "inline-block", marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-12)", color: "var(--ds-accent)" }}>
+                  워크스페이스로 이동 →
+                </Link>
               </div>
             )}
 
