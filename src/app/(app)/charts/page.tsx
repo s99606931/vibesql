@@ -278,7 +278,7 @@ export default function ChartsPage() {
           })}
           <div style={{ flex: 1 }} />
           <div role="search" aria-label="차트 검색" style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", padding: "var(--ds-sp-1) var(--ds-sp-2)", width: 200 }}>
-            <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+            <Search aria-hidden="true" size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <input
               ref={searchRef}
               type="search"
@@ -290,7 +290,7 @@ export default function ChartsPage() {
             />
             {search && (
               <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
-                <X size={12} />
+                <X aria-hidden="true" size={12} />
               </button>
             )}
           </div>
@@ -317,7 +317,7 @@ export default function ChartsPage() {
               color: "var(--ds-warn)",
             }}
           >
-            <AlertCircle size={14} style={{ flexShrink: 0 }} />
+            <AlertCircle aria-hidden="true" size={14} style={{ flexShrink: 0 }} />
             연결이 없습니다. 워크스페이스에서 DB 연결을 활성화해야 차트를 실행할 수 있습니다.
             <Button variant="ghost" size="sm" onClick={() => router.push("/workspace")} style={{ marginLeft: "auto" }}>
               연결하러 가기
@@ -403,7 +403,7 @@ export default function ChartsPage() {
 
                     {state.status === "error" && (
                       <div role="alert" style={{ display: "flex", alignItems: "flex-start", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-3)", color: "var(--ds-danger)", fontSize: "var(--ds-fs-12)" }}>
-                        <AlertCircle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+                        <AlertCircle aria-hidden="true" size={14} style={{ flexShrink: 0, marginTop: 2 }} />
                         <span>{state.message}</span>
                       </div>
                     )}
@@ -449,7 +449,7 @@ export default function ChartsPage() {
                   <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-3)" }}>
                     <Pill variant={CHART_TYPE_VARIANTS[chart.chartType] ?? "default"}>
                       <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        {CHART_TYPE_ICONS[chart.chartType]}
+                        <span aria-hidden="true">{CHART_TYPE_ICONS[chart.chartType]}</span>
                         {chart.chartType}
                       </span>
                     </Pill>
