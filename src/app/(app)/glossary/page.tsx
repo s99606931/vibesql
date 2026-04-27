@@ -223,7 +223,7 @@ export default function GlossaryPage() {
                 padding: "var(--ds-sp-1) var(--ds-sp-2)",
               }}
             >
-              <Search size={12} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+              <Search aria-hidden="true" size={12} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
               <input
                 ref={searchRef}
                 type="search"
@@ -243,7 +243,7 @@ export default function GlossaryPage() {
               />
               {search && (
                 <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
-                  <X size={12} />
+                  <X aria-hidden="true" size={12} />
                 </button>
               )}
             </div>
@@ -347,6 +347,7 @@ export default function GlossaryPage() {
                 }}
               >
                 <BookOpen
+                  aria-hidden="true"
                   size={13}
                   style={{
                     color: (selectedId ?? terms[0]?.id) === term.id ? "var(--ds-accent)" : "var(--ds-text-faint)",
@@ -393,7 +394,7 @@ export default function GlossaryPage() {
                   }}
                   style={{ color: copiedTermId === term.id ? "var(--ds-success)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", flexShrink: 0, cursor: "pointer", transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
                 >
-                  {copiedTermId === term.id ? <Check size={11} /> : <Copy size={11} />}
+                  {copiedTermId === term.id ? <Check aria-hidden="true" size={11} /> : <Copy aria-hidden="true" size={11} />}
                 </span>
               </button>
             ))}
@@ -538,7 +539,7 @@ export default function GlossaryPage() {
                       aria-label={copiedSqlId === selected.id ? "복사됨" : "SQL 복사"}
                       style={{ background: "none", border: "none", cursor: "pointer", color: copiedSqlId === selected.id ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, marginRight: 4, transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
                     >
-                      {copiedSqlId === selected.id ? <Check size={12} /> : <Copy size={12} />}
+                      {copiedSqlId === selected.id ? <Check aria-hidden="true" size={12} /> : <Copy aria-hidden="true" size={12} />}
                     </button>
                     <button
                       type="button"
@@ -551,7 +552,7 @@ export default function GlossaryPage() {
                       style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-accent)", display: "flex", alignItems: "center", padding: 2, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                       className="hover:opacity-70"
                     >
-                      <ExternalLink size={12} />
+                      <ExternalLink aria-hidden="true" size={12} />
                     </button>
                   </div>
                   <code style={{ fontFamily: "var(--ds-font-mono)", fontSize: "var(--ds-fs-12)", color: "var(--ds-accent)", background: "var(--ds-accent-soft)", borderRadius: "var(--ds-r-6)", padding: "var(--ds-sp-2) var(--ds-sp-3)", display: "block" }}>
