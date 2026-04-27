@@ -465,11 +465,11 @@ export default function SettingsPage() {
                   </select>
                 </SettingRow>
 
-                <SettingRow label="SQL 생성 온도" description={`창의성 수준을 조정합니다 — 현재: ${temperature.toFixed(1)}`}>
+                <SettingRow label="SQL 생성 온도" description={`낮을수록 정확·보수적, 높을수록 창의적·다양한 SQL 생성 — 현재: ${temperature.toFixed(1)}`}>
                   <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
-                    <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>0.0</span>
+                    <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }} title="정확·보수적">정확</span>
                     <input type="range" min={0} max={1} step={0.1} value={temperature} onChange={(e) => { setTemperature(Number(e.target.value)); persistSettings(); }} style={{ accentColor: "var(--ds-accent)", width: 120, cursor: "pointer" }} />
-                    <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>1.0</span>
+                    <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }} title="창의적·다양">창의</span>
                     <span className="ds-num" style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-accent)", fontWeight: "var(--ds-fw-semibold)", minWidth: 24, textAlign: "right" }}>{temperature.toFixed(1)}</span>
                   </div>
                 </SettingRow>

@@ -231,6 +231,7 @@ export default function SavedPage() {
   const [confirmDeleteName, setConfirmDeleteName] = useState<string>("");
   const [newFolderModal, setNewFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
+  const [extraFolders, setExtraFolders] = useState<string[]>([]);
   const [renameModal, setRenameModal] = useState<{ id: string; name: string } | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const queryClient = useQueryClient();
@@ -277,28 +278,12 @@ export default function SavedPage() {
     setNewFolderModal(true);
   }
 
-  async function handleNewFolderSubmit(folderName: string) {
-    setNewFolderModal(false);
-    if (!folderName.trim()) return;
+  function handleNewFolderSubmit(folderName: string) {
     const name = folderName.trim();
-    const unclassified = (queryClient.getQueryData<SavedQuery[]>(["saved"]) ?? []).filter(
-      (q) => (q.folder ?? "미분류") === "미분류"
-    );
-    if (unclassified.length === 0) return;
-    const results = await Promise.allSettled(
-      unclassified.map((q) =>
-        fetch(`/api/saved/${q.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ folder: name }),
-        }).then(async (r) => {
-          if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error ?? "PATCH 실패");
-        })
-      )
-    );
-    const failures = results.filter((r) => r.status === "rejected");
-    if (failures.length > 0) console.error("[saved] folder move partial failure:", failures);
-    queryClient.invalidateQueries({ queryKey: ["saved"] });
+    if (!name) return;
+    setExtraFolders((prev) => (prev.includes(name) ? prev : [...prev, name]));
+    setNewFolderName("");
+    setNewFolderModal(false);
   }
 
   const savedList = Array.isArray(data) ? data : [];
@@ -309,7 +294,14 @@ export default function SavedPage() {
       q.nlQuery.toLowerCase().includes(search.toLowerCase())
   );
 
-  const folders = groupByFolder(filtered);
+  const baseFolders = groupByFolder(filtered);
+  const existingNames = new Set(baseFolders.map((f) => f.name));
+  const folders: FolderGroup[] = [
+    ...baseFolders,
+    ...extraFolders
+      .filter((n) => !existingNames.has(n))
+      .map((n) => ({ name: n, queries: [] as SavedQuery[] })),
+  ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>

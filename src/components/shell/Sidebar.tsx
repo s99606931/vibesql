@@ -44,6 +44,7 @@ type NavItem = {
   label: string;
   countKey?: "saved";
   requiredRole?: UserRole;
+  badge?: "soon";
 };
 
 type NavGroup = {
@@ -72,6 +73,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/dashboards", icon: LayoutDashboard, label: "대시보드" },
       { href: "/charts", icon: BarChart2, label: "차트" },
+      { href: "/reports", icon: FileText, label: "리포트", badge: "soon" as const },
     ],
   },
   {
@@ -80,6 +82,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/schema", icon: Table2, label: "스키마" },
       { href: "/glossary", icon: BookOpen, label: "용어 사전" },
+      { href: "/catalog", icon: Bot, label: "데이터 카탈로그", badge: "soon" as const },
     ],
   },
   {
@@ -114,6 +117,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/profile", icon: User, label: "프로필" },
       { href: "/settings", icon: Settings, label: "설정" },
+      { href: "/notifications", icon: Zap, label: "알림", badge: "soon" as const },
     ],
   },
 ];
@@ -413,6 +417,16 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                         >
                           <item.icon size={14} style={{ flexShrink: 0 }} />
                           <span style={{ flex: 1 }}>{item.label}</span>
+                          {item.badge === "soon" && (
+                            <span style={{
+                              fontSize: "var(--ds-fs-9)", fontFamily: "var(--ds-font-sans)",
+                              color: "var(--ds-text-faint)", background: "var(--ds-fill)",
+                              borderRadius: "var(--ds-r-4)", padding: "1px 4px",
+                              letterSpacing: "0.02em",
+                            }}>
+                              soon
+                            </span>
+                          )}
                           {count != null && count > 0 && (
                             <span style={{
                               fontSize: "var(--ds-fs-9)", fontFamily: "var(--ds-font-mono)",

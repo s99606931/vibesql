@@ -5,7 +5,7 @@ import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Card } from "@/components/ui-vs/Card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
@@ -74,6 +74,7 @@ export default function ChartsPage() {
   const [cardStates, setCardStates] = useState<Map<string, CardState>>(new Map());
   const { setSql, setStatus, activeConnectionId } = useWorkspaceStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { data: savedQueries, isLoading } = useQuery({
     queryKey: ["saved"],
@@ -144,9 +145,22 @@ export default function ChartsPage() {
         title="차트"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "차트" }]}
         actions={
-          <Button variant="accent" size="sm" icon={<Plus size={13} />} onClick={() => router.push("/workspace")}>
-            새 차트
-          </Button>
+          <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<RefreshCw size={13} />}
+              onClick={() => {
+                setCardStates(new Map());
+                void queryClient.invalidateQueries({ queryKey: ["saved"] });
+              }}
+            >
+              새로고침
+            </Button>
+            <Button variant="accent" size="sm" icon={<Plus size={13} />} onClick={() => router.push("/workspace")}>
+              새 차트
+            </Button>
+          </div>
         }
       />
 

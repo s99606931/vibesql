@@ -87,6 +87,7 @@ export default function DashboardsPage() {
   const [search, setSearch] = useState("");
   const [newDashModal, setNewDashModal] = useState(false);
   const [newDashName, setNewDashName] = useState("");
+  const [newDashDesc, setNewDashDesc] = useState("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -114,11 +115,11 @@ export default function DashboardsPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (name: string) => {
+    mutationFn: async ({ name, description }: { name: string; description?: string }) => {
       const r = await fetch("/api/dashboards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, widgets: [] }),
+        body: JSON.stringify({ name, description: description || undefined, widgets: [] }),
       });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "생성 실패");
@@ -389,16 +390,25 @@ export default function DashboardsPage() {
               value={newDashName}
               onChange={(e) => setNewDashName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && newDashName.trim()) { createMutation.mutate(newDashName.trim()); setNewDashModal(false); }
                 if (e.key === "Escape") setNewDashModal(false);
               }}
               placeholder="대시보드 이름 입력..."
+              style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-2)", boxSizing: "border-box" }}
+            />
+            <input
+              value={newDashDesc}
+              onChange={(e) => setNewDashDesc(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && newDashName.trim()) { createMutation.mutate({ name: newDashName.trim(), description: newDashDesc.trim() }); setNewDashModal(false); setNewDashName(""); setNewDashDesc(""); }
+                if (e.key === "Escape") setNewDashModal(false);
+              }}
+              placeholder="설명 (선택)"
               style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-4)", boxSizing: "border-box" }}
             />
             <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
-              <button onClick={() => setNewDashModal(false)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}>취소</button>
+              <button onClick={() => { setNewDashModal(false); setNewDashName(""); setNewDashDesc(""); }} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}>취소</button>
               <button
-                onClick={() => { if (newDashName.trim()) { createMutation.mutate(newDashName.trim()); setNewDashModal(false); } }}
+                onClick={() => { if (newDashName.trim()) { createMutation.mutate({ name: newDashName.trim(), description: newDashDesc.trim() }); setNewDashModal(false); setNewDashName(""); setNewDashDesc(""); } }}
                 disabled={!newDashName.trim() || createMutation.isPending}
                 style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)" }}
               >
