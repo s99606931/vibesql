@@ -400,7 +400,7 @@ export default function ProfilePage() {
       </div>
 
       {deleteAccountModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteAccountModal(false)}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteAccountModal(false)} onKeyDown={(e) => { if (e.key === "Escape") setDeleteAccountModal(false); }}>
           <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 320, maxWidth: 400, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
             <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-danger)" }}>계정 삭제 요청</div>
             <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", lineHeight: 1.6 }}>

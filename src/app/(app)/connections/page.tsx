@@ -590,6 +590,7 @@ export default function ConnectionsPage() {
           <div
             style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
             onClick={() => setEditingConn(null)}
+            onKeyDown={(e) => { if (e.key === "Escape") setEditingConn(null); }}
           >
             <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto" }}>
               <EditConnectionForm conn={editingConn} onClose={() => setEditingConn(null)} />

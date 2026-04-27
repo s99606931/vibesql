@@ -1129,6 +1129,7 @@ export default function WorkspacePage() {
         <div
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
           onClick={() => setSaveModal(false)}
+          onKeyDown={(e) => { if (e.key === "Escape") setSaveModal(false); }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -1187,6 +1188,7 @@ export default function WorkspacePage() {
         <div
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
           onClick={() => setAddToDashModal(null)}
+          onKeyDown={(e) => { if (e.key === "Escape") setAddToDashModal(null); }}
         >
           <div
             style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 320, maxWidth: 400, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }}
