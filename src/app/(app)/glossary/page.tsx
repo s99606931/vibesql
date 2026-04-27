@@ -247,6 +247,8 @@ export default function GlossaryPage() {
             {allCategories.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--ds-sp-1)", marginTop: "var(--ds-sp-2)", alignItems: "center" }}>
                 <button
+                  type="button"
+                  aria-pressed={catFilter === null}
                   onClick={() => setCatFilter(null)}
                   style={{
                     padding: "2px 8px",
@@ -267,6 +269,8 @@ export default function GlossaryPage() {
                   return (
                   <button
                     key={cat}
+                    type="button"
+                    aria-pressed={catFilter === cat}
                     onClick={() => setCatFilter((prev) => prev === cat ? null : cat)}
                     style={{
                       padding: "2px 8px",

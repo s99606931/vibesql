@@ -421,6 +421,8 @@ export default function TemplatesPage() {
             {CATEGORY_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
+                type="button"
+                aria-pressed={category === opt.value}
                 onClick={() => setCategory(opt.value)}
                 style={{
                   padding: "var(--ds-sp-1) var(--ds-sp-2)",

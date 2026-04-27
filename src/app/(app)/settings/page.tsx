@@ -242,6 +242,8 @@ export default function SettingsPage() {
             return (
               <button
                 key={item.id}
+                type="button"
+                aria-current={active ? "page" : undefined}
                 onClick={() => setActiveSection(item.id)}
                 style={{
                   display: "flex",
