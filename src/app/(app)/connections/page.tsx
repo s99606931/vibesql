@@ -9,9 +9,21 @@ import { Pill } from "@/components/ui-vs/Pill";
 import { ConnectionWizard } from "@/components/connections/ConnectionWizard";
 import { useConnections, useTestConnection, useUpdateConnection } from "@/hooks/useConnections";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, RefreshCw, Loader2, Trash2, Pencil, X, Copy, Check } from "lucide-react";
+import { Plus, RefreshCw, Loader2, Trash2, Pencil, X, Copy, Check, Search } from "lucide-react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import type { DbDialect, Connection } from "@/types";
+
+function formatRelativeElapsed(iso: string | null | undefined): string {
+  if (!iso) return "미테스트";
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 60_000) return "방금 전";
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMs / 3_600_000);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffMs / 86_400_000);
+  return `${diffDay}일 전`;
+}
 
 const dialectLabels: Record<DbDialect, string> = {
   postgresql: "PostgreSQL",
@@ -130,6 +142,8 @@ export default function ConnectionsPage() {
   const [showWizard, setShowWizard] = useState(false);
   const [editingConn, setEditingConn] = useState<Connection | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
   const activeConnectionId = useWorkspaceStore((s) => s.activeConnectionId);
   const [testFeedback, setTestFeedback] = useState<Record<string, ConnTestFeedback>>({});
   const [copiedHostId, setCopiedHostId] = useState<string | null>(null);
@@ -143,6 +157,17 @@ export default function ConnectionsPage() {
     return () => {
       Object.values(timers).forEach((t) => clearTimeout(t));
     };
+  }, []);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
   }, []);
 
   function scheduleFeedbackClear(id: string) {
@@ -267,6 +292,17 @@ export default function ConnectionsPage() {
         )}
 
         {!isLoading && !isError && connections && connections.length > 0 && (
+          <>
+            <div style={{ position: "relative", maxWidth: 320, marginBottom: "var(--ds-sp-3)" }}>
+              <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+              <input
+                ref={searchRef}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="연결 검색... (⌘F)"
+                style={{ width: "100%", paddingLeft: 30, paddingRight: "var(--ds-sp-3)", paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", boxSizing: "border-box" }}
+              />
+            </div>
           <Card padding={0}>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -297,7 +333,7 @@ export default function ConnectionsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {connections.map((conn) => {
+                  {connections.filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()) || (c.host ?? "").toLowerCase().includes(search.toLowerCase()) || c.database.toLowerCase().includes(search.toLowerCase())).map((conn) => {
                     const isTesting =
                       testMutation.isPending &&
                       testMutation.variables === conn.id;
@@ -386,14 +422,13 @@ export default function ConnectionsPage() {
                         </td>
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
                           <span
+                            title={conn.lastTestedAt ? new Date(conn.lastTestedAt).toLocaleString("ko-KR") : undefined}
                             style={{
                               fontSize: "var(--ds-fs-12)",
                               color: "var(--ds-text-faint)",
                             }}
                           >
-                            {conn.lastTestedAt
-                              ? new Date(conn.lastTestedAt).toLocaleString("ko-KR")
-                              : "미테스트"}
+                            {formatRelativeElapsed(conn.lastTestedAt)}
                           </span>
                         </td>
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
@@ -484,6 +519,7 @@ export default function ConnectionsPage() {
               </table>
             </div>
           </Card>
+          </>
         )}
 
         {editingConn && (

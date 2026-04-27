@@ -809,6 +809,11 @@ export default function WorkspacePage() {
                 {chip}
               </button>
             ))}
+            {nlQuery.length > 0 && (
+              <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", fontFamily: "var(--ds-font-mono)" }}>
+                {nlQuery.length}자
+              </span>
+            )}
             <div style={{ flex: 1 }} />
             <Button
               variant="accent"

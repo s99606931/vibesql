@@ -6,7 +6,7 @@ import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
-import { Plus, Trash2, Play, Pencil, Clock, Calendar, CheckCircle2, XCircle, Loader, ChevronDown, ChevronRight, Database, Search } from "lucide-react";
+import { Plus, Trash2, Play, Pencil, Clock, Calendar, CheckCircle2, XCircle, Loader, ChevronDown, ChevronRight, Database, Search, Download } from "lucide-react";
 import type { ScheduledQuery, DbDialect } from "@/types";
 import { useConnections } from "@/hooks/useConnections";
 
@@ -318,6 +318,29 @@ function ScheduleModal({
   );
 }
 
+function exportSchedulesCsv(data: ScheduledQuery[]) {
+  const headers = ["이름", "방언", "Cron", "활성", "마지막 실행", "상태", "행 수", "소요 시간(ms)"];
+  const esc = (v: string) => (v.includes(",") || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v);
+  const rows = data.map((s) => [
+    s.name,
+    s.dialect,
+    s.cronExpr,
+    s.isActive ? "활성" : "비활성",
+    s.lastRunAt ? new Date(s.lastRunAt).toLocaleString("ko-KR") : "",
+    s.lastRunStatus ?? "",
+    s.rowCount != null ? String(s.rowCount) : "",
+    s.durationMs != null ? String(s.durationMs) : "",
+  ].map(esc).join(","));
+  const csv = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `schedules-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function SchedulesPage() {
@@ -421,14 +444,25 @@ export default function SchedulesPage() {
         title="쿼리 스케줄러"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "워크스페이스" }, { label: "스케줄러" }]}
         actions={
-          <Button
-            variant="accent"
-            size="sm"
-            icon={<Plus size={13} />}
-            onClick={() => setModal({ open: true, editing: null })}
-          >
-            스케줄 추가
-          </Button>
+          <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Download size={13} />}
+              onClick={() => exportSchedulesCsv(schedules)}
+              disabled={schedules.length === 0}
+            >
+              내보내기
+            </Button>
+            <Button
+              variant="accent"
+              size="sm"
+              icon={<Plus size={13} />}
+              onClick={() => setModal({ open: true, editing: null })}
+            >
+              스케줄 추가
+            </Button>
+          </div>
         }
       />
 
