@@ -533,6 +533,11 @@ export default function SavedPage() {
           />
         )}
 
+        {/* No-results */}
+        {!isLoading && filtered.length === 0 && search && (
+          <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>검색 결과가 없습니다.</div>
+        )}
+
         {/* Folder groups */}
         {!isLoading &&
           folders.map((folder) => (

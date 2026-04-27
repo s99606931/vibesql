@@ -461,6 +461,13 @@ export default function HistoryPage() {
 
 
 
+        {/* No-results */}
+        {!isLoading && filtered.length === 0 && (search || activeFilter !== "전체") && (
+          <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
+            {search ? "검색 결과가 없습니다." : "해당 필터에 결과가 없습니다."}
+          </div>
+        )}
+
         {/* Load more */}
         {data.length > 0 && data.length < totalCount && (
           <div style={{ textAlign: "center", paddingTop: "var(--ds-sp-4)" }}>

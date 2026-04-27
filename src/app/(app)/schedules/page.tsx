@@ -6,7 +6,7 @@ import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
-import { Plus, Trash2, Play, Pencil, Clock, Calendar, CheckCircle2, XCircle, Loader, ChevronDown, ChevronRight, Database, Search, Download, X } from "lucide-react";
+import { Plus, Trash2, Play, Pencil, Clock, Calendar, CheckCircle2, XCircle, Loader, ChevronDown, ChevronRight, Database, Search, Download, X, Copy, Check } from "lucide-react";
 import type { ScheduledQuery, DbDialect } from "@/types";
 import { useConnections } from "@/hooks/useConnections";
 
@@ -354,6 +354,7 @@ export default function SchedulesPage() {
   const [expandedSqlId, setExpandedSqlId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
+  const [copiedSqlId, setCopiedSqlId] = useState<string | null>(null);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -717,6 +718,18 @@ export default function SchedulesPage() {
                     onClick={() => { void handleRun(schedule.id); }}
                   >
                     실행
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={copiedSqlId === schedule.id ? <Check size={12} style={{ color: "var(--ds-success)" }} /> : <Copy size={12} />}
+                    onClick={() => {
+                      void navigator.clipboard.writeText(schedule.sql);
+                      setCopiedSqlId(schedule.id);
+                      setTimeout(() => setCopiedSqlId(null), 1500);
+                    }}
+                  >
+                    {copiedSqlId === schedule.id ? "복사됨" : "SQL"}
                   </Button>
                   <Button
                     variant="ghost"

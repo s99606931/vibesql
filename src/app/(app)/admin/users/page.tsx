@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
-import { Crown, ShieldCheck, User, Trash2, AlertTriangle, Search, Download, X } from "lucide-react";
+import { Crown, ShieldCheck, User, Trash2, AlertTriangle, Search, Download, X, Copy, Check } from "lucide-react";
 import type { UserRole } from "@/lib/auth/jwt";
 
 function formatRelativeDate(iso: string): string {
@@ -67,6 +67,7 @@ export default function AdminUsersPage() {
   const [confirmRole, setConfirmRole] = useState<{ user: UserRow; nextRole: UserRole } | null>(null);
   const [search, setSearch] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
+  const [copiedEmailId, setCopiedEmailId] = useState<string | null>(null);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -256,8 +257,21 @@ export default function AdminUsersPage() {
                 </div>
 
                 {/* Email */}
-                <div style={{ color: "var(--ds-text-mute)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {user.email}
+                <div style={{ display: "flex", alignItems: "center", gap: 4, overflow: "hidden", minWidth: 0 }}>
+                  <span style={{ color: "var(--ds-text-mute)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+                    {user.email}
+                  </span>
+                  <button
+                    title="이메일 복사"
+                    onClick={() => {
+                      void navigator.clipboard.writeText(user.email);
+                      setCopiedEmailId(user.id);
+                      setTimeout(() => setCopiedEmailId(null), 1500);
+                    }}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: copiedEmailId === user.id ? "var(--ds-success)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0, borderRadius: "var(--ds-r-6)" }}
+                  >
+                    {copiedEmailId === user.id ? <Check size={11} /> : <Copy size={11} />}
+                  </button>
                 </div>
 
                 {/* Role toggle */}
