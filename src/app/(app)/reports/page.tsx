@@ -106,7 +106,7 @@ export default function ReportsPage() {
                           flexShrink: 0,
                         }}
                       >
-                        <Icon size={15} style={{ color: "var(--ds-accent)" }} />
+                        <Icon aria-hidden="true" size={15} style={{ color: "var(--ds-accent)" }} />
                       </span>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text)" }}>

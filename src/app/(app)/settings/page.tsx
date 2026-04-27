@@ -338,7 +338,7 @@ export default function SettingsPage() {
                             justifyContent: "center",
                           }}
                         >
-                          {selected && <Check size={14} color="var(--ds-accent-on)" />}
+                          {selected && <Check aria-hidden="true" size={14} color="var(--ds-accent-on)" />}
                         </span>
                         <span
                           style={{
@@ -421,7 +421,7 @@ export default function SettingsPage() {
                       fontFamily: "var(--ds-font-sans)",
                     }}
                   >
-                    {mode === "dark" ? <Moon size={13} /> : <Sun size={13} />}
+                    {mode === "dark" ? <Moon aria-hidden="true" size={13} /> : <Sun aria-hidden="true" size={13} />}
                     {mode === "dark" ? "다크" : "라이트"}
                   </button>
                 </SettingRow>
@@ -536,7 +536,7 @@ export default function SettingsPage() {
                     <Link href="/ai-providers" style={{ textDecoration: "none" }}>
                       <Button variant="ghost" size="sm">
                         관리 페이지로
-                        <ArrowRight size={13} style={{ marginLeft: 4 }} />
+                        <ArrowRight aria-hidden="true" size={13} style={{ marginLeft: 4 }} />
                       </Button>
                     </Link>
                   )}

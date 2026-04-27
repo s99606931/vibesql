@@ -52,7 +52,7 @@ export default function NotificationsPage() {
               transition: "background var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
             }}
           >
-            <Zap size={20} style={{ color: enabledCount > 0 ? "var(--ds-accent)" : "var(--ds-text-faint)", flexShrink: 0 }} />
+            <Zap aria-hidden="true" size={20} style={{ color: enabledCount > 0 ? "var(--ds-accent)" : "var(--ds-text-faint)", flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <div role="status" aria-live="polite" style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-semibold)", color: enabledCount > 0 ? "var(--ds-accent)" : "var(--ds-text-mute)" }}>
                 {enabledCount > 0 ? `${enabledCount}개 알림 활성화됨` : "모든 알림이 꺼져 있습니다"}

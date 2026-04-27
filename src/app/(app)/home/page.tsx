@@ -971,7 +971,7 @@ function StatsSection() {
                     className="opacity-0 group-hover:opacity-100"
                     style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: copiedHistId === item.id ? "var(--ds-success)" : "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)", flexShrink: 0, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                   >
-                    {copiedHistId === item.id ? <Check size={11} /> : <Copy size={11} />}
+                    {copiedHistId === item.id ? <Check aria-hidden="true" size={11} /> : <Copy aria-hidden="true" size={11} />}
                   </button>
                 </div>
               );

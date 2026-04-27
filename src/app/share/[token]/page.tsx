@@ -98,7 +98,7 @@ export default function SharePage() {
               fontWeight: "var(--ds-fw-semibold)",
             }}
           >
-            <Zap size={16} style={{ color: "var(--ds-accent)" }} />
+            <Zap aria-hidden="true" size={16} style={{ color: "var(--ds-accent)" }} />
             <span>vibeSQL</span>
           </div>
         </Link>
@@ -267,8 +267,8 @@ export default function SharePage() {
                 }}
               >
                 {copied
-                  ? <Check size={13} style={{ color: "var(--ds-success)" }} />
-                  : <Copy size={13} />
+                  ? <Check aria-hidden="true" size={13} style={{ color: "var(--ds-success)" }} />
+                  : <Copy aria-hidden="true" size={13} />
                 }
                 {copied ? "복사됨" : "복사"}
               </button>
@@ -293,7 +293,7 @@ export default function SharePage() {
                   transition: "opacity var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
-                <ExternalLink size={13} />
+                <ExternalLink aria-hidden="true" size={13} />
                 vibeSQL에서 열기
               </button>
 

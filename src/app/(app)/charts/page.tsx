@@ -396,7 +396,7 @@ export default function ChartsPage() {
 
                     {state.status === "loading" && (
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 140, flexDirection: "column", gap: "var(--ds-sp-2)", color: "var(--ds-text-mute)", fontSize: "var(--ds-fs-12)" }}>
-                        <RefreshCw size={20} style={{ animation: "spin 1s linear infinite", color: "var(--ds-accent)" }} />
+                        <RefreshCw aria-hidden="true" size={20} style={{ animation: "spin 1s linear infinite", color: "var(--ds-accent)" }} />
                         실행 중...
                       </div>
                     )}

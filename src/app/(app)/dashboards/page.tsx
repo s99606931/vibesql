@@ -343,7 +343,7 @@ export default function DashboardsPage() {
               background: "var(--ds-surface)",
             }}
           >
-            <LayoutDashboard size={32} style={{ color: "var(--ds-text-faint)" }} />
+            <LayoutDashboard aria-hidden="true" size={32} style={{ color: "var(--ds-text-faint)" }} />
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: 4 }}>
                 {search ? "검색 결과 없음" : "새 대시보드를 만들어 보세요"}

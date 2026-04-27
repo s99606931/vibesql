@@ -632,7 +632,7 @@ export default function GlossaryPage() {
 
           {!selected && !showAdd && !isLoading && (
             <div style={{ textAlign: "center", padding: "var(--ds-sp-8)", color: "var(--ds-text-faint)", display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ds-sp-3)" }}>
-              <BookOpen size={32} style={{ opacity: 0.4 }} />
+              <BookOpen aria-hidden="true" size={32} style={{ opacity: 0.4 }} />
               <div style={{ fontSize: "var(--ds-fs-14)" }}>용어를 선택하거나 새 용어를 추가하세요</div>
               <button
                 type="button"

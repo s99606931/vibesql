@@ -537,7 +537,7 @@ export default function SchedulesPage() {
         {!isLoading && schedules.length === 0 && (
           <Card>
             <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-mute)" }}>
-              <Calendar size={32} style={{ color: "var(--ds-text-faint)", margin: "0 auto var(--ds-sp-3)" }} />
+              <Calendar aria-hidden="true" size={32} style={{ color: "var(--ds-text-faint)", margin: "0 auto var(--ds-sp-3)" }} />
               <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)" }}>스케줄이 없습니다</div>
               <div style={{ fontSize: "var(--ds-fs-12)", marginTop: 4 }}>
                 쿼리를 자동으로 실행할 스케줄을 추가해보세요.
@@ -553,7 +553,7 @@ export default function SchedulesPage() {
           <>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-3)" }}>
               <div role="search" aria-label="스케줄 검색" style={{ position: "relative", flex: 1, maxWidth: 320 }}>
-                <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+                <Search aria-hidden="true" size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
                 <input
                   ref={searchRef}
                   type="search"
@@ -565,7 +565,7 @@ export default function SchedulesPage() {
                 />
                 {search && (
                   <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
-                    <X size={13} />
+                    <X aria-hidden="true" size={13} />
                   </button>
                 )}
               </div>
@@ -687,7 +687,7 @@ export default function SchedulesPage() {
                   >
                     {schedule.sql.length > 60 && (
                       <span style={{ flexShrink: 0, marginTop: 1 }}>
-                        {expandedSqlId === schedule.id ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                        {expandedSqlId === schedule.id ? <ChevronDown aria-hidden="true" size={11} /> : <ChevronRight aria-hidden="true" size={11} />}
                       </span>
                     )}
                     <span id={`sched-sql-${schedule.id}`}>
@@ -738,7 +738,7 @@ export default function SchedulesPage() {
                       const conn = connections.find((c) => c.id === schedule.connectionId);
                       return conn ? (
                         <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
-                          <Database size={10} />
+                          <Database aria-hidden="true" size={10} />
                           {conn.name}
                         </span>
                       ) : null;

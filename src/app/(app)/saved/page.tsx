@@ -425,7 +425,7 @@ export default function SavedPage() {
                 title="CSV 내보내기"
                 style={{ display: "flex", alignItems: "center", gap: 4, padding: "var(--ds-sp-1) var(--ds-sp-3)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-12)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}
               >
-                <Download size={12} />
+                <Download aria-hidden="true" size={12} />
                 CSV
               </button>
             )}
@@ -461,7 +461,7 @@ export default function SavedPage() {
               maxWidth: 320,
             }}
           >
-            <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+            <Search aria-hidden="true" size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <input
               ref={searchRef}
               type="search"
@@ -481,7 +481,7 @@ export default function SavedPage() {
             />
             {search && (
               <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
-                <X size={12} />
+                <X aria-hidden="true" size={12} />
               </button>
             )}
           </div>

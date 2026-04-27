@@ -482,8 +482,8 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
       >
         {collapsed ? (
           <>
-            {iconOnlyBtn(<User size={13} />, undefined, currentUser?.name ?? "사용자")}
-            {iconOnlyBtn(<Bot size={13} />, onOpenChat, "AI 어시스턴트 (⌘I)", chatOpen)}
+            {iconOnlyBtn(<User aria-hidden="true" size={13} />, undefined, currentUser?.name ?? "사용자")}
+            {iconOnlyBtn(<Bot aria-hidden="true" size={13} />, onOpenChat, "AI 어시스턴트 (⌘I)", chatOpen)}
           </>
         ) : (
           <>
@@ -496,7 +496,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 color: userRole === "ADMIN" ? "var(--ds-accent)" : "var(--ds-text-mute)",
                 flexShrink: 0,
               }}>
-                {userRole === "ADMIN" ? <Crown size={11} /> : userInitial}
+                {userRole === "ADMIN" ? <Crown aria-hidden="true" size={11} /> : userInitial}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div title={currentUser?.name ?? "사용자"} style={{
