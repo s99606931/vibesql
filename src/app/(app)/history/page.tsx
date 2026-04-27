@@ -243,7 +243,7 @@ export default function HistoryPage() {
             />
             {search && (
               <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
-                <X size={13} />
+                <X aria-hidden="true" size={13} />
               </button>
             )}
           </div>
@@ -295,7 +295,7 @@ export default function HistoryPage() {
                   transition: "color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
-                {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                {collapsed ? <ChevronRight aria-hidden="true" size={12} /> : <ChevronDown aria-hidden="true" size={12} />}
                 {date}
                 <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", fontWeight: "normal", textTransform: "none", letterSpacing: 0 }}>
                   ({items.length})
@@ -333,7 +333,7 @@ export default function HistoryPage() {
                   >
                     {/* Expand chevron */}
                     <span style={{ color: "var(--ds-text-faint)", flexShrink: 0, display: "flex" }}>
-                      {expandedErrorId === item.id ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                      {expandedErrorId === item.id ? <ChevronDown aria-hidden="true" size={13} /> : <ChevronRight aria-hidden="true" size={13} />}
                     </span>
 
                     {/* Time */}
@@ -400,7 +400,7 @@ export default function HistoryPage() {
 
                     {/* Starred */}
                     {item.starred && (
-                      <Star size={13} style={{ color: "var(--ds-warn)", fill: "var(--ds-warn)", flexShrink: 0 }} />
+                      <Star role="img" aria-label="저장됨" size={13} style={{ color: "var(--ds-warn)", fill: "var(--ds-warn)", flexShrink: 0 }} />
                     )}
 
                     {/* Actions (hover) */}
