@@ -195,6 +195,8 @@ export default function AdminUsersPage() {
 
         {data && (
           <div
+            role="grid"
+            aria-label="사용자 목록"
             style={{
               background: "var(--ds-surface)",
               border: "1px solid var(--ds-border)",
@@ -204,6 +206,7 @@ export default function AdminUsersPage() {
           >
             {/* Table header */}
             <div
+              role="row"
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr 140px 120px 60px",
@@ -218,11 +221,11 @@ export default function AdminUsersPage() {
                 letterSpacing: "0.05em",
               }}
             >
-              <div>이름</div>
-              <div>이메일</div>
-              <div>역할</div>
-              <div>가입일</div>
-              <div />
+              <div role="columnheader">이름</div>
+              <div role="columnheader">이메일</div>
+              <div role="columnheader">역할</div>
+              <div role="columnheader">가입일</div>
+              <div role="columnheader" aria-label="작업" />
             </div>
 
             {filteredUsers.length === 0 && (
@@ -237,6 +240,7 @@ export default function AdminUsersPage() {
             {filteredUsers.map((user, idx) => (
               <div
                 key={user.id}
+                role="row"
                 className="group hover:bg-fill transition-colors"
                 style={{
                   display: "grid",
