@@ -11,7 +11,7 @@
  *  [회원가입]  짧은 비밀번호 → 400
  *  [me]       쿠키 없음 → dev fallback
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Mock next/server
 vi.mock("next/server", () => {
@@ -117,9 +117,14 @@ describe("POST /api/auth/login", () => {
 
 describe("POST /api/auth/register", () => {
   beforeEach(() => {
+    vi.stubEnv("DATABASE_URL", ""); // force in-memory path — register tests operate on memUsers
     vi.resetModules();
     // Remove any test-created users, keep defaults
     memUsers.splice(ORIGINAL_USER_COUNT);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("새 사용자 등록 → 201", async () => {

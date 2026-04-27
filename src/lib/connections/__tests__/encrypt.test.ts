@@ -78,7 +78,8 @@ describe("encryptPassword / decryptPassword — AES-256-GCM key 설정", () => {
   });
 
   it("key 없이 aes256gcm: 값 복호화 시도 → Error", async () => {
-    vi.unstubAllEnvs(); // key 제거
+    vi.unstubAllEnvs(); // removes stub key
+    vi.stubEnv("CONNECTION_ENCRYPTION_KEY", ""); // ensure key truly absent in CI (real env var may exist)
     vi.resetModules();
     const { encryptPassword } = (() => {
       // aes256gcm: 접두사가 있는 더미 값 생성
