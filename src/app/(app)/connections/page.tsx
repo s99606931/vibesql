@@ -366,6 +366,7 @@ export default function ConnectionsPage() {
                       (col) => (
                         <th
                           key={col}
+                          scope="col"
                           style={{
                             padding: "var(--ds-sp-2) var(--ds-sp-4)",
                             textAlign: "left",

@@ -200,6 +200,7 @@ export function ResultTable({ rows, columns }: ResultTableProps) {
           <tr style={{ background: "var(--ds-fill)" }}>
             {/* Row number column */}
             <th
+              scope="col"
               style={{
                 width: 36,
                 minWidth: 36,
@@ -219,8 +220,9 @@ export function ResultTable({ rows, columns }: ResultTableProps) {
             {columns.map((col) => (
               <th
                 key={col}
+                scope="col"
                 onClick={() => handleHeaderClick(col)}
-                title={sortCol === col ? (sortDir === "asc" ? "내림차순 정렬" : "오름차순 정렬") : "오름차순 정렬"}
+                aria-label={sortCol === col ? (sortDir === "asc" ? "내림차순 정렬" : "오름차순 정렬") : "오름차순 정렬"}
                 aria-sort={sortCol === col ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
                 style={{
                   padding: "var(--ds-sp-2) var(--ds-sp-3)",

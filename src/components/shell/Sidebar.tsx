@@ -359,7 +359,8 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 <Link
                   key={item.href}
                   href={item.href}
-                  title={item.label}
+                  aria-label={item.label}
+                  aria-current={isActive ? "page" : undefined}
                   style={{
                     display: "flex", alignItems: "center", justifyContent: "center",
                     width: 32, height: 32, borderRadius: "var(--ds-r-6)",
@@ -413,6 +414,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                         <Link
                           key={item.href}
                           href={item.href}
+                          aria-current={isActive ? "page" : undefined}
                           style={{
                             display: "flex", alignItems: "center", gap: "var(--ds-sp-2)",
                             padding: "var(--ds-sp-1) var(--ds-sp-3)", borderRadius: "var(--ds-r-6)",
