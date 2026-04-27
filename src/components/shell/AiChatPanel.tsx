@@ -1,9 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, Send, Bot, User, Loader2, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { X, Send, Bot, User, Loader2, Trash2, Zap, Copy, Check } from "lucide-react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import type { ChatContext } from "@/app/api/chat/route";
+
+export type { ChatContext };
 
 interface Message {
   id: string;
@@ -19,15 +23,106 @@ interface AiChatPanelProps {
   onWidthChange?: (w: number) => void;
   minWidth?: number;
   maxWidth?: number;
+  context?: ChatContext;
+  onApplySql?: (sql: string) => void;
 }
 
-const MARKDOWN_COMPONENTS: Components = {
-  a: ({ href, children }) => (
-    <a href={href} target="_blank" rel="noopener noreferrer">
-      {children}
-    </a>
-  ),
-};
+function makeMdComponents(onApplySql?: (sql: string) => void): Components {
+  return {
+    a: ({ href, children }) => (
+      <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
+    ),
+    code({ className, children, ...props }) {
+      const isBlock = "node" in props;
+      const lang = (className ?? "").replace("language-", "").toLowerCase();
+      const isSql = lang === "sql" || lang === "postgresql" || lang === "mysql" || lang === "sqlite";
+      const codeText = String(children).replace(/\n$/, "");
+
+      if (!isBlock) {
+        return <code className={className} {...props}>{children}</code>;
+      }
+
+      return (
+        <SqlBlock
+          code={codeText}
+          lang={lang || "sql"}
+          isSql={isSql}
+          onApply={isSql ? onApplySql : undefined}
+        />
+      );
+    },
+  };
+}
+
+function SqlBlock({ code, lang, isSql, onApply }: { code: string; lang: string; isSql: boolean; onApply?: (sql: string) => void }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    void navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
+
+  return (
+    <div style={{ position: "relative", margin: "0.5em 0" }}>
+      <pre style={{
+        background: "var(--ds-surface)", border: "1px solid var(--ds-border)",
+        borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-3)",
+        overflow: "auto", marginTop: 0,
+        paddingTop: isSql && onApply ? "var(--ds-sp-5)" : "var(--ds-sp-3)",
+      }}>
+        <code style={{ fontFamily: "var(--ds-font-mono)", fontSize: "var(--ds-fs-11)", lineHeight: 1.6 }}>
+          {code}
+        </code>
+      </pre>
+      {/* Action bar */}
+      <div style={{
+        position: "absolute", top: 6, right: 6,
+        display: "flex", gap: 4,
+      }}>
+        <button
+          onClick={handleCopy}
+          title="복사"
+          style={{
+            display: "flex", alignItems: "center", gap: 3,
+            padding: "2px 6px", borderRadius: "var(--ds-r-6)",
+            border: "1px solid var(--ds-border)", background: "var(--ds-surface-2, var(--ds-fill))",
+            cursor: "pointer", fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)",
+          }}
+        >
+          {copied ? <Check size={10} /> : <Copy size={10} />}
+          <span>{copied ? "복사됨" : "복사"}</span>
+        </button>
+        {isSql && onApply && (
+          <button
+            onClick={() => onApply(code)}
+            title="워크스페이스에 적용"
+            style={{
+              display: "flex", alignItems: "center", gap: 3,
+              padding: "2px 6px", borderRadius: "var(--ds-r-6)",
+              border: "1px solid var(--ds-accent)", background: "var(--ds-accent-soft)",
+              cursor: "pointer", fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)",
+              fontWeight: "var(--ds-fw-medium)",
+            }}
+          >
+            <Zap size={10} />
+            <span>적용</span>
+          </button>
+        )}
+      </div>
+      {isSql && (
+        <div style={{
+          position: "absolute", top: 6, left: 8,
+          fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)",
+          fontFamily: "var(--ds-font-mono)",
+        }}>
+          {lang}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function useAutoScroll(dep: unknown) {
   const ref = useRef<HTMLDivElement>(null);
@@ -46,7 +141,10 @@ export function AiChatPanel({
   onWidthChange,
   minWidth = 280,
   maxWidth = 720,
+  context,
+  onApplySql,
 }: AiChatPanelProps) {
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -55,6 +153,11 @@ export function AiChatPanel({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollRef = useAutoScroll(messages);
+
+  const mdComponents = makeMdComponents((sql) => {
+    onApplySql?.(sql);
+    router.push("/workspace");
+  });
 
   // Abort in-flight request when panel closes or component unmounts
   useEffect(() => {
@@ -124,7 +227,7 @@ export function AiChatPanel({
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ messages: history, context }),
         signal: ctrl.signal,
       });
 
@@ -265,6 +368,27 @@ export function AiChatPanel({
           >
             AI 어시스턴트
           </span>
+          {/* Context badge */}
+          {(context?.sql || context?.schemaSnippet || context?.connectionName) && (
+            <div
+              title={[
+                context.connectionName && `연결: ${context.connectionName}`,
+                context.dialect && `방언: ${context.dialect}`,
+                context.sql ? "SQL 컨텍스트 활성" : "",
+                context.schemaSnippet ? "스키마 활성" : "",
+              ].filter(Boolean).join(" | ")}
+              style={{
+                display: "flex", alignItems: "center", gap: 3,
+                padding: "2px 7px", borderRadius: "var(--ds-r-full)",
+                background: "var(--ds-accent-soft)", border: "1px solid var(--ds-accent)",
+                fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)",
+                cursor: "default", flexShrink: 0,
+              }}
+            >
+              <Zap size={9} />
+              <span>컨텍스트</span>
+            </div>
+          )}
           {messages.length > 0 && (
             <button
               onClick={handleClear}
@@ -366,10 +490,19 @@ export function AiChatPanel({
                 }}
               >
                 {[
+                  ...(context?.sql
+                    ? [`현재 SQL을 최적화해줘`, `이 쿼리를 ${context.dialect ?? "SQL"}로 설명해줘`]
+                    : []),
+                  ...(context?.schemaSnippet
+                    ? ["스키마 기반으로 유용한 쿼리를 추천해줘"]
+                    : []),
+                  ...(context?.nlQuery
+                    ? [`"${context.nlQuery}" 관련 다른 방법을 알려줘`]
+                    : []),
                   "이 테이블의 중복 데이터를 찾는 SQL은?",
                   "GROUP BY와 HAVING의 차이는?",
                   "워크스페이스 사용법을 알려줘",
-                ].map((hint) => (
+                ].slice(0, 4).map((hint) => (
                   <button
                     key={hint}
                     onClick={() => setInput(hint)}
@@ -443,7 +576,7 @@ export function AiChatPanel({
                   <>
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
-                      components={MARKDOWN_COMPONENTS}
+                      components={mdComponents}
                     >
                       {msg.content}
                     </ReactMarkdown>

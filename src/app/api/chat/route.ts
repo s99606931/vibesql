@@ -12,11 +12,24 @@ const MessageSchema = z.object({
   content: z.string().max(8000),
 });
 
+const ContextSchema = z.object({
+  sql: z.string().max(4000).optional(),
+  nlQuery: z.string().max(500).optional(),
+  dialect: z.string().max(30).optional(),
+  connectionName: z.string().max(100).optional(),
+  schemaSnippet: z.string().max(3000).optional(),
+  glossary: z.string().max(2000).optional(),
+  currentPage: z.string().max(50).optional(),
+}).optional();
+
 const BodySchema = z.object({
   messages: z.array(MessageSchema).min(1).max(50),
+  context: ContextSchema,
 });
 
-const SYSTEM_PROMPT = `당신은 vibeSQL의 AI 어시스턴트입니다.
+export type ChatContext = z.infer<typeof ContextSchema>;
+
+const BASE_SYSTEM_PROMPT = `당신은 vibeSQL의 AI 어시스턴트입니다.
 SQL, 데이터베이스, 데이터 분석에 대한 전문 지식을 가지고 있습니다.
 
 도움이 되는 답변을 한국어로 제공하세요. 다음을 지원합니다:
@@ -26,7 +39,47 @@ SQL, 데이터베이스, 데이터 분석에 대한 전문 지식을 가지고 �
 - vibeSQL 사용법 설명
 - 일반적인 기술 질문
 
+SQL을 제안할 때는 반드시 \`\`\`sql 코드블록으로 감싸서 사용자가 바로 적용할 수 있게 하세요.
 간결하고 명확하게 답변하세요.`;
+
+function buildSystemPrompt(context?: ChatContext): string {
+  if (!context) return BASE_SYSTEM_PROMPT;
+
+  const parts: string[] = [BASE_SYSTEM_PROMPT];
+
+  parts.push("\n\n--- 현재 사용자 컨텍스트 ---");
+
+  if (context.connectionName || context.dialect) {
+    const connInfo = [
+      context.connectionName && `연결: ${context.connectionName}`,
+      context.dialect && `DB 방언: ${context.dialect}`,
+    ].filter(Boolean).join(" | ");
+    parts.push(connInfo);
+  }
+
+  if (context.currentPage) {
+    parts.push(`현재 페이지: ${context.currentPage}`);
+  }
+
+  if (context.schemaSnippet) {
+    parts.push(`\n스키마 정보:\n${context.schemaSnippet}`);
+  }
+
+  if (context.glossary) {
+    parts.push(`\n도메인 용어:\n${context.glossary}`);
+  }
+
+  if (context.nlQuery) {
+    parts.push(`\n현재 자연어 질문: "${context.nlQuery}"`);
+  }
+
+  if (context.sql) {
+    parts.push(`\n현재 SQL 편집 중:\n\`\`\`${context.dialect ?? "sql"}\n${context.sql}\n\`\`\``);
+  }
+
+  parts.push("\n위 컨텍스트를 참고하여 사용자에게 가장 관련성 높은 답변을 제공하세요.");
+  return parts.join("\n");
+}
 
 async function getActiveProvider(userId?: string) {
   if (process.env.DATABASE_URL) {
@@ -68,13 +121,14 @@ async function streamWithAnthropic(
   model: string,
   temperature: number,
   maxTokens: number,
+  systemPrompt: string = BASE_SYSTEM_PROMPT,
 ): Promise<ReadableStream<Uint8Array>> {
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
   const client = new Anthropic({ apiKey: apiKey ?? undefined });
 
   const stream = client.messages.stream({
     model,
-    system: SYSTEM_PROMPT,
+    system: systemPrompt,
     messages: messages.map((m) => ({
       role: m.role as "user" | "assistant",
       content: m.content,
@@ -109,6 +163,7 @@ async function streamWithOpenAiCompat(
   model: string,
   temperature: number,
   maxTokens: number,
+  systemPrompt: string = BASE_SYSTEM_PROMPT,
 ): Promise<ReadableStream<Uint8Array>> {
   validateUrl(baseUrl);
   const url = baseUrl.replace(/\/$/, "");
@@ -120,7 +175,7 @@ async function streamWithOpenAiCompat(
     headers,
     body: JSON.stringify({
       model,
-      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+      messages: [{ role: "system", content: systemPrompt }, ...messages],
       temperature,
       max_tokens: maxTokens,
       stream: true,
@@ -173,6 +228,7 @@ async function streamWithGoogle(
   model: string,
   temperature: number,
   maxTokens: number,
+  systemPrompt: string = BASE_SYSTEM_PROMPT,
 ): Promise<ReadableStream<Uint8Array>> {
   const contents = messages.map((m) => ({
     role: m.role === "assistant" ? "model" : "user",
@@ -185,7 +241,7 @@ async function streamWithGoogle(
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
-        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        system_instruction: { parts: [{ text: systemPrompt }] },
         contents,
         generationConfig: { temperature, maxOutputTokens: maxTokens },
       }),
@@ -259,7 +315,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const { messages } = parsed.data;
+  const { messages, context } = parsed.data;
+  const systemPrompt = buildSystemPrompt(context);
 
   try {
     const provider = await getActiveProvider(userId);
@@ -272,16 +329,16 @@ export async function POST(req: Request) {
       const tokens = (maxTokens as number) ?? 1024;
 
       if (type === "anthropic") {
-        stream = await streamWithAnthropic(messages, apiKey as string | null, model as string, temp, tokens);
+        stream = await streamWithAnthropic(messages, apiKey as string | null, model as string, temp, tokens, systemPrompt);
       } else if (type === "google") {
         if (!apiKey) throw new Error("Google AI 프로바이더에 API 키가 없습니다.");
-        stream = await streamWithGoogle(messages, apiKey as string, model as string, temp, tokens);
+        stream = await streamWithGoogle(messages, apiKey as string, model as string, temp, tokens, systemPrompt);
       } else {
         const url = (baseUrl as string | null) ?? "https://api.openai.com";
-        stream = await streamWithOpenAiCompat(messages, url, apiKey as string | null, model as string, temp, tokens);
+        stream = await streamWithOpenAiCompat(messages, url, apiKey as string | null, model as string, temp, tokens, systemPrompt);
       }
     } else if (process.env.ANTHROPIC_API_KEY) {
-      stream = await streamWithAnthropic(messages, null, "claude-sonnet-4-6", 0.7, 1024);
+      stream = await streamWithAnthropic(messages, null, "claude-sonnet-4-6", 0.7, 1024, systemPrompt);
     } else {
       return NextResponse.json(
         { error: "AI 프로바이더가 설정되지 않았습니다. 설정 > AI 프로바이더에서 추가하세요." },

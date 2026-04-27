@@ -7,14 +7,15 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  clerkId   String?  @unique @map("clerk_id")
-  email     String   @unique
-  name      String?
-  avatarUrl String?
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  clerkId      String?  @unique @map("clerk_id")
+  email        String   @unique
+  name         String?
+  avatarUrl    String?
+  passwordHash String?  @map("password_hash")
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   connections      Connection[]
   queries          SavedQuery[]

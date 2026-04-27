@@ -1,7 +1,55 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Zap } from "lucide-react";
+import { Zap, Eye, EyeOff, AlertCircle } from "lucide-react";
+
+type Tab = "login" | "register";
 
 export default function SignInPage() {
+  const router = useRouter();
+  const [tab, setTab] = useState<Tab>("login");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const endpoint = tab === "login" ? "/api/auth/login" : "/api/auth/register";
+      const body = tab === "login"
+        ? { email, password }
+        : { email, password, name };
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const json = await res.json() as { error?: string };
+      if (!res.ok) {
+        setError(json.error ?? "오류가 발생했습니다.");
+        return;
+      }
+
+      router.push("/workspace");
+      router.refresh();
+    } catch {
+      setError("서버에 연결할 수 없습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div
       style={{
@@ -56,32 +104,108 @@ export default function SignInPage() {
           </span>
         </div>
 
+        {/* Tab switcher */}
+        <div
+          style={{
+            display: "flex",
+            background: "var(--ds-fill)",
+            borderRadius: "var(--ds-r-8)",
+            padding: 3,
+            marginBottom: "var(--ds-sp-5)",
+          }}
+        >
+          {(["login", "register"] as Tab[]).map((t) => (
+            <button
+              key={t}
+              onClick={() => { setTab(t); setError(null); }}
+              style={{
+                flex: 1,
+                padding: "var(--ds-sp-1) var(--ds-sp-2)",
+                borderRadius: "var(--ds-r-6)",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "var(--ds-fs-12)",
+                fontWeight: "var(--ds-fw-medium)",
+                background: tab === t ? "var(--ds-surface)" : "transparent",
+                color: tab === t ? "var(--ds-text)" : "var(--ds-text-mute)",
+                boxShadow: tab === t ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                transition: "all var(--ds-dur-fast) var(--ds-ease)",
+                fontFamily: "var(--ds-font-sans)",
+              }}
+            >
+              {t === "login" ? "로그인" : "회원가입"}
+            </button>
+          ))}
+        </div>
+
         <h1
           style={{
-            fontSize: "var(--ds-fs-22)",
+            fontSize: "var(--ds-fs-18)",
             fontWeight: "var(--ds-fw-semibold)",
             color: "var(--ds-text)",
-            marginBottom: "var(--ds-sp-1)",
+            marginBottom: "var(--ds-sp-4)",
           }}
         >
-          다시 만나서 반가워요
+          {tab === "login" ? "다시 만나서 반가워요" : "새 계정 만들기"}
         </h1>
-        <p
-          style={{
-            fontSize: "var(--ds-fs-13)",
-            color: "var(--ds-text-mute)",
-            marginBottom: "var(--ds-sp-6)",
-          }}
-        >
-          자연어로 데이터에 질문하세요
-        </p>
 
-        <form style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
+        {/* Error */}
+        {error && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--ds-sp-2)",
+              padding: "var(--ds-sp-2) var(--ds-sp-3)",
+              background: "var(--ds-danger-soft, rgba(239,68,68,0.1))",
+              border: "1px solid var(--ds-danger, #ef4444)",
+              borderRadius: "var(--ds-r-6)",
+              marginBottom: "var(--ds-sp-3)",
+            }}
+          >
+            <AlertCircle size={14} style={{ color: "var(--ds-danger)", flexShrink: 0 }} />
+            <span style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-danger)" }}>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
+          {tab === "register" && (
+            <div>
+              <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
+                이름
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="홍길동"
+                required
+                style={{
+                  width: "100%",
+                  padding: "var(--ds-sp-2) var(--ds-sp-3)",
+                  border: "1px solid var(--ds-border)",
+                  borderRadius: "var(--ds-r-6)",
+                  background: "var(--ds-surface-2)",
+                  color: "var(--ds-text)",
+                  fontSize: "var(--ds-fs-13)",
+                  outline: "none",
+                  fontFamily: "var(--ds-font-sans)",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+          )}
+
           <div>
-            <label className="ds-label">이메일</label>
+            <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
+              이메일
+            </label>
             <input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
+              required
               style={{
                 width: "100%",
                 padding: "var(--ds-sp-2) var(--ds-sp-3)",
@@ -92,105 +216,98 @@ export default function SignInPage() {
                 fontSize: "var(--ds-fs-13)",
                 outline: "none",
                 fontFamily: "var(--ds-font-sans)",
-              }}
-            />
-          </div>
-          <div>
-            <label className="ds-label">비밀번호</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              style={{
-                width: "100%",
-                padding: "var(--ds-sp-2) var(--ds-sp-3)",
-                border: "1px solid var(--ds-border)",
-                borderRadius: "var(--ds-r-6)",
-                background: "var(--ds-surface-2)",
-                color: "var(--ds-text)",
-                fontSize: "var(--ds-fs-13)",
-                outline: "none",
-                fontFamily: "var(--ds-font-sans)",
+                boxSizing: "border-box",
               }}
             />
           </div>
 
-          <Link
-            href="/"
+          <div>
+            <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
+              비밀번호
+            </label>
+            <div style={{ position: "relative" }}>
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                minLength={tab === "register" ? 8 : 1}
+                style={{
+                  width: "100%",
+                  padding: "var(--ds-sp-2) 40px var(--ds-sp-2) var(--ds-sp-3)",
+                  border: "1px solid var(--ds-border)",
+                  borderRadius: "var(--ds-r-6)",
+                  background: "var(--ds-surface-2)",
+                  color: "var(--ds-text)",
+                  fontSize: "var(--ds-fs-13)",
+                  outline: "none",
+                  fontFamily: "var(--ds-font-sans)",
+                  boxSizing: "border-box",
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                style={{
+                  position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+                  background: "none", border: "none", cursor: "pointer",
+                  color: "var(--ds-text-faint)", padding: 2,
+                }}
+              >
+                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+            {tab === "register" && (
+              <p style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: "var(--ds-sp-1)" }}>
+                8자 이상
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               padding: "var(--ds-sp-2) var(--ds-sp-4)",
-              background: "var(--ds-text)",
-              color: "#ffffff",
+              background: loading ? "var(--ds-fill)" : "var(--ds-accent)",
+              color: loading ? "var(--ds-text-mute)" : "#ffffff",
               borderRadius: "var(--ds-r-6)",
               fontSize: "var(--ds-fs-13)",
               fontWeight: "var(--ds-fw-medium)",
-              textDecoration: "none",
-              border: "1px solid var(--ds-text)",
+              border: "none",
+              cursor: loading ? "not-allowed" : "pointer",
               transition: "opacity var(--ds-dur-fast) var(--ds-ease)",
               marginTop: "var(--ds-sp-1)",
+              fontFamily: "var(--ds-font-sans)",
             }}
           >
-            로그인
-          </Link>
+            {loading ? "처리 중..." : (tab === "login" ? "로그인" : "계정 만들기")}
+          </button>
         </form>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--ds-sp-3)",
-            margin: "var(--ds-sp-4) 0",
-          }}
-        >
-          <div style={{ flex: 1, height: 1, background: "var(--ds-border)" }} />
-          <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>또는</span>
-          <div style={{ flex: 1, height: 1, background: "var(--ds-border)" }} />
-        </div>
-
-        {/* OAuth */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}>
-          {["Google로 계속", "GitHub로 계속"].map((label) => (
-            <button
-              key={label}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "var(--ds-sp-2) var(--ds-sp-4)",
-                background: "var(--ds-surface)",
-                color: "var(--ds-text)",
-                borderRadius: "var(--ds-r-6)",
-                fontSize: "var(--ds-fs-13)",
-                fontWeight: "var(--ds-fw-medium)",
-                border: "1px solid var(--ds-border)",
-                cursor: "pointer",
-                fontFamily: "var(--ds-font-sans)",
-                width: "100%",
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <p
-          style={{
-            textAlign: "center",
-            fontSize: "var(--ds-fs-12)",
-            color: "var(--ds-text-mute)",
-            marginTop: "var(--ds-sp-5)",
-          }}
-        >
-          계정이 없으신가요?{" "}
-          <Link
-            href="/signin?tab=signup"
-            style={{ color: "var(--ds-accent)", textDecoration: "none" }}
+        {/* Dev mode hint */}
+        {process.env.NODE_ENV !== "production" && (
+          <div
+            style={{
+              marginTop: "var(--ds-sp-4)",
+              padding: "var(--ds-sp-2) var(--ds-sp-3)",
+              background: "var(--ds-accent-soft)",
+              borderRadius: "var(--ds-r-6)",
+              fontSize: "var(--ds-fs-11)",
+              color: "var(--ds-accent)",
+            }}
           >
-            회원가입
-          </Link>
-        </p>
+            <strong>개발 모드 계정</strong>
+            <br />
+            관리자: admin@vibesql.dev / admin123
+            <br />
+            사용자: user@vibesql.dev / user123
+          </div>
+        )}
       </div>
     </div>
   );

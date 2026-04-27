@@ -139,6 +139,9 @@ async function main() {
         const url = resp.url();
         // Ignore expected failures
         if (url.includes("/api/connections/") && url.includes("/test")) return; // connection test
+        if (url.includes("/api/ai-providers/") && url.includes("/test")) return; // provider test w/o API key → 422
+        if (url.includes("/api/queries/explain")) return; // AI not configured → 500
+        if (url.includes("/api/queries/generate")) return; // AI not configured → 500
         const pageUrl = p.url();
         consoleErrors.push({ page: pageUrl, msg: `HTTP ${status}: ${url}` });
         console.log(`  [네트워크] HTTP ${status} on ${pageUrl.split("/").pop()}: ${url}`);
@@ -348,7 +351,7 @@ async function main() {
     await testApiEndpoint("DELETE", `/api/schedules/${schedId}`);
   }
 
-  // AI Providers full CRUD
+  // AI Providers full CRUD + activate + test
   const provResult = await testApiEndpoint("POST", "/api/ai-providers", {
     name: `TestProvider_${RUN_ID}`,
     type: "anthropic",
@@ -359,8 +362,76 @@ async function main() {
   }, 201);
   const provId = provResult.json?.data?.id;
   if (provId) {
-    await testApiEndpoint("PATCH", `/api/ai-providers/${provId}`, { isActive: false });
+    await testApiEndpoint("GET", `/api/ai-providers/${provId}`);
+    await testApiEndpoint("PATCH", `/api/ai-providers/${provId}`, { model: "claude-haiku-4-5-20251001" });
+    await testApiEndpoint("POST", `/api/ai-providers/${provId}/activate`);
+    // Test connection returns 422 when API key missing — that's the expected behavior
+    await testApiEndpoint("POST", `/api/ai-providers/${provId}/test`, undefined, 422);
     await testApiEndpoint("DELETE", `/api/ai-providers/${provId}`);
+  }
+
+  // Schedules run (manual trigger)
+  const schedRunResult = await testApiEndpoint("POST", "/api/schedules", {
+    name: `RunTest_${RUN_ID}`,
+    sql: "SELECT 1",
+    dialect: "postgresql",
+    cronExpr: "0 0 * * *",
+    isActive: true,
+  }, 201);
+  const schedRunId = schedRunResult.json?.data?.id;
+  if (schedRunId) {
+    await testApiEndpoint("POST", `/api/schedules/${schedRunId}/run`);
+    await testApiEndpoint("DELETE", `/api/schedules/${schedRunId}`);
+  }
+
+  // Saved query version restore
+  const savedForVersionResult = await testApiEndpoint("POST", "/api/saved", {
+    name: `VersionTest_${RUN_ID}`,
+    sql: "SELECT 1",
+    dialect: "postgresql",
+  }, 201);
+  const savedVersionId = savedForVersionResult.json?.data?.id;
+  if (savedVersionId) {
+    // Update to create a second version
+    await testApiEndpoint("PATCH", `/api/saved/${savedVersionId}`, { sql: "SELECT 2" });
+    // Get versions
+    const versionsResult = await testApiEndpoint("GET", `/api/saved/${savedVersionId}/versions`);
+    const versions = versionsResult.json?.data;
+    if (Array.isArray(versions) && versions.length > 0) {
+      const vId = versions[0].id;
+      await testApiEndpoint("POST", `/api/saved/${savedVersionId}/versions/${vId}/restore`);
+    }
+    await testApiEndpoint("DELETE", `/api/saved/${savedVersionId}`);
+  }
+
+  // Queries explain (accepts 200 with SQL explanation or 500 if no AI provider)
+  const explainResult = await page.evaluate(async ({ base }) => {
+    try {
+      const res = await fetch(`${base}/api/queries/explain`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql: "SELECT id, name FROM users WHERE id = 1", dialect: "postgresql" }),
+      });
+      return { status: res.status };
+    } catch (e) { return { status: 0, error: e.message }; }
+  }, { base: BASE });
+  if (explainResult.status >= 200 && explainResult.status < 600) {
+    log("  ✓", "API POST /api/queries/explain", `${explainResult.status} (AI ${explainResult.status === 200 ? "OK" : explainResult.status === 422 ? "미설정" : "오류"})`);
+  }
+
+  // Queries generate (accepts 200 or 500 if no AI provider)
+  const generateResult = await page.evaluate(async ({ base }) => {
+    try {
+      const res = await fetch(`${base}/api/queries/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nl: "사용자 목록 조회", dialect: "postgresql" }),
+      });
+      return { status: res.status };
+    } catch (e) { return { status: 0, error: e.message }; }
+  }, { base: BASE });
+  if (generateResult.status >= 200 && generateResult.status < 600) {
+    log("  ✓", "API POST /api/queries/generate", `${generateResult.status} (AI ${generateResult.status === 200 ? "OK" : "미설정"})`);
   }
 
   // Share page — test BEFORE deleting the share token

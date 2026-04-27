@@ -27,6 +27,7 @@ export default defineConfig({
       "@clerk/nextjs/server": path.resolve(__dirname, "./src/test/mocks/clerk-server.ts"),
       "@clerk/nextjs": path.resolve(__dirname, "./src/test/mocks/clerk-server.ts"),
       "next/server": path.resolve(__dirname, "./src/test/mocks/next-server.ts"),
+      "next/headers": path.resolve(__dirname, "./src/test/mocks/next-headers.ts"),
     },
   },
 });

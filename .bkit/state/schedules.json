@@ -1,0 +1,41 @@
+{
+  "schedules": [],
+  "runs": [
+    {
+      "id": "1ba71824-0edc-4876-8401-04b94acfdc95",
+      "scheduleId": "d82bea41-37b8-47b7-a389-ff5c02a74332",
+      "status": "success",
+      "rowCount": 0,
+      "durationMs": 24,
+      "errorMsg": null,
+      "createdAt": "2026-04-26T21:59:32.906Z"
+    },
+    {
+      "id": "bb31a76f-474a-41b6-93d1-18125b1fc713",
+      "scheduleId": "fb8c4df0-c951-4f39-846b-030768d9d69b",
+      "status": "success",
+      "rowCount": 0,
+      "durationMs": 38,
+      "errorMsg": null,
+      "createdAt": "2026-04-26T22:01:12.720Z"
+    },
+    {
+      "id": "89f913ab-a129-4817-8d6f-9d149750b3bb",
+      "scheduleId": "8046e0cf-77ea-4675-abe5-bd6841087746",
+      "status": "success",
+      "rowCount": 0,
+      "durationMs": 7,
+      "errorMsg": null,
+      "createdAt": "2026-04-26T22:03:41.359Z"
+    },
+    {
+      "id": "64455972-b7b0-4987-bc73-ea0cda60d28a",
+      "scheduleId": "6ac2569d-761c-4db6-b07a-8aa02c170f91",
+      "status": "success",
+      "rowCount": 0,
+      "durationMs": 31,
+      "errorMsg": null,
+      "createdAt": "2026-04-26T22:04:43.056Z"
+    }
+  ]
+}

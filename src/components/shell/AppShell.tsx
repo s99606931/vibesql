@@ -1,9 +1,12 @@
 "use client";
 
-import { ReactNode, useState, useCallback, useEffect } from "react";
+import { ReactNode, useState, useCallback, useEffect, useMemo } from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { CommandPalette } from "./CommandPalette";
 import { AiChatPanel } from "./AiChatPanel";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useConnections } from "@/hooks/useConnections";
 
 const SIDEBAR_FULL = 220;
 const SIDEBAR_COLLAPSED = 48;
@@ -21,11 +24,28 @@ export function AppShell({ children }: AppShellProps) {
   const [chatWidth, setChatWidth] = useState(CHAT_DEFAULT_W);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  const pathname = usePathname();
+  const { nlQuery, sql, activeConnectionId, setSql } = useWorkspaceStore();
+  const { data: connections } = useConnections();
+
   const openCmd = useCallback(() => setCmdOpen(true), []);
   const closeCmd = useCallback(() => setCmdOpen(false), []);
   const openChat = useCallback(() => setChatOpen(true), []);
   const closeChat = useCallback(() => setChatOpen(false), []);
   const toggleSidebar = useCallback(() => setSidebarCollapsed((v) => !v), []);
+
+  const activeConnection = useMemo(
+    () => (connections ?? []).find((c) => c.id === activeConnectionId),
+    [connections, activeConnectionId]
+  );
+
+  const chatContext = useMemo(() => ({
+    sql: sql || undefined,
+    nlQuery: nlQuery || undefined,
+    dialect: (activeConnection as { dialect?: string } | undefined)?.dialect ?? undefined,
+    connectionName: activeConnection?.name ?? undefined,
+    currentPage: pathname ?? undefined,
+  }), [sql, nlQuery, activeConnection, pathname]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -80,6 +100,8 @@ export function AppShell({ children }: AppShellProps) {
         onWidthChange={setChatWidth}
         minWidth={CHAT_MIN_W}
         maxWidth={CHAT_MAX_W}
+        context={chatContext}
+        onApplySql={setSql}
       />
     </div>
   );

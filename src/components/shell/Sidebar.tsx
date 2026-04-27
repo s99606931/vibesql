@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { usePathname, useRouter } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { useConnections } from "@/hooks/useConnections";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import type { UserRole } from "@/lib/auth/jwt";
 import {
   SquareTerminal,
   Table2,
@@ -30,6 +32,10 @@ import {
   Cpu,
   FileText,
   ScrollText,
+  ShieldCheck,
+  Users,
+  LogOut,
+  Crown,
 } from "lucide-react";
 
 type NavItem = {
@@ -37,12 +43,14 @@ type NavItem = {
   icon: React.ElementType;
   label: string;
   countKey?: "saved";
+  requiredRole?: UserRole;
 };
 
 type NavGroup = {
   id: string;
   label: string;
   items: NavItem[];
+  requiredRole?: UserRole;
 };
 
 const navGroups: NavGroup[] = [
@@ -77,6 +85,7 @@ const navGroups: NavGroup[] = [
   {
     id: "ai",
     label: "AI 설정",
+    requiredRole: "ADMIN",
     items: [
       { href: "/ai-providers", icon: Cpu, label: "AI 프로바이더" },
       { href: "/ai-context", icon: Sparkles, label: "AI 컨텍스트" },
@@ -87,7 +96,16 @@ const navGroups: NavGroup[] = [
     label: "데이터 소스",
     items: [
       { href: "/connections", icon: Plug, label: "연결" },
-      { href: "/errors", icon: AlertTriangle, label: "상태 · 에러" },
+      { href: "/errors", icon: AlertTriangle, label: "상태 · 에러", requiredRole: "ADMIN" },
+    ],
+  },
+  {
+    id: "admin",
+    label: "관리자",
+    requiredRole: "ADMIN",
+    items: [
+      { href: "/admin/users", icon: Users, label: "사용자 관리" },
+      { href: "/audit-logs", icon: ScrollText, label: "감사 로그" },
     ],
   },
   {
@@ -96,7 +114,6 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/profile", icon: User, label: "프로필" },
       { href: "/settings", icon: Settings, label: "설정" },
-      { href: "/audit-logs", icon: ScrollText, label: "감사 로그" },
     ],
   },
 ];
@@ -111,17 +128,17 @@ interface SidebarProps {
 
 export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed = false, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const activeConnectionId = useWorkspaceStore((s) => s.activeConnectionId);
 
-  // All groups open by default
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    workspace: true,
-    insights: true,
-    knowledge: true,
-    ai: true,
-    sources: true,
-    account: true,
-  });
+  const { data: currentUser } = useCurrentUser();
+  const userRole = currentUser?.role ?? "USER";
+
+  const allGroupIds = navGroups.map((g) => g.id);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
+    Object.fromEntries(allGroupIds.map((id) => [id, true]))
+  );
 
   const { data: savedCount } = useQuery({
     queryKey: ["saved"],
@@ -135,8 +152,22 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
   });
 
   const { data: connections } = useConnections();
-
   const activeConnection = (connections ?? []).find((c) => c.id === activeConnectionId);
+
+  function canShow(requiredRole?: UserRole): boolean {
+    if (!requiredRole) return true;
+    return userRole === requiredRole;
+  }
+
+  const visibleGroups = navGroups
+    .filter((g) => canShow(g.requiredRole))
+    .map((g) => ({
+      ...g,
+      items: g.items.filter((item) => canShow(item.requiredRole)),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  const allVisibleItems = visibleGroups.flatMap((g) => g.items);
 
   function isGroupActive(group: NavGroup): boolean {
     return group.items.some(
@@ -145,9 +176,14 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
   }
 
   function toggleGroup(groupId: string, hasActiveItem: boolean) {
-    // Groups with an active item stay open
     if (hasActiveItem) return;
     setOpenGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
+  }
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    queryClient.clear();
+    router.push("/signin");
   }
 
   const iconOnlyBtn = (icon: React.ReactNode, onClick?: () => void, title?: string, active?: boolean) => (
@@ -172,6 +208,8 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
       {icon}
     </button>
   );
+
+  const userInitial = (currentUser?.name ?? currentUser?.email ?? "U").charAt(0).toUpperCase();
 
   return (
     <aside
@@ -202,7 +240,6 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
         }}
       >
         {collapsed ? (
-          /* collapsed: just logo icon + toggle */
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ds-sp-1)" }}>
             <Link href="/" style={{ textDecoration: "none" }} title="vibeSQL 홈">
               <div
@@ -227,7 +264,6 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
             >
               <ChevronRight size={13} />
             </button>
-            {/* connection dot */}
             <span
               style={{
                 width: 6, height: 6, borderRadius: "var(--ds-r-full)",
@@ -238,7 +274,6 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
             />
           </div>
         ) : (
-          /* expanded: full logo row */
           <>
             <Link href="/" style={{ textDecoration: "none" }}>
               <div
@@ -288,9 +323,8 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
       {/* Navigation */}
       <nav style={{ flex: 1, padding: "var(--ds-sp-2)", overflowY: "auto", overflowX: "hidden" }}>
         {collapsed ? (
-          /* Collapsed: icon-only nav */
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-            {navGroups.flatMap((g) => g.items).map((item) => {
+            {allVisibleItems.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
               return (
                 <Link
@@ -314,10 +348,10 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
             })}
           </div>
         ) : (
-          /* Expanded: grouped nav */
-          navGroups.map((group) => {
+          visibleGroups.map((group) => {
             const hasActiveItem = isGroupActive(group);
             const isOpen = hasActiveItem || (openGroups[group.id] ?? true);
+            const isAdminGroup = group.requiredRole === "ADMIN";
 
             return (
               <div key={group.id} style={{ marginBottom: "var(--ds-sp-2)" }}>
@@ -328,13 +362,15 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                   style={{
                     display: "flex", alignItems: "center", gap: "var(--ds-sp-1)", width: "100%",
                     padding: "2px var(--ds-sp-2)", background: "transparent", border: "none",
-                    cursor: hasActiveItem ? "default" : "pointer", color: "var(--ds-text-faint)",
+                    cursor: hasActiveItem ? "default" : "pointer",
+                    color: isAdminGroup ? "var(--ds-warn)" : "var(--ds-text-faint)",
                     fontSize: "var(--ds-fs-10)", fontWeight: "var(--ds-fw-semibold)",
                     letterSpacing: "0.06em", textTransform: "uppercase",
                     borderRadius: "var(--ds-r-6)", userSelect: "none", marginBottom: 2,
                   }}
                   className={cn(!hasActiveItem && "hover:text-mute transition-colors duration-[var(--ds-dur-fast)]")}
                 >
+                  {isAdminGroup && <ShieldCheck size={9} />}
                   <span style={{ flex: 1, textAlign: "left" }}>{group.label}</span>
                   {isOpen ? <ChevronDown size={9} /> : <ChevronRight size={9} />}
                 </button>
@@ -394,30 +430,47 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
         }}
       >
         {collapsed ? (
-          /* collapsed footer: icon buttons only */
           <>
-            {iconOnlyBtn(<User size={13} />, undefined, "사용자")}
+            {iconOnlyBtn(<User size={13} />, undefined, currentUser?.name ?? "사용자")}
             {iconOnlyBtn(<Bot size={13} />, onOpenChat, "AI 어시스턴트 (⌘I)", chatOpen)}
           </>
         ) : (
-          /* expanded footer */
           <>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-1) var(--ds-sp-2)" }}>
               <div style={{
                 width: 24, height: 24, borderRadius: "var(--ds-r-full)",
-                background: "var(--ds-fill-strong)", display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: "var(--ds-fs-10)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", flexShrink: 0,
+                background: userRole === "ADMIN" ? "var(--ds-accent-soft)" : "var(--ds-fill)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "var(--ds-fs-10)", fontWeight: "var(--ds-fw-semibold)",
+                color: userRole === "ADMIN" ? "var(--ds-accent)" : "var(--ds-text-mute)",
+                flexShrink: 0,
               }}>
-                U
+                {userRole === "ADMIN" ? <Crown size={11} /> : userInitial}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text)",
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                 }}>
-                  사용자
+                  {currentUser?.name ?? "사용자"}
                 </div>
+                {userRole === "ADMIN" && (
+                  <div style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)" }}>관리자</div>
+                )}
               </div>
+              <button
+                onClick={handleLogout}
+                title="로그아웃"
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  width: 20, height: 20, borderRadius: "var(--ds-r-6)",
+                  background: "transparent", border: "none", cursor: "pointer",
+                  color: "var(--ds-text-faint)", padding: 0,
+                }}
+                className="hover:text-danger transition-colors duration-[var(--ds-dur-fast)]"
+              >
+                <LogOut size={12} />
+              </button>
             </div>
             <button
               onClick={onOpenCommandPalette}
