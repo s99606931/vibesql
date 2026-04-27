@@ -402,7 +402,7 @@ export default function ChartsPage() {
 
                   {/* Title + folder */}
                   <div style={{ marginBottom: "var(--ds-sp-2)" }}>
-                    <div style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div title={chart.name} style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {chart.name}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>

@@ -331,6 +331,7 @@ export default function HistoryPage() {
                     {/* Query */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div
+                        title={item.nlQuery ?? item.sql}
                         style={{
                           fontSize: "var(--ds-fs-13)",
                           color: "var(--ds-text)",

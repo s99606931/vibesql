@@ -317,7 +317,7 @@ export default function ProfilePage() {
                   {formatTime(item.createdAt)}
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <div title={item.nlQuery ?? item.sql} style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {item.nlQuery ?? item.sql.slice(0, 60)}
                   </div>
                   <div style={{ display: "flex", gap: "var(--ds-sp-2)", marginTop: 2, alignItems: "center" }}>
