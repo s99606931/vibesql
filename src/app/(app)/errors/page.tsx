@@ -247,6 +247,11 @@ export default function ErrorsPage() {
                     {errors.length}건 표시 중
                   </div>
                 )}
+                {search && errors.length === 0 && (
+                  <div style={{ textAlign: "center", padding: "var(--ds-sp-5)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
+                    검색 결과가 없습니다.
+                  </div>
+                )}
                 <Card padding={0}>
                   {errors.slice(0, 20).map((err, i) => {
                     const errType = classifyError(err);

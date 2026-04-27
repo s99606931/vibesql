@@ -98,6 +98,7 @@ function RuleModal({
       role="dialog"
       aria-modal="true"
       onClick={onClose}
+      onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       style={{
         position: "fixed",
         inset: 0,
