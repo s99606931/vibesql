@@ -73,6 +73,7 @@ function BoolCell({ value }: { value: unknown }) {
         padding: "2px 7px",
         borderRadius: "var(--ds-r-full)",
         fontWeight: "var(--ds-fw-medium)",
+        transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
         background: bool ? "var(--ds-success-soft)" : "var(--ds-danger-soft)",
         color: bool ? "var(--ds-success)" : "var(--ds-danger)",
         border: `1px solid ${bool ? "var(--ds-success)" : "var(--ds-danger)"}`,
@@ -92,7 +93,7 @@ interface ResultRowProps {
 
 const ResultRow = memo(function ResultRow({ row, columns, colTypes, index }: ResultRowProps) {
   return (
-    <tr style={{ borderBottom: "1px solid var(--ds-border)" }}>
+    <tr className="hover:bg-fill" style={{ borderBottom: "1px solid var(--ds-border)", transition: "background var(--ds-dur-fast) var(--ds-ease)" }}>
       <td
         style={{
           width: 36,
@@ -219,6 +220,8 @@ export function ResultTable({ rows, columns }: ResultTableProps) {
               <th
                 key={col}
                 onClick={() => handleHeaderClick(col)}
+                title={sortCol === col ? (sortDir === "asc" ? "내림차순 정렬" : "오름차순 정렬") : "오름차순 정렬"}
+                aria-sort={sortCol === col ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
                 style={{
                   padding: "var(--ds-sp-2) var(--ds-sp-3)",
                   textAlign: colTypes[col] === "number" ? "right" : "left",
@@ -232,7 +235,9 @@ export function ResultTable({ rows, columns }: ResultTableProps) {
                   whiteSpace: "nowrap" as const,
                   cursor: "pointer",
                   userSelect: "none" as const,
+                  transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
                 }}
+                className="hover:bg-fill hover:text-text"
               >
                 <div
                   style={{
