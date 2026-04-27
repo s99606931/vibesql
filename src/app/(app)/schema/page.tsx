@@ -341,19 +341,19 @@ export default function SchemaPage() {
                         padding: "1px 6px",
                         borderRadius: "var(--ds-r-4)",
                         cursor: "pointer",
-                        transition: "color 0.1s, background 0.1s",
+                        transition: "color var(--ds-dur-fast) var(--ds-ease), background var(--ds-dur-fast) var(--ds-ease)",
                       }}
                     >
                       {col}
                     </span>
                   ))}
                   {table.cols.length > 5 && expandedTable !== table.name && (
-                    <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)", cursor: "pointer" }}>
+                    <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)", cursor: "pointer", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }} className="hover:opacity-70">
                       +{table.cols.length - 5} 더 보기
                     </span>
                   )}
                   {expandedTable === table.name && table.cols.length > 5 && (
-                    <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", cursor: "pointer" }}>
+                    <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", cursor: "pointer", transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
                       접기 ▲
                     </span>
                   )}

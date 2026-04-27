@@ -267,6 +267,7 @@ export default function ChartsPage() {
                   fontSize: "var(--ds-fs-12)",
                   cursor: "pointer",
                   fontFamily: "var(--ds-font-sans)",
+                  transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
                 {f}{count > 0 && <span style={{ marginLeft: 4, fontSize: "var(--ds-fs-10)", opacity: 0.7 }}>{count}</span>}

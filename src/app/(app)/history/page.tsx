@@ -207,6 +207,7 @@ export default function HistoryPage() {
                 fontSize: "var(--ds-fs-12)",
                 cursor: "pointer",
                 fontFamily: "var(--ds-font-sans)",
+                transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
               }}
             >
               {f}
@@ -294,6 +295,8 @@ export default function HistoryPage() {
                 {items.map((item, i) => (
                   <div key={item.id}>
                   <div
+                    role="button"
+                    tabIndex={0}
                     className="group hover:bg-fill transition-colors"
                     style={{
                       display: "flex",
@@ -306,6 +309,12 @@ export default function HistoryPage() {
                     }}
                     onClick={() => {
                       setExpandedErrorId((prev) => prev === item.id ? null : item.id);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setExpandedErrorId((prev) => prev === item.id ? null : item.id);
+                      }
                     }}
                   >
                     {/* Expand chevron */}
