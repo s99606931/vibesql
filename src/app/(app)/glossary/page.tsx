@@ -526,17 +526,19 @@ export default function GlossaryPage() {
                       SQL 힌트
                     </span>
                     <button
+                      type="button"
                       onClick={() => {
                         void navigator.clipboard.writeText(selected.sql ?? "");
                         setCopiedSqlId(selected.id);
                         setTimeout(() => setCopiedSqlId((p) => p === selected.id ? null : p), 1500);
                       }}
-                      aria-label="복사"
+                      aria-label="SQL 복사"
                       style={{ background: "none", border: "none", cursor: "pointer", color: copiedSqlId === selected.id ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, marginRight: 4, transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
                     >
                       {copiedSqlId === selected.id ? <Check size={12} /> : <Copy size={12} />}
                     </button>
                     <button
+                      type="button"
                       onClick={() => {
                         setSql(selected.sql ?? "");
                         setStatus("ready");
