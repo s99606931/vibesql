@@ -287,6 +287,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
             <button
               type="button"
               aria-label="사이드바 펼치기"
+              aria-keyshortcuts="Meta+\"
               onClick={onToggleCollapse}
               title="사이드바 펼치기 (⌘\\)"
               style={{
@@ -323,6 +324,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 <button
                   type="button"
                   aria-label="사이드바 접기"
+                  aria-keyshortcuts="Meta+\"
                   onClick={(e) => { e.preventDefault(); onToggleCollapse?.(); }}
                   title="사이드바 접기 (⌘\\)"
                   style={{
@@ -525,7 +527,8 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
             </div>
             <button
               type="button"
-              aria-label="명령 팔레트 열기 (⌘K)"
+              aria-label="명령 팔레트 열기"
+              aria-keyshortcuts="Meta+k"
               onClick={onOpenCommandPalette}
               style={{
                 display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", width: "100%",
