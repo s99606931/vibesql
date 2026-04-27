@@ -64,7 +64,7 @@ export default function NotificationsPage() {
             <Link href="/settings" style={{ textDecoration: "none", flexShrink: 0 }}>
               <Button variant="ghost" size="sm" icon={<Settings size={12} />}>
                 설정
-                <ArrowRight size={12} style={{ marginLeft: 4 }} />
+                <ArrowRight aria-hidden="true" size={12} style={{ marginLeft: 4 }} />
               </Button>
             </Link>
           </div>
@@ -84,8 +84,8 @@ export default function NotificationsPage() {
                 }}
               >
                 {item.enabled
-                  ? <CheckCircle2 size={16} style={{ color: "var(--ds-success)", flexShrink: 0 }} />
-                  : <Circle size={16} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />}
+                  ? <CheckCircle2 role="img" aria-label="활성화됨" size={16} style={{ color: "var(--ds-success)", flexShrink: 0 }} />
+                  : <Circle role="img" aria-label="비활성화됨" size={16} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />}
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-medium)", color: item.enabled ? "var(--ds-text)" : "var(--ds-text-mute)" }}>
                     {item.label}

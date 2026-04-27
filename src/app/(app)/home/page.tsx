@@ -227,7 +227,7 @@ function GuideItem({
             flexShrink: 0,
           }}
         >
-          <Icon size={15} style={{ color: "var(--ds-accent)" }} />
+          <Icon aria-hidden="true" size={15} style={{ color: "var(--ds-accent)" }} />
         </span>
         <span style={{ flex: 1, minWidth: 0 }}>
           <span
@@ -267,7 +267,7 @@ function GuideItem({
           이동
         </Link>
         <span style={{ color: "var(--ds-text-faint)", flexShrink: 0 }}>
-          {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {open ? <ChevronUp aria-hidden="true" size={14} /> : <ChevronDown aria-hidden="true" size={14} />}
         </span>
       </button>
       <div
@@ -502,9 +502,9 @@ export default function HomePage() {
                         }}
                       >
                         {loading ? (
-                          <Circle size={16} style={{ color: "var(--ds-text-faint)" }} />
+                          <Circle role="img" aria-label="로딩 중" size={16} style={{ color: "var(--ds-text-faint)" }} />
                         ) : done ? (
-                          <CheckCircle2 size={18} style={{ color: "var(--ds-accent)" }} />
+                          <CheckCircle2 role="img" aria-label="완료" size={18} style={{ color: "var(--ds-accent)" }} />
                         ) : (
                           s.step
                         )}
@@ -514,7 +514,7 @@ export default function HomePage() {
                     {/* Content */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: 2 }}>
-                        <Icon size={14} style={{ color: "var(--ds-text-mute)", flexShrink: 0 }} />
+                        <Icon aria-hidden="true" size={14} style={{ color: "var(--ds-text-mute)", flexShrink: 0 }} />
                         <span
                           style={{
                             fontSize: "var(--ds-fs-13)",
@@ -638,7 +638,7 @@ export default function HomePage() {
               border: "1px solid var(--ds-border)",
             }}
           >
-            <AlertCircle size={14} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+            <AlertCircle aria-hidden="true" size={14} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <span style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)" }}>
               명령 팔레트(⌘K)로 어디서든 빠르게 이동하고 검색할 수 있습니다.
             </span>
@@ -817,7 +817,7 @@ function StatsSection() {
                   marginBottom: "var(--ds-sp-2)",
                 }}
               >
-                <span style={{ color: "var(--ds-text-mute)" }}>{card.icon}</span>
+                <span aria-hidden="true" style={{ color: "var(--ds-text-mute)" }}>{card.icon}</span>
                 <span
                   style={{
                     fontSize: "var(--ds-fs-11)",
