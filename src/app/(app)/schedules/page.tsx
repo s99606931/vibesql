@@ -261,6 +261,8 @@ function ScheduleModal({
           <label htmlFor="sched-cron" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Cron 표현식</label>
           <input
             id="sched-cron"
+            aria-describedby="sched-cron-hint"
+            aria-invalid={form.cronExpr.trim() ? !isCronValid(form.cronExpr) : undefined}
             value={form.cronExpr}
             onChange={(e) => set("cronExpr", e.target.value)}
             placeholder="0 9 * * *"
@@ -275,12 +277,12 @@ function ScheduleModal({
               fontFamily: "var(--ds-font-mono)",
             }}
           />
-          <div style={{ display: "flex", gap: "var(--ds-sp-2)", alignItems: "center", flexWrap: "wrap" }}>
+          <div id="sched-cron-hint" style={{ display: "flex", gap: "var(--ds-sp-2)", alignItems: "center", flexWrap: "wrap" }}>
             <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
               형식: 분 시 일 월 요일 (예: 0 9 * * 1 = 매주 월요일 오전 9시)
             </span>
             {form.cronExpr.trim() && !isCronValid(form.cronExpr) && (
-              <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-danger)", fontWeight: "var(--ds-fw-medium)" }}>
+              <span role="alert" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-danger)", fontWeight: "var(--ds-fw-medium)" }}>
                 ⚠ 잘못된 Cron 형식입니다
               </span>
             )}

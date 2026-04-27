@@ -408,7 +408,7 @@ export default function ProfilePage() {
               지원팀(<strong>support@vibesql.com</strong>)에 문의하거나 관리자에게 요청해주세요.
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <Button variant="ghost" size="sm" onClick={() => setDeleteAccountModal(false)}>닫기</Button>
+              <Button autoFocus variant="ghost" size="sm" onClick={() => setDeleteAccountModal(false)}>닫기</Button>
             </div>
           </div>
         </div>
