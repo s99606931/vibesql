@@ -213,7 +213,7 @@ function TemplatePicker({
               autoFocus
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="템플릿 검색..."
+              placeholder="템플릿 검색... (⌘F)"
               style={{
                 border: "none",
                 background: "transparent",

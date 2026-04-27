@@ -61,6 +61,7 @@ export function CardHead({ title, meta, actions }: CardHeadProps) {
     >
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
+          title={typeof title === "string" ? title : undefined}
           style={{
             fontSize: "var(--ds-fs-13)",
             fontWeight: "var(--ds-fw-semibold)",

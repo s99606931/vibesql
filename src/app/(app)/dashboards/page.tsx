@@ -314,6 +314,11 @@ export default function DashboardsPage() {
               </button>
             )}
           </div>
+          {search && (
+            <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", whiteSpace: "nowrap" }}>
+              {visible.length}/{dashboards.length}개
+            </span>
+          )}
         </div>
 
         {/* Empty state */}

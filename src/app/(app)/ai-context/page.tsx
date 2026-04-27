@@ -432,7 +432,7 @@ export default function AiContextPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="규칙 검색..."
+                placeholder="규칙 검색... (⌘F)"
                 style={{ width: "100%", paddingLeft: 30, paddingRight: search ? 28 : "var(--ds-sp-3)", paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", boxSizing: "border-box" }}
               />
               {search && (

@@ -289,6 +289,11 @@ export default function ChartsPage() {
               </button>
             )}
           </div>
+          {search && !isLoading && (
+            <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", whiteSpace: "nowrap" }}>
+              {visible.length}/{charts.length}개
+            </span>
+          )}
         </div>
 
         {/* No active connection warning */}
