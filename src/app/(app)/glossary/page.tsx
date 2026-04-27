@@ -7,8 +7,10 @@ import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Card } from "@/components/ui-vs/Card";
 import { AICallout } from "@/components/ui-vs/AICallout";
-import { Plus, Search, BookOpen, Trash2, X, Pencil, Download } from "lucide-react";
+import { Plus, Search, BookOpen, Trash2, X, Pencil, Download, Copy, Check, ExternalLink } from "lucide-react";
 import type { GlossaryTerm } from "@/types";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useRouter } from "next/navigation";
 
 const categoryColors: Record<string, "default" | "accent" | "success" | "warn" | "info"> = {
   매출: "accent",
@@ -119,6 +121,9 @@ export default function GlossaryPage() {
     setIsEditing(false);
   }
 
+  const { setSql, setStatus } = useWorkspaceStore();
+  const router = useRouter();
+  const [copiedSqlId, setCopiedSqlId] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -443,8 +448,32 @@ export default function GlossaryPage() {
 
               {selected.sql && (
                 <Card padding="var(--ds-sp-4)">
-                  <div style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "var(--ds-sp-2)" }}>
-                    SQL 힌트
+                  <div style={{ display: "flex", alignItems: "center", marginBottom: "var(--ds-sp-2)" }}>
+                    <span style={{ flex: 1, fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      SQL 힌트
+                    </span>
+                    <button
+                      onClick={() => {
+                        void navigator.clipboard.writeText(selected.sql ?? "");
+                        setCopiedSqlId(selected.id);
+                        setTimeout(() => setCopiedSqlId((p) => p === selected.id ? null : p), 1500);
+                      }}
+                      title="복사"
+                      style={{ background: "none", border: "none", cursor: "pointer", color: copiedSqlId === selected.id ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, marginRight: 4 }}
+                    >
+                      {copiedSqlId === selected.id ? <Check size={12} /> : <Copy size={12} />}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSql(selected.sql ?? "");
+                        setStatus("ready");
+                        router.push("/workspace");
+                      }}
+                      title="워크스페이스에서 열기"
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-accent)", display: "flex", alignItems: "center", padding: 2 }}
+                    >
+                      <ExternalLink size={12} />
+                    </button>
                   </div>
                   <code style={{ fontFamily: "var(--ds-font-mono)", fontSize: "var(--ds-fs-12)", color: "var(--ds-accent)", background: "var(--ds-accent-soft)", borderRadius: "var(--ds-r-6)", padding: "var(--ds-sp-2) var(--ds-sp-3)", display: "block" }}>
                     {selected.sql}

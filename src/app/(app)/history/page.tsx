@@ -240,6 +240,13 @@ export default function HistoryPage() {
           </div>
         )}
 
+        {/* Total count */}
+        {!isLoading && filtered.length > 0 && (
+          <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginBottom: "var(--ds-sp-3)" }}>
+            {filtered.length.toLocaleString()}개 쿼리{totalCount > filtered.length ? ` (전체 ${totalCount.toLocaleString()}개 중)` : ""}
+          </div>
+        )}
+
         {/* History list */}
         {!isLoading &&
           Object.entries(historyGroups).map(([date, items]) => {

@@ -116,11 +116,11 @@ export default function ProfilePage() {
   });
 
   const STATS = [
-    { label: "오늘 쿼리", value: todayQueries.length.toLocaleString(), icon: <Activity size={16} /> },
-    { label: "이번 달 쿼리", value: thisMonth.length.toLocaleString(), icon: <Activity size={16} /> },
-    { label: "연결된 DB", value: String(connections.length), icon: <Database size={16} /> },
-    { label: "저장된 쿼리", value: String(saved.length), icon: <BookMarked size={16} /> },
-    { label: "대시보드", value: String(dashboards.length), icon: <LayoutDashboard size={16} /> },
+    { label: "오늘 쿼리", value: todayQueries.length.toLocaleString(), icon: <Activity size={16} />, href: "/history" },
+    { label: "이번 달 쿼리", value: thisMonth.length.toLocaleString(), icon: <Activity size={16} />, href: "/history" },
+    { label: "연결된 DB", value: String(connections.length), icon: <Database size={16} />, href: "/connections" },
+    { label: "저장된 쿼리", value: String(saved.length), icon: <BookMarked size={16} />, href: "/saved" },
+    { label: "대시보드", value: String(dashboards.length), icon: <LayoutDashboard size={16} />, href: "/dashboards" },
   ];
 
   const recentItems = history.slice(0, 5);
@@ -239,7 +239,12 @@ export default function ProfilePage() {
                   </Card>
                 ))
               : STATS.map((stat) => (
-                  <Card key={stat.label}>
+                  <Card
+                    key={stat.label}
+                    hoverable
+                    style={{ cursor: "pointer" }}
+                    onClick={() => router.push(stat.href)}
+                  >
                     <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>
                       {stat.icon}
                       <span style={{ fontSize: "var(--ds-fs-11)" }}>{stat.label}</span>

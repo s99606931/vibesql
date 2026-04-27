@@ -474,6 +474,11 @@ export default function SavedPage() {
             <option value="name">이름순</option>
             <option value="dialect">방언순</option>
           </select>
+          {filtered.length > 0 && (
+            <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
+              {filtered.length}/{savedList.length}개
+            </span>
+          )}
           <div style={{ flex: 1 }} />
           <Button
             variant="ghost"

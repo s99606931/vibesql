@@ -217,24 +217,27 @@ export default function ChartsPage() {
 
         {/* Filter + search bar */}
         <div style={{ display: "flex", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-5)", alignItems: "center", flexWrap: "wrap" }}>
-          {chartTypes.map((f) => (
-            <button
-              key={f}
-              onClick={() => setActiveFilter(f)}
-              style={{
-                padding: "4px 12px",
-                borderRadius: "var(--ds-r-full)",
-                border: "1px solid var(--ds-border)",
-                background: activeFilter === f ? "var(--ds-accent-soft)" : "var(--ds-surface)",
-                color: activeFilter === f ? "var(--ds-accent)" : "var(--ds-text-mute)",
-                fontSize: "var(--ds-fs-12)",
-                cursor: "pointer",
-                fontFamily: "var(--ds-font-sans)",
-              }}
-            >
-              {f}
-            </button>
-          ))}
+          {chartTypes.map((f) => {
+            const count = f === "전체" ? charts.length : charts.filter((c) => c.chartType === f).length;
+            return (
+              <button
+                key={f}
+                onClick={() => setActiveFilter(f)}
+                style={{
+                  padding: "4px 12px",
+                  borderRadius: "var(--ds-r-full)",
+                  border: "1px solid var(--ds-border)",
+                  background: activeFilter === f ? "var(--ds-accent-soft)" : "var(--ds-surface)",
+                  color: activeFilter === f ? "var(--ds-accent)" : "var(--ds-text-mute)",
+                  fontSize: "var(--ds-fs-12)",
+                  cursor: "pointer",
+                  fontFamily: "var(--ds-font-sans)",
+                }}
+              >
+                {f}{count > 0 && <span style={{ marginLeft: 4, fontSize: "var(--ds-fs-10)", opacity: 0.7 }}>{count}</span>}
+              </button>
+            );
+          })}
           <div style={{ flex: 1 }} />
           <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", padding: "var(--ds-sp-1) var(--ds-sp-2)", width: 200 }}>
             <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
