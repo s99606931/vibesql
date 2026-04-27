@@ -13,9 +13,10 @@ export const SESSION_COOKIE = "vs-session";
 
 const EXPIRY_SECS = 7 * 24 * 60 * 60; // 7 days
 
-function getSecretBytes(): Uint8Array {
+function getSecretBytes(): Uint8Array<ArrayBuffer> {
   const secret = process.env.JWT_SECRET ?? "vibesql-dev-secret-please-change-in-production";
-  return new TextEncoder().encode(secret);
+  const encoded = new TextEncoder().encode(secret);
+  return new Uint8Array(encoded.buffer.slice(0) as ArrayBuffer);
 }
 
 async function importKey(usage: "sign" | "verify"): Promise<CryptoKey> {
@@ -28,18 +29,23 @@ async function importKey(usage: "sign" | "verify"): Promise<CryptoKey> {
   );
 }
 
-function b64url(buf: ArrayBuffer): string {
-  const bytes = new Uint8Array(buf);
+function b64url(buf: ArrayBuffer | Uint8Array<ArrayBuffer>): string {
+  const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
   let bin = "";
   for (const b of bytes) bin += String.fromCharCode(b);
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
-function parseB64url(str: string): Uint8Array {
+function toBytes(str: string): Uint8Array<ArrayBuffer> {
+  const encoded = new TextEncoder().encode(str);
+  return new Uint8Array(encoded.buffer.slice(0) as ArrayBuffer);
+}
+
+function parseB64url(str: string): Uint8Array<ArrayBuffer> {
   const b64 = str.replace(/-/g, "+").replace(/_/g, "/");
   const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
   const bin = atob(padded);
-  const bytes = new Uint8Array(bin.length);
+  const bytes = new Uint8Array(bin.length) as Uint8Array<ArrayBuffer>;
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   return bytes;
 }
@@ -48,13 +54,12 @@ export async function signSession(payload: SessionPayload): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const claims = { ...payload, iat: now, exp: now + EXPIRY_SECS };
 
-  const enc = new TextEncoder();
-  const headerB64 = b64url(enc.encode(JSON.stringify({ alg: "HS256", typ: "JWT" })));
-  const bodyB64 = b64url(enc.encode(JSON.stringify(claims)));
+  const headerB64 = b64url(toBytes(JSON.stringify({ alg: "HS256", typ: "JWT" })));
+  const bodyB64 = b64url(toBytes(JSON.stringify(claims)));
   const input = `${headerB64}.${bodyB64}`;
 
   const key = await importKey("sign");
-  const sig = await globalThis.crypto.subtle.sign("HMAC", key, enc.encode(input));
+  const sig = await globalThis.crypto.subtle.sign("HMAC", key, toBytes(input));
 
   return `${input}.${b64url(sig)}`;
 }
@@ -71,7 +76,7 @@ export async function verifySession(token: string): Promise<SessionPayload | nul
       "HMAC",
       key,
       parseB64url(sigB64),
-      new TextEncoder().encode(input)
+      toBytes(input)
     );
     if (!valid) return null;
 
