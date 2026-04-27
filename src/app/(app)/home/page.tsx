@@ -186,6 +186,7 @@ function GuideItem({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const Icon = item.icon;
+  const panelId = `guide-panel-${item.label.replace(/\s+/g, "-").replace(/·/g, "")}`;
   return (
     <div
       style={{
@@ -197,6 +198,7 @@ function GuideItem({
       <button
         type="button"
         aria-expanded={open}
+        aria-controls={panelId}
         aria-label={`${item.label} ${open ? "접기" : "펼치기"}`}
         onClick={() => setOpen((v) => !v)}
         className={open ? undefined : "hover:bg-fill transition-colors"}
@@ -268,8 +270,9 @@ function GuideItem({
           {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </span>
       </button>
-      {open && (
-        <div
+      <div
+          id={panelId}
+          hidden={!open}
           style={{
             padding: "var(--ds-sp-3) var(--ds-sp-4)",
             borderTop: "1px solid var(--ds-border)",
@@ -314,7 +317,6 @@ function GuideItem({
             ))}
           </ul>
         </div>
-      )}
     </div>
   );
 }
