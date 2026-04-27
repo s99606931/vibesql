@@ -73,6 +73,7 @@ export default function NotificationsPage() {
             {notifSettings.map((item, i) => (
               <div
                 key={item.label}
+                className="hover:bg-fill transition-colors"
                 style={{
                   display: "flex",
                   alignItems: "center",

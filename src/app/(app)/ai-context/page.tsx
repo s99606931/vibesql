@@ -443,7 +443,7 @@ export default function AiContextPage() {
             </div>
             {search && (
               <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: "var(--ds-sp-1)" }}>
-                {groupedRules.reduce((sum, g) => sum + g.items.length, 0)}개 규칙 표시 중
+                {groupedRules.reduce((sum, g) => sum + g.items.length, 0)}/{rules.length}개 규칙 표시 중
               </div>
             )}
           </div>

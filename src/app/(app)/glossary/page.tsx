@@ -310,6 +310,7 @@ export default function GlossaryPage() {
               <button
                 key={term.id}
                 onClick={() => { setSelectedId(term.id); setIsEditing(false); }}
+                className={(selectedId ?? terms[0]?.id) !== term.id ? "hover:bg-fill" : undefined}
                 style={{
                   width: "100%",
                   display: "flex",

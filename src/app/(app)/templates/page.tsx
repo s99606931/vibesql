@@ -425,7 +425,7 @@ export default function TemplatesPage() {
             ))}
             {!isLoading && (
               <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginLeft: "var(--ds-sp-1)" }}>
-                {templates.length}개
+                {(search || category !== "all") ? `${templates.length}/${data?.meta.total ?? templates.length}개` : `${templates.length}개`}
               </span>
             )}
           </div>
