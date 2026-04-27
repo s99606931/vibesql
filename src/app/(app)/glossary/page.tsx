@@ -281,15 +281,18 @@ export default function GlossaryPage() {
                 </div>
                 <div>
                   <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>카테고리</label>
-                  <select
+                  <input
                     style={inputStyle}
+                    list="glossary-categories"
                     value={newTerm.category}
                     onChange={(e) => setNewTerm((p) => ({ ...p, category: e.target.value }))}
-                  >
-                    {["매출", "사용자", "지표", "기타"].map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                    placeholder="카테고리 선택 또는 직접 입력..."
+                  />
+                  <datalist id="glossary-categories">
+                    {[...new Set(["매출", "사용자", "지표", "기타", ...(terms?.map((t) => t.category) ?? [])])].map((c) => (
+                      <option key={c} value={c} />
                     ))}
-                  </select>
+                  </datalist>
                 </div>
                 <div>
                   <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>정의</label>
@@ -401,9 +404,10 @@ export default function GlossaryPage() {
                   <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>카테고리</label>
                   <input
                     style={inputStyle}
+                    list="glossary-categories"
                     value={editForm.category}
                     onChange={(e) => setEditForm((p) => ({ ...p, category: e.target.value }))}
-                    placeholder="예: 매출"
+                    placeholder="카테고리 선택 또는 직접 입력..."
                   />
                 </div>
                 <div>

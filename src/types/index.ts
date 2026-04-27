@@ -109,6 +109,9 @@ export interface ScheduledQuery {
   lastRunAt?: string;
   lastRunStatus?: string;
   nextRunAt?: string;
+  rowCount?: number;
+  durationMs?: number;
+  connectionId?: string;
   createdAt: string;
   updatedAt: string;
 }

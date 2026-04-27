@@ -9,7 +9,7 @@ import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
 import {
   Plus, Trash2, ExternalLink, Search, BarChart2,
-  Wrench, FileText, Bug, Star, Tag,
+  Wrench, FileText, Bug, Star, Tag, ChevronDown, ChevronRight,
 } from "lucide-react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import type { QueryTemplate, TemplateCategory } from "@/app/api/templates/route";
@@ -211,7 +211,10 @@ function TemplateCard({
             padding: 0, marginBottom: expanded ? "var(--ds-sp-1)" : 0,
           }}
         >
-          {expanded ? "▼ SQL 숨기기" : "▶ SQL 보기"}
+          <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+            {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+            {expanded ? "SQL 숨기기" : "SQL 보기"}
+          </span>
         </button>
         {expanded && (
           <pre style={{

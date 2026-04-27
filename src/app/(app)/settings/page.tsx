@@ -492,35 +492,37 @@ export default function SettingsPage() {
                 </SettingRow>
               </Card>
 
-              {isAdmin && (
-                <Card>
-                  <CardHead title="AI 프로바이더 관리" />
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "var(--ds-sp-4)",
-                      padding: "var(--ds-sp-2) 0",
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>
-                        AI 프로바이더 설정
-                      </div>
-                      <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>
-                        Anthropic, OpenAI, Ollama 등 AI 모델 연결을 관리합니다
-                      </div>
+              <Card>
+                <CardHead title="AI 프로바이더" />
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "var(--ds-sp-4)",
+                    padding: "var(--ds-sp-2) 0",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>
+                      {isAdmin ? "AI 프로바이더 설정" : "사용 중인 AI"}
                     </div>
+                    <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>
+                      {isAdmin
+                        ? "Anthropic, OpenAI, Ollama 등 AI 모델 연결을 관리합니다"
+                        : "현재 Claude (Anthropic) AI로 SQL을 생성합니다. 관리자가 프로바이더를 변경할 수 있습니다."}
+                    </div>
+                  </div>
+                  {isAdmin && (
                     <Link href="/ai-providers" style={{ textDecoration: "none" }}>
                       <Button variant="ghost" size="sm">
                         관리 페이지로
                         <ArrowRight size={13} style={{ marginLeft: 4 }} />
                       </Button>
                     </Link>
-                  </div>
-                </Card>
-              )}
+                  )}
+                </div>
+              </Card>
             </>
           )}
 

@@ -590,6 +590,16 @@ export default function SchedulesPage() {
                         마지막 실행 {formatTime(schedule.lastRunAt)}
                       </span>
                     )}
+                    {schedule.rowCount != null && (
+                      <span style={{ fontFamily: "var(--ds-font-mono)" }}>
+                        {schedule.rowCount.toLocaleString()}행
+                      </span>
+                    )}
+                    {schedule.durationMs != null && (
+                      <span style={{ fontFamily: "var(--ds-font-mono)" }}>
+                        {schedule.durationMs < 1000 ? `${schedule.durationMs}ms` : `${(schedule.durationMs / 1000).toFixed(1)}s`}
+                      </span>
+                    )}
                   </div>
                 </div>
 
