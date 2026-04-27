@@ -203,7 +203,7 @@ function TemplateCard({
             <span style={{ marginLeft: 4 }}>사용</span>
           </Button>
           {!template.isBuiltIn && onDelete && (
-            <Button variant="ghost" size="sm" onClick={onDelete} title="삭제">
+            <Button variant="ghost" size="sm" onClick={onDelete} aria-label="삭제">
               <Trash2 size={13} style={{ color: "var(--ds-danger)" }} />
             </Button>
           )}

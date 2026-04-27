@@ -404,10 +404,10 @@ function ProviderCard({
               <span style={{ marginLeft: 4 }}>활성화</span>
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={onEdit} title="수정">
+          <Button variant="ghost" size="sm" onClick={onEdit} aria-label="수정">
             <Pencil size={13} />
           </Button>
-          <Button variant="ghost" size="sm" onClick={onDelete} title="삭제">
+          <Button variant="ghost" size="sm" onClick={onDelete} aria-label="삭제">
             <Trash2 size={13} style={{ color: "var(--ds-danger)" }} />
           </Button>
         </div>

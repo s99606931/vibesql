@@ -810,7 +810,7 @@ export default function WorkspacePage() {
                   {nlQuery.length}자
                 </span>
                 <button
-                  title="입력 지우기"
+                  aria-label="입력 지우기"
                   onClick={() => setNlQuery("")}
                   style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)", transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
                 >

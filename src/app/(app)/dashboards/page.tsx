@@ -396,7 +396,7 @@ export default function DashboardsPage() {
                             setTimeout(() => setCopiedDashId(null), 1500);
                           }).catch(() => undefined);
                         }}
-                        title="링크 복사"
+                        aria-label="링크 복사"
                       >
                         {copiedDashId === dash.id ? "복사됨" : "링크"}
                       </Button>

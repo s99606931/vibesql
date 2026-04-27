@@ -584,7 +584,7 @@ export default function SavedPage() {
                 {folder.name !== "미분류" && folder.queries.length > 0 && (
                   <button
                     onClick={() => { setRenameFolderValue(folder.name); setRenameFolderModal(folder.name); }}
-                    title="폴더 이름 변경"
+                    aria-label="폴더 이름 변경"
                     style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, opacity: 0.6, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                     className="hover:!opacity-100"
                   >
