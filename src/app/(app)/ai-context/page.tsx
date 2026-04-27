@@ -68,7 +68,7 @@ function ValuePreview({ value }: { value: string }) {
           onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
           style={{ display: "inline-flex", alignItems: "center", gap: 2, marginTop: 2, background: "none", border: "none", cursor: "pointer", fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)", padding: 0, fontFamily: "var(--ds-font-sans)" }}
         >
-          {expanded ? <ChevronRight size={10} /> : <ChevronDown size={10} />}
+          {expanded ? <ChevronRight aria-hidden="true" size={10} /> : <ChevronDown aria-hidden="true" size={10} />}
           {expanded ? "접기" : "전체 보기"}
         </button>
       )}
@@ -162,7 +162,7 @@ function RuleModal({
                   transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
-                <m.icon size={12} />
+                <m.icon aria-hidden="true" size={12} />
                 {m.label}
               </button>
             );
@@ -454,7 +454,7 @@ export default function AiContextPage() {
         {!isLoading && rules.length > 0 && (
           <div style={{ marginBottom: "var(--ds-sp-4)", maxWidth: 320 }}>
             <div role="search" aria-label="규칙 검색" style={{ position: "relative" }}>
-              <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+              <Search aria-hidden="true" size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
               <input
                 ref={searchRef}
                 type="search"
@@ -466,7 +466,7 @@ export default function AiContextPage() {
               />
               {search && (
                 <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
-                  <X size={13} />
+                  <X aria-hidden="true" size={13} />
                 </button>
               )}
             </div>
@@ -509,7 +509,7 @@ export default function AiContextPage() {
                       marginBottom: "var(--ds-sp-2)",
                     }}
                   >
-                    <meta.icon size={14} style={{ color: "var(--ds-text-faint)" }} />
+                    <meta.icon aria-hidden="true" size={14} style={{ color: "var(--ds-text-faint)" }} />
                     <span
                       style={{
                         fontSize: "var(--ds-fs-11)",
@@ -597,7 +597,7 @@ export default function AiContextPage() {
                               className="opacity-0 group-hover:opacity-100"
                               style={{ background: "none", border: "none", cursor: "pointer", color: copiedRuleId === rule.id ? "var(--ds-success)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                             >
-                              {copiedRuleId === rule.id ? <Check size={13} /> : <Copy size={13} />}
+                              {copiedRuleId === rule.id ? <Check aria-hidden="true" size={13} /> : <Copy aria-hidden="true" size={13} />}
                             </button>
                             <button
                               type="button"
@@ -614,7 +614,7 @@ export default function AiContextPage() {
                                 alignItems: "center",
                               }}
                             >
-                              {rule.isActive ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                              {rule.isActive ? <ToggleRight aria-hidden="true" size={16} /> : <ToggleLeft aria-hidden="true" size={16} />}
                             </button>
                             <Button
                               variant="ghost"
