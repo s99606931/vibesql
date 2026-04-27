@@ -123,6 +123,7 @@ function TemplatePicker({
       aria-modal="true"
       aria-label="템플릿 불러오기"
       onClick={onClose}
+      onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       style={{
         position: "fixed",
         inset: 0,

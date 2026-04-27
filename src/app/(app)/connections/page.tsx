@@ -360,7 +360,7 @@ export default function ConnectionsPage() {
             </div>
           <Card padding={0}>
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table aria-label="데이터베이스 연결 목록" style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: "var(--ds-fill)" }}>
                     {["이름", "종류", "호스트", "포트", "데이터베이스", "마지막 테스트", "상태", ""].map(

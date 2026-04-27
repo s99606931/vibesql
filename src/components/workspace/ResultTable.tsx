@@ -195,7 +195,7 @@ export function ResultTable({ rows, columns }: ResultTableProps) {
 
   return (
     <div style={{ overflow: "auto" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <table aria-label="쿼리 결과" style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ background: "var(--ds-fill)" }}>
             {/* Row number column */}
