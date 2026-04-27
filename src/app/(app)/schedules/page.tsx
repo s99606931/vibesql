@@ -565,7 +565,7 @@ export default function SchedulesPage() {
             {schedules.filter((s) => !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.sql.toLowerCase().includes(search.toLowerCase())).map((schedule, i, arr) => (
               <div
                 key={schedule.id}
-                className="hover:bg-fill transition-colors"
+                className="group hover:bg-fill transition-colors"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -732,6 +732,7 @@ export default function SchedulesPage() {
                   >
                     실행
                   </Button>
+                  <span className="opacity-0 group-hover:opacity-100" style={{ transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -744,6 +745,7 @@ export default function SchedulesPage() {
                   >
                     {copiedSqlId === schedule.id ? "복사됨" : "SQL"}
                   </Button>
+                  </span>
                   <Button
                     variant="ghost"
                     size="sm"

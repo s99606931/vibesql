@@ -230,7 +230,7 @@ export default function AdminUsersPage() {
             {filteredUsers.map((user, idx) => (
               <div
                 key={user.id}
-                className="hover:bg-fill transition-colors"
+                className="group hover:bg-fill transition-colors"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr 140px 120px 60px",
@@ -270,7 +270,8 @@ export default function AdminUsersPage() {
                       setCopiedEmailId(user.id);
                       setTimeout(() => setCopiedEmailId(null), 1500);
                     }}
-                    style={{ background: "none", border: "none", cursor: "pointer", color: copiedEmailId === user.id ? "var(--ds-success)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0, borderRadius: "var(--ds-r-6)" }}
+                    className="opacity-0 group-hover:opacity-100"
+                    style={{ background: "none", border: "none", cursor: "pointer", color: copiedEmailId === user.id ? "var(--ds-success)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0, borderRadius: "var(--ds-r-6)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                   >
                     {copiedEmailId === user.id ? <Check size={11} /> : <Copy size={11} />}
                   </button>

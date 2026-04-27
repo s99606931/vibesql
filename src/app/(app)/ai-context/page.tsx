@@ -513,7 +513,7 @@ export default function AiContextPage() {
                       {items.map((rule, i) => (
                         <div
                           key={rule.id}
-                          className="hover:bg-fill transition-colors"
+                          className="group hover:bg-fill transition-colors"
                           style={{
                             display: "flex",
                             alignItems: "flex-start",
@@ -564,7 +564,8 @@ export default function AiContextPage() {
                                 setCopiedRuleId(rule.id);
                                 setTimeout(() => setCopiedRuleId((prev) => prev === rule.id ? null : prev), 2000);
                               }}
-                              style={{ background: "none", border: "none", cursor: "pointer", color: copiedRuleId === rule.id ? "var(--ds-success)" : "var(--ds-text-faint)", display: "flex", alignItems: "center" }}
+                              className="opacity-0 group-hover:opacity-100"
+                              style={{ background: "none", border: "none", cursor: "pointer", color: copiedRuleId === rule.id ? "var(--ds-success)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                             >
                               {copiedRuleId === rule.id ? <Check size={13} /> : <Copy size={13} />}
                             </button>

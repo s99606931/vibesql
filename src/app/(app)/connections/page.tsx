@@ -395,7 +395,7 @@ export default function ConnectionsPage() {
                     return (
                       <tr
                         key={conn.id}
-                        className="hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
+                        className="group hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
                         style={{ borderBottom: "1px solid var(--ds-border)" }}
                       >
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
@@ -446,7 +446,8 @@ export default function ConnectionsPage() {
                                   setTimeout(() => setCopiedHostId((prev) => prev === conn.id ? null : prev), 1500);
                                 }}
                                 title="host:port 복사"
-                                style={{ background: "none", border: "none", cursor: "pointer", color: copiedHostId === conn.id ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2 }}
+                                className="opacity-0 group-hover:opacity-100"
+                                style={{ background: "none", border: "none", cursor: "pointer", color: copiedHostId === conn.id ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                               >
                                 {copiedHostId === conn.id ? <Check size={10} /> : <Copy size={10} />}
                               </button>

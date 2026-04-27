@@ -269,7 +269,7 @@ export default function ErrorsPage() {
                     return (
                       <div
                         key={err.id}
-                        className="hover:bg-fill transition-colors"
+                        className="group hover:bg-fill transition-colors"
                         style={{
                           display: "flex",
                           alignItems: "center",
@@ -297,7 +297,8 @@ export default function ErrorsPage() {
                             setCopiedId(err.id);
                             setTimeout(() => setCopiedId(null), 1500);
                           }}
-                          style={{ background: "none", border: "none", cursor: "pointer", color: copied ? "var(--ds-success)" : "var(--ds-text-faint)", padding: "var(--ds-sp-1)", borderRadius: "var(--ds-r-6)", display: "flex", alignItems: "center" }}
+                          className="opacity-0 group-hover:opacity-100"
+                          style={{ background: "none", border: "none", cursor: "pointer", color: copied ? "var(--ds-success)" : "var(--ds-text-faint)", padding: "var(--ds-sp-1)", borderRadius: "var(--ds-r-6)", display: "flex", alignItems: "center", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                         >
                           {copied ? <Check size={13} /> : <Copy size={13} />}
                         </button>
