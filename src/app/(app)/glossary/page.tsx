@@ -488,9 +488,9 @@ export default function GlossaryPage() {
             <>
               <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--ds-sp-3)" }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "var(--ds-fs-22)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-1)" }}>
+                  <h2 style={{ fontSize: "var(--ds-fs-22)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-1)" }}>
                     {selected.term}
-                  </div>
+                  </h2>
                   <Pill variant={categoryColors[selected.category] ?? "default"}>{selected.category}</Pill>
                 </div>
                 <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
