@@ -159,6 +159,7 @@ export default function SignInPage() {
         {/* Error */}
         {error && (
           <div
+            id="signin-error"
             role="alert"
             aria-live="assertive"
             style={{
@@ -215,6 +216,8 @@ export default function SignInPage() {
               type="email"
               id="signin-email"
               aria-label="이메일"
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? "signin-error" : undefined}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
@@ -243,6 +246,8 @@ export default function SignInPage() {
                 type={showPassword ? "text" : "password"}
                 id="signin-password"
                 aria-label="비밀번호"
+                aria-describedby={tab === "register" ? "signin-pw-hint" : undefined}
+                aria-invalid={error ? true : undefined}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -277,7 +282,7 @@ export default function SignInPage() {
               </button>
             </div>
             {tab === "register" && (
-              <p style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: "var(--ds-sp-1)" }}>
+              <p id="signin-pw-hint" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: "var(--ds-sp-1)" }}>
                 8자 이상
               </p>
             )}
