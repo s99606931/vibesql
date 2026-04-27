@@ -75,7 +75,7 @@ export function CardHead({ title, meta, actions }: CardHeadProps) {
       }}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div
+        <h2
           title={typeof title === "string" ? title : undefined}
           style={{
             fontSize: "var(--ds-fs-13)",
@@ -84,10 +84,11 @@ export function CardHead({ title, meta, actions }: CardHeadProps) {
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
+            margin: 0,
           }}
         >
           {title}
-        </div>
+        </h2>
         {meta && (
           <div
             style={{

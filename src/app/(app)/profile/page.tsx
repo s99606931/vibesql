@@ -384,9 +384,9 @@ export default function ProfilePage() {
                 </div>
               </div>
               <div style={{ border: "1px solid var(--ds-danger)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-4)" }}>
-                <h2 style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-danger)", margin: "0 0 var(--ds-sp-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                <h3 style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-danger)", margin: "0 0 var(--ds-sp-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                   위험 구역
-                </h2>
+                </h3>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--ds-sp-4)" }}>
                   <div>
                     <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>계정 삭제</div>
