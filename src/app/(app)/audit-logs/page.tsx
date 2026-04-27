@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Card } from "@/components/ui-vs/Card";
@@ -130,6 +130,14 @@ export default function AuditLogsPage() {
   const [dateTo, setDateTo] = useState("");
   const [userIdFilter, setUserIdFilter] = useState("");
   const [page, setPage] = useState(1);
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const { data: logs = [], isLoading } = useQuery<AuditLogItem[]>({
     queryKey: ["audit-logs", userIdFilter],
@@ -225,9 +233,10 @@ export default function AuditLogsPage() {
           <div style={{ position: "relative", flex: 1, minWidth: 180 }}>
             <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
             <input
+              ref={searchRef}
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder="액션 / 사용자 검색..."
+              placeholder="액션 / 사용자 검색... (⌘F)"
               style={{
                 width: "100%", paddingLeft: 30, paddingRight: "var(--ds-sp-3)",
                 paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)",

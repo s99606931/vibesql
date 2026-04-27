@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { useRouter } from "next/navigation";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import {
   Plus, ExternalLink, BarChart2, TrendingUp, PieChart,
@@ -74,6 +74,15 @@ export default function ChartsPage() {
   const [cardStates, setCardStates] = useState<Map<string, CardState>>(new Map());
   const [addDashModal, setAddDashModal] = useState<{ chartId: string; chartName: string; sql: string } | null>(null);
   const [selectedDashId, setSelectedDashId] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   const { setSql, setStatus, activeConnectionId } = useWorkspaceStore();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -230,9 +239,10 @@ export default function ChartsPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", padding: "var(--ds-sp-1) var(--ds-sp-2)", width: 200 }}>
             <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <input
+              ref={searchRef}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="차트 검색..."
+              placeholder="차트 검색... (⌘F)"
               style={{ border: "none", background: "transparent", color: "var(--ds-text)", fontSize: "var(--ds-fs-12)", outline: "none", fontFamily: "var(--ds-font-sans)", flex: 1 }}
             />
           </div>

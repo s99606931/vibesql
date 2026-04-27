@@ -94,6 +94,7 @@ export default function HistoryPage() {
   });
 
   const [limit, setLimit] = useState(50);
+  const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
   const searchRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -241,10 +242,19 @@ export default function HistoryPage() {
 
         {/* History list */}
         {!isLoading &&
-          Object.entries(historyGroups).map(([date, items]) => (
+          Object.entries(historyGroups).map(([date, items]) => {
+            const collapsed = collapsedDates.has(date);
+            return (
             <div key={date} style={{ marginBottom: "var(--ds-sp-5)" }}>
-              <div
+              <button
+                onClick={() => setCollapsedDates((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(date)) next.delete(date); else next.add(date);
+                  return next;
+                })}
                 style={{
+                  display: "flex", alignItems: "center", gap: 4,
+                  background: "none", border: "none", cursor: "pointer",
                   fontSize: "var(--ds-fs-11)",
                   fontWeight: "var(--ds-fw-semibold)",
                   color: "var(--ds-text-mute)",
@@ -252,12 +262,17 @@ export default function HistoryPage() {
                   letterSpacing: "0.06em",
                   marginBottom: "var(--ds-sp-2)",
                   paddingLeft: "var(--ds-sp-1)",
+                  padding: 0,
                 }}
               >
+                {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                 {date}
-              </div>
+                <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", fontWeight: "normal", textTransform: "none", letterSpacing: 0 }}>
+                  ({items.length})
+                </span>
+              </button>
 
-              <Card padding={0}>
+              {!collapsed && <Card padding={0}>
                 {items.map((item, i) => (
                   <div key={item.id}>
                   <div
@@ -409,9 +424,11 @@ export default function HistoryPage() {
                   )}
                   </div>
                 ))}
-              </Card>
+              </Card>}
             </div>
-          ))}
+          );})}
+
+
 
         {/* Load more */}
         {data.length > 0 && data.length < totalCount && (

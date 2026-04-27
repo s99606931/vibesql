@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
@@ -31,6 +31,15 @@ export default function SchemaPage() {
   const [copiedTable, setCopiedTable] = useState<string | null>(null);
   const [copiedCol, setCopiedCol] = useState<string | null>(null);
   const [expandedTable, setExpandedTable] = useState<string | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   const { activeConnectionId, setActiveConnection } = useWorkspaceStore();
   const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
   const router = useRouter();
@@ -144,9 +153,10 @@ export default function SchemaPage() {
               }}
             />
             <input
+              ref={searchRef}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="테이블 검색..."
+              placeholder="테이블 검색... (⌘F)"
               style={{
                 width: "100%",
                 padding: "var(--ds-sp-2) var(--ds-sp-3)",
