@@ -140,7 +140,7 @@ function ProviderModal({
           <h2 style={{ flex: 1, fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>
             {editId ? "AI 프로바이더 수정" : "AI 프로바이더 추가"}
           </h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", fontSize: 18, lineHeight: 1 }}>×</button>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", fontSize: 18, lineHeight: 1, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">×</button>
         </div>
 
         {/* Type */}

@@ -297,7 +297,7 @@ export default function SchemaPage() {
                       <button
                         onClick={(e) => handleCopyTable(e, table)}
                         title="테이블명 복사"
-                        style={{ background: "none", border: "none", cursor: "pointer", color: copiedTable === table.name ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, gap: 2 }}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: copiedTable === table.name ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, gap: 2, transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
                       >
                         <Copy size={11} />
                         {copiedTable === table.name && (
@@ -307,7 +307,8 @@ export default function SchemaPage() {
                       <button
                         onClick={(e) => handleTableRun(e, table)}
                         title="워크스페이스에서 SELECT 실행"
-                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-accent)", display: "flex", alignItems: "center", padding: 2 }}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-accent)", display: "flex", alignItems: "center", padding: 2, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+                        className="hover:opacity-70"
                       >
                         <Play size={11} />
                       </button>
