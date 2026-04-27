@@ -7,7 +7,7 @@ import { TopBar } from "@/components/shell/TopBar";
 import { Card } from "@/components/ui-vs/Card";
 import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
-import { CheckCircle2, Clock, ChevronDown, ChevronRight, ScrollText, ExternalLink, AlertTriangle, Search, Copy, Check } from "lucide-react";
+import { CheckCircle2, Clock, ChevronDown, ChevronRight, ScrollText, ExternalLink, AlertTriangle, Search, Copy, Check, Download } from "lucide-react";
 
 // ─── Error History types ───────────────────────────────────────────────────
 
@@ -103,6 +103,34 @@ export default function ErrorsPage() {
       <TopBar
         title="상태 · 에러"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "상태" }]}
+        actions={
+          allErrors.length > 0 ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Download size={13} />}
+              onClick={() => {
+                const headers = ["시각", "유형", "오류 메시지", "SQL", "연결", "자연어 쿼리"];
+                const esc = (v: string) => (v.includes(",") || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v);
+                const rows = errors.map((e) => [
+                  new Date(e.createdAt).toLocaleString("ko-KR"),
+                  classifyError(e),
+                  e.errorMsg ?? "",
+                  e.sql.replace(/\n/g, " "),
+                  e.connectionName ?? "",
+                  e.nlQuery ?? "",
+                ].map(esc).join(","));
+                const csv = [headers.join(","), ...rows].join("\n");
+                const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a"); a.href = url; a.download = `errors-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              CSV
+            </Button>
+          ) : undefined
+        }
       />
       <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
 
@@ -242,7 +270,7 @@ export default function ErrorsPage() {
                             {message}
                           </div>
                           <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>
-                            {err.connectionName ?? "알 수 없는 연결"} · {formatTime(err.createdAt)}
+                            {err.connectionName ?? "알 수 없는 연결"} · <span title={new Date(err.createdAt).toLocaleString("ko-KR")} style={{ cursor: "default" }}>{formatTime(err.createdAt)}</span>
                             {err.nlQuery && (
                               <span style={{ marginLeft: "var(--ds-sp-2)", fontStyle: "italic" }}>"{err.nlQuery.slice(0, 40)}"</span>
                             )}

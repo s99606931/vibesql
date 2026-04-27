@@ -681,12 +681,14 @@ export default function SavedPage() {
                             </span>
                           )}
                           <span
+                            title={new Date(query.createdAt).toLocaleString("ko-KR")}
                             style={{
                               display: "flex",
                               alignItems: "center",
                               gap: 3,
                               fontSize: "var(--ds-fs-11)",
                               color: "var(--ds-text-faint)",
+                              cursor: "default",
                             }}
                           >
                             <Clock size={10} />

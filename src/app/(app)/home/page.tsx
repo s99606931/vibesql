@@ -22,6 +22,8 @@ import {
   AlertCircle,
   TrendingUp,
   Clock,
+  Copy,
+  Check,
 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -714,6 +716,7 @@ function StatusBadge({ status }: { status: string }) {
 function StatsSection() {
   const router = useRouter();
   const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
+  const [copiedHistId, setCopiedHistId] = useState<string | null>(null);
   const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
     queryKey: ["stats"],
     queryFn: async () => {
@@ -924,6 +927,18 @@ function StatsSection() {
                     {formatRelativeTime(item.createdAt)}
                   </span>
                   <StatusBadge status={item.status} />
+                  <button
+                    title="SQL 복사"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void navigator.clipboard.writeText(item.sql);
+                      setCopiedHistId(item.id);
+                      setTimeout(() => setCopiedHistId(null), 1500);
+                    }}
+                    style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: copiedHistId === item.id ? "var(--ds-success)" : "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)", flexShrink: 0 }}
+                  >
+                    {copiedHistId === item.id ? <Check size={11} /> : <Copy size={11} />}
+                  </button>
                 </div>
               );
             })}

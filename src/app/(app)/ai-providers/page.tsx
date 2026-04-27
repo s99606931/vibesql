@@ -119,6 +119,7 @@ function ProviderModal({
         background: "rgba(0,0,0,0.4)",
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
     >
       <div
         style={{
