@@ -55,7 +55,19 @@ jobs:
         run: npx prisma db push --accept-data-loss
 
       - name: Stub Next.js route types for CI
-        run: mkdir -p .next/types && echo 'export {}' > .next/types/routes.d.ts
+        run: |
+          mkdir -p .next/types
+          cat > .next/types/routes.d.ts << 'EOF'
+          type AppRoutes = string
+          type AppRouteHandlerRoutes = string
+          type PageRoutes = never
+          type LayoutRoutes = string
+          type RedirectRoutes = never
+          type RewriteRoutes = never
+          type Routes = string
+          interface ParamMap { [key: string]: Record<string, string> }
+          export type { AppRoutes, AppRouteHandlerRoutes, PageRoutes, LayoutRoutes, RedirectRoutes, RewriteRoutes, Routes, ParamMap }
+          EOF
 
       - name: TypeScript type check
         run: npx tsc --noEmit 2>&1 | tee /tmp/tsc-output.txt; exit ${PIPESTATUS[0]}
@@ -85,11 +97,20 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli@latest
 
+      - name: List Railway services (debug)
+        run: railway list 2>&1 || true
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
       - name: Deploy to Railway
         id: deploy
         run: |
-          railway up \
-            --service "${{ secrets.RAILWAY_SERVICE_NAME }}" \
-            --detach
+          # Try with service name first; fall back to no-service (project token auto-detect)
+          if railway up --service "${{ secrets.RAILWAY_SERVICE_NAME }}" --detach 2>&1; then
+            echo "Deployed with service name"
+          else
+            echo "Service name failed, retrying without --service flag"
+            railway up --detach
+          fi
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
