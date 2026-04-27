@@ -611,7 +611,7 @@ export default function SavedPage() {
                   {folder.queries.map((query, i) => (
                     <div
                       key={query.id}
-                      className="group"
+                      className="group hover:bg-fill transition-colors"
                       style={{
                         display: "flex",
                         alignItems: "center",

@@ -230,6 +230,7 @@ export default function AdminUsersPage() {
             {filteredUsers.map((user, idx) => (
               <div
                 key={user.id}
+                className="hover:bg-fill transition-colors"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr 140px 120px 60px",

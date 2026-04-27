@@ -269,6 +269,7 @@ export default function ErrorsPage() {
                     return (
                       <div
                         key={err.id}
+                        className="hover:bg-fill transition-colors"
                         style={{
                           display: "flex",
                           alignItems: "center",

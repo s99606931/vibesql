@@ -513,6 +513,7 @@ export default function AiContextPage() {
                       {items.map((rule, i) => (
                         <div
                           key={rule.id}
+                          className="hover:bg-fill transition-colors"
                           style={{
                             display: "flex",
                             alignItems: "flex-start",

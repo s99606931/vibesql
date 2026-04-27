@@ -74,10 +74,13 @@ function LogRow({ log }: { log: AuditLogItem }) {
   const Icon = meta.icon;
 
   return (
-    <div style={{
-      borderBottom: "1px solid var(--ds-border)",
-      padding: "var(--ds-sp-2) var(--ds-sp-3)",
-    }}>
+    <div
+      className="hover:bg-fill transition-colors"
+      style={{
+        borderBottom: "1px solid var(--ds-border)",
+        padding: "var(--ds-sp-2) var(--ds-sp-3)",
+      }}
+    >
       <div
         style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-3)", cursor: log.metadata ? "pointer" : "default" }}
         onClick={() => { if (log.metadata) setExpanded((v) => !v); }}
