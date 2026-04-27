@@ -281,7 +281,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 }}
                 className="hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
               >
-                <Zap size={14} style={{ color: "var(--ds-accent)" }} />
+                <Zap aria-hidden="true" size={14} style={{ color: "var(--ds-accent)" }} />
               </div>
             </Link>
             <button
@@ -297,7 +297,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
               }}
               className="hover:bg-fill hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
             >
-              <ChevronRight size={13} />
+              <ChevronRight aria-hidden="true" size={13} />
             </button>
             <span
               style={{
@@ -319,7 +319,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 }}
                 className="hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
               >
-                <Zap size={14} style={{ color: "var(--ds-accent)" }} />
+                <Zap aria-hidden="true" size={14} style={{ color: "var(--ds-accent)" }} />
                 <span style={{ flex: 1 }}>vibeSQL</span>
                 <button
                   type="button"
@@ -335,7 +335,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                   }}
                   className="hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
                 >
-                  <ChevronLeft size={12} />
+                  <ChevronLeft aria-hidden="true" size={12} />
                 </button>
               </div>
             </Link>
@@ -381,7 +381,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                   }}
                   className={cn(!isActive && "hover:bg-fill hover:text-text")}
                 >
-                  <item.icon size={14} />
+                  <item.icon aria-hidden="true" size={14} />
                 </Link>
               );
             })}
@@ -410,9 +410,9 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                   }}
                   className={cn(!hasActiveItem && "hover:text-mute transition-colors duration-[var(--ds-dur-fast)]")}
                 >
-                  {isAdminGroup && <ShieldCheck size={9} />}
+                  {isAdminGroup && <ShieldCheck aria-hidden="true" size={9} />}
                   <span style={{ flex: 1, textAlign: "left" }}>{group.label}</span>
-                  {isOpen ? <ChevronDown size={9} /> : <ChevronRight size={9} />}
+                  {isOpen ? <ChevronDown aria-hidden="true" size={9} /> : <ChevronRight aria-hidden="true" size={9} />}
                 </button>
 
                 {isOpen && (
@@ -437,7 +437,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                           }}
                           className={cn("group", !isActive && "hover:bg-fill hover:text-text")}
                         >
-                          <item.icon size={14} style={{ flexShrink: 0 }} />
+                          <item.icon aria-hidden="true" size={14} style={{ flexShrink: 0 }} />
                           <span style={{ flex: 1 }}>{item.label}</span>
                           {item.badge === "soon" && (
                             <span style={{
@@ -522,7 +522,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 }}
                 className="hover:text-danger transition-colors duration-[var(--ds-dur-fast)]"
               >
-                <LogOut size={12} />
+                <LogOut aria-hidden="true" size={12} />
               </button>
             </div>
             <button
@@ -556,7 +556,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
               }}
               className={cn(!chatOpen && "hover:bg-fill hover:text-text-mute")}
             >
-              <Bot size={12} style={{ flexShrink: 0 }} />
+              <Bot aria-hidden="true" size={12} style={{ flexShrink: 0 }} />
               <span>AI 어시스턴트</span>
               <span style={{ marginLeft: "auto", fontSize: "var(--ds-fs-10)", fontFamily: "var(--ds-font-mono)", opacity: 0.6 }}>⌘I</span>
             </button>
