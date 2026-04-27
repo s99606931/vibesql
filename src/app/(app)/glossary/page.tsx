@@ -230,6 +230,11 @@ export default function GlossaryPage() {
                   flex: 1,
                 }}
               />
+              {search && (
+                <button onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0 }}>
+                  <X size={12} />
+                </button>
+              )}
             </div>
             {allCategories.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--ds-sp-1)", marginTop: "var(--ds-sp-2)", alignItems: "center" }}>

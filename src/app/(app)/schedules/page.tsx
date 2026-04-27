@@ -739,6 +739,9 @@ export default function SchedulesPage() {
               </div>
             ))}
           </Card>
+          {search && schedules.filter((s) => !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.sql.toLowerCase().includes(search.toLowerCase())).length === 0 && (
+            <div style={{ textAlign: "center", padding: "var(--ds-sp-5)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>검색 결과가 없습니다.</div>
+          )}
           </>
         )}
       </div>

@@ -12,7 +12,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import {
   Plus, ExternalLink, BarChart2, TrendingUp, PieChart,
-  Table2, Search, Play, RefreshCw, AlertCircle, LayoutDashboard, Download, Copy, Check,
+  Table2, Search, Play, RefreshCw, AlertCircle, LayoutDashboard, Download, Copy, Check, X,
 } from "lucide-react";
 
 const ResultChart = dynamic(
@@ -273,6 +273,11 @@ export default function ChartsPage() {
               placeholder="차트 검색... (⌘F)"
               style={{ border: "none", background: "transparent", color: "var(--ds-text)", fontSize: "var(--ds-fs-12)", outline: "none", fontFamily: "var(--ds-font-sans)", flex: 1 }}
             />
+            {search && (
+              <button onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0 }}>
+                <X size={12} />
+              </button>
+            )}
           </div>
         </div>
 
