@@ -297,7 +297,8 @@ export default function AdminUsersPage() {
                 {/* Actions */}
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                   <button
-                    title={user.role === "ADMIN" ? "사용자로 변경" : "관리자로 변경"}
+                    type="button"
+                    aria-label={user.role === "ADMIN" ? "사용자로 변경" : "관리자로 변경"}
                     disabled={roleMutation.isPending}
                     onClick={() => setConfirmRole({ user, nextRole: user.role === "ADMIN" ? "USER" : "ADMIN" })}
                     style={{
@@ -310,6 +311,7 @@ export default function AdminUsersPage() {
                     <ShieldCheck size={12} />
                   </button>
                   <button
+                    type="button"
                     aria-label="삭제"
                     disabled={deleteMutation.isPending}
                     onClick={() => setConfirmDelete(user)}

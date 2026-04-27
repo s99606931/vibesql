@@ -264,6 +264,8 @@ export default function DashboardsPage() {
           {FILTERS.map((f) => (
             <button
               key={f}
+              type="button"
+              aria-pressed={activeFilter === f}
               onClick={() => setActiveFilter(f)}
               style={{
                 padding: "4px 12px",
@@ -490,6 +492,7 @@ export default function DashboardsPage() {
             <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-3)" }}>새 대시보드</div>
             <input
               autoFocus
+              aria-label="대시보드 이름"
               value={newDashName}
               onChange={(e) => setNewDashName(e.target.value)}
               onKeyDown={(e) => {
@@ -499,6 +502,7 @@ export default function DashboardsPage() {
               style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-2)", boxSizing: "border-box" }}
             />
             <input
+              aria-label="설명 (선택)"
               value={newDashDesc}
               onChange={(e) => setNewDashDesc(e.target.value)}
               onKeyDown={(e) => {
@@ -509,8 +513,9 @@ export default function DashboardsPage() {
               style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-4)", boxSizing: "border-box" }}
             />
             <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
-              <button onClick={() => { setNewDashModal(false); setNewDashName(""); setNewDashDesc(""); }} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
+              <button type="button" onClick={() => { setNewDashModal(false); setNewDashName(""); setNewDashDesc(""); }} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
               <button
+                type="button"
                 onClick={() => { if (newDashName.trim()) { createMutation.mutate({ name: newDashName.trim(), description: newDashDesc.trim() }); setNewDashModal(false); setNewDashName(""); setNewDashDesc(""); } }}
                 disabled={!newDashName.trim() || createMutation.isPending}
                 style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
@@ -535,18 +540,23 @@ export default function DashboardsPage() {
             <div style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-3)" }}>대시보드 편집</div>
             <input
               autoFocus
+              aria-label="대시보드 이름"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               placeholder="대시보드 이름..."
               style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-2)", boxSizing: "border-box" }}
             />
             <input
+              aria-label="설명 (선택)"
               value={editDesc}
               onChange={(e) => setEditDesc(e.target.value)}
               placeholder="설명 (선택)"
               style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-3)", boxSizing: "border-box" }}
             />
             <button
+              type="button"
+              aria-pressed={editPublic}
+              aria-label={editPublic ? "공개: 링크가 있는 누구나 볼 수 있음" : "비공개: 나만 볼 수 있음"}
               onClick={() => setEditPublic((v) => !v)}
               style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-2) var(--ds-sp-3)", width: "100%", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: editPublic ? "var(--ds-accent-soft)" : "var(--ds-fill)", cursor: "pointer", fontFamily: "var(--ds-font-sans)", fontSize: "var(--ds-fs-13)", color: editPublic ? "var(--ds-accent)" : "var(--ds-text-mute)", marginBottom: "var(--ds-sp-4)", textAlign: "left" }}
             >
@@ -554,7 +564,7 @@ export default function DashboardsPage() {
               {editPublic ? "공개 — 링크가 있는 누구나 볼 수 있음" : "비공개 — 나만 볼 수 있음"}
             </button>
             <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
-              <button onClick={() => setEditModal(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
+              <button type="button" onClick={() => setEditModal(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
               <button
                 onClick={() => { if (editName.trim()) { editMutation.mutate({ id: editModal.id, name: editName.trim(), description: editDesc.trim(), isPublic: editPublic }); setEditModal(null); } }}
                 disabled={!editName.trim() || editMutation.isPending}
