@@ -132,9 +132,9 @@ function RuleModal({
           boxShadow: "var(--ds-shadow-modal)",
         }}
       >
-        <div style={{ fontSize: "var(--ds-fs-16)", fontWeight: "var(--ds-fw-bold)", color: "var(--ds-text)" }}>
+        <h2 style={{ fontSize: "var(--ds-fs-16)", fontWeight: "var(--ds-fw-bold)", color: "var(--ds-text)", margin: 0 }}>
           {initial.key ? "규칙 편집" : "규칙 추가"}
-        </div>
+        </h2>
 
         {/* Rule type */}
         <div style={{ display: "flex", gap: "var(--ds-sp-2)", flexWrap: "wrap" }}>

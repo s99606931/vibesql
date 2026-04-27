@@ -150,9 +150,9 @@ function ScheduleModal({
           boxShadow: "var(--ds-shadow-modal)",
         }}
       >
-        <div style={{ fontSize: "var(--ds-fs-16)", fontWeight: "var(--ds-fw-bold)", color: "var(--ds-text)" }}>
+        <h2 style={{ fontSize: "var(--ds-fs-16)", fontWeight: "var(--ds-fw-bold)", color: "var(--ds-text)", margin: 0 }}>
           {initial.name ? "스케줄 편집" : "스케줄 추가"}
-        </div>
+        </h2>
 
         {/* Name */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>

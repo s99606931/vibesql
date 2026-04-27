@@ -421,9 +421,9 @@ export default function GlossaryPage() {
           {showAdd && (
             <Card padding="var(--ds-sp-4)">
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--ds-sp-4)" }}>
-                <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>
+                <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>
                   새 용어 추가
-                </div>
+                </h2>
                 <Button variant="ghost" size="sm" icon={<X size={13} />} onClick={() => setShowAdd(false)}>닫기</Button>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
@@ -567,9 +567,9 @@ export default function GlossaryPage() {
           {selected && !showAdd && isEditing && (
             <Card padding="var(--ds-sp-4)">
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--ds-sp-4)" }}>
-                <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>
+                <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>
                   용어 수정
-                </div>
+                </h2>
                 <Button variant="ghost" size="sm" icon={<X size={13} />} onClick={cancelEditing}>닫기</Button>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
