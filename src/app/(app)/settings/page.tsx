@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { TopBar } from "@/components/shell/TopBar";
 import { Card, CardHead } from "@/components/ui-vs/Card";
 import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { useSettingsStore } from "@/store/useSettingsStore";
-import { AiProviderSection } from "@/components/settings/AiProviderSection";
+import { useIsAdmin } from "@/hooks/useCurrentUser";
 import {
   Palette,
   Cpu,
@@ -15,6 +16,7 @@ import {
   Sun,
   Moon,
   Check,
+  ArrowRight,
 } from "lucide-react";
 
 // ─── Sidebar nav ─────────────────────────────────────────────────────────────
@@ -23,7 +25,7 @@ type Section = "appearance" | "ai" | "security" | "notifications";
 
 const NAV_ITEMS: { id: Section; label: string; icon: React.ReactNode }[] = [
   { id: "appearance", label: "외관", icon: <Palette size={15} /> },
-  { id: "ai", label: "AI 설정", icon: <Cpu size={15} /> },
+  { id: "ai", label: "AI 환경설정", icon: <Cpu size={15} /> },
   { id: "security", label: "보안", icon: <ShieldCheck size={15} /> },
   { id: "notifications", label: "알림", icon: <Bell size={15} /> },
 ];
@@ -148,6 +150,7 @@ export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState<Section>("appearance");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isAdmin = useIsAdmin();
   const {
     theme, mode, density,
     dialect, temperature, alwaysExplain,
@@ -443,7 +446,7 @@ export default function SettingsPage() {
           {activeSection === "ai" && (
             <>
               <Card>
-                <CardHead title="AI 설정" />
+                <CardHead title="AI 환경설정" />
 
                 <SettingRow label="기본 SQL 방언" description="AI가 생성하는 SQL의 기본 방언">
                   <select
@@ -476,7 +479,35 @@ export default function SettingsPage() {
                 </SettingRow>
               </Card>
 
-              <AiProviderSection />
+              {isAdmin && (
+                <Card>
+                  <CardHead title="AI 프로바이더 관리" />
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "var(--ds-sp-4)",
+                      padding: "var(--ds-sp-2) 0",
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>
+                        AI 프로바이더 설정
+                      </div>
+                      <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>
+                        Anthropic, OpenAI, Ollama 등 AI 모델 연결을 관리합니다
+                      </div>
+                    </div>
+                    <Link href="/ai-providers" style={{ textDecoration: "none" }}>
+                      <Button variant="ghost" size="sm">
+                        관리 페이지로
+                        <ArrowRight size={13} style={{ marginLeft: 4 }} />
+                      </Button>
+                    </Link>
+                  </div>
+                </Card>
+              )}
             </>
           )}
 

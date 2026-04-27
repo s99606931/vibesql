@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUserId } from "@/lib/auth/require-user";
 import { memProviders } from "../../route";
+import { persistAiProviders } from "@/lib/db/mem-ai-providers";
 import type { AiProvider } from "../../route";
 
 interface OaiResponse { choices: { message: { content: string } }[] }
@@ -133,7 +134,11 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     } catch { /* ignore */ }
   } else {
     const p = memProviders.find((x) => x.id === id);
-    if (p) { p.lastTestedAt = new Date().toISOString(); p.lastTestedOk = result.ok; }
+    if (p) {
+      p.lastTestedAt = new Date().toISOString();
+      p.lastTestedOk = result.ok;
+      persistAiProviders();
+    }
   }
 
   return NextResponse.json({ data: result }, { status: result.ok ? 200 : 422 });

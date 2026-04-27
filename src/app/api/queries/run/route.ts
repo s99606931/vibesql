@@ -228,9 +228,9 @@ export async function POST(req: Request) {
       }
     }
 
-    // Fall back to mock data when no real connection is available
+    // No real connection found — return demo data so the SQL generation flow
+    // works end-to-end without a live database (dev/self-hosted demo mode).
     await new Promise((r) => setTimeout(r, 200));
-
     const mockColumns = ["id", "name", "email", "created_at"];
     const mockRows = Array.from({ length: 5 }, (_, i) => ({
       id: `${i + 1}`,
@@ -238,7 +238,6 @@ export async function POST(req: Request) {
       email: `user${i + 1}@example.com`,
       created_at: new Date(Date.now() - i * 86_400_000).toISOString(),
     }));
-
     return NextResponse.json({
       data: {
         columns: mockColumns,

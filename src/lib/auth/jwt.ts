@@ -13,8 +13,13 @@ export const SESSION_COOKIE = "vs-session";
 
 const EXPIRY_SECS = 7 * 24 * 60 * 60; // 7 days
 
+// Fail fast in production when JWT_SECRET is not configured
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required in production");
+}
+
 function getSecretBytes(): Uint8Array<ArrayBuffer> {
-  const secret = process.env.JWT_SECRET ?? "vibesql-dev-secret-please-change-in-production";
+  const secret = process.env.JWT_SECRET ?? "vibesql-dev-secret-change-in-production";
   const encoded = new TextEncoder().encode(secret);
   return new Uint8Array(encoded.buffer.slice(0) as ArrayBuffer);
 }

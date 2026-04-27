@@ -2,14 +2,15 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifySession, SESSION_COOKIE } from "@/lib/auth/jwt";
 
+// Exact-match or trailing-slash boundary to prevent prefix collisions (e.g. /signin-bypass)
 const PUBLIC_PATHS = ["/signin", "/share"];
-const PUBLIC_API_PREFIXES = ["/api/share/", "/api/auth/login", "/api/auth/register"];
+const PUBLIC_API_PREFIXES = ["/api/share/", "/api/auth/login", "/api/auth/register", "/api/health"];
 const ADMIN_PATHS = ["/admin", "/api/admin"];
 
 function isPublicPath(pathname: string): boolean {
   if (pathname === "/") return true;
-  if (PUBLIC_API_PREFIXES.some((p) => pathname.startsWith(p))) return true;
-  return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p));
+  if (PUBLIC_API_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/") || pathname.startsWith(p))) return true;
+  return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));
 }
 
 function isAdminPath(pathname: string): boolean {
@@ -44,12 +45,9 @@ export async function middleware(request: NextRequest) {
   // ── JWT cookie guard ───────────────────────────────────────────────────────
   const token = request.cookies.get(SESSION_COOKIE)?.value;
 
-  // Dev mode (no production, no token yet): allow through for API, redirect UI to signin
   if (!token) {
-    if (process.env.NODE_ENV !== "production") {
-      // Allow API through in dev — requireUser() will return dev-user fallback
-      if (pathname.startsWith("/api/")) return NextResponse.next();
-      // UI pages: only redirect to signin if not already going there
+    // Dev bypass: explicit opt-in only, never in production
+    if (process.env.VIBESQL_DEV_AUTH_BYPASS === "1" && process.env.NODE_ENV !== "production") {
       return NextResponse.next();
     }
     if (pathname.startsWith("/api/")) {

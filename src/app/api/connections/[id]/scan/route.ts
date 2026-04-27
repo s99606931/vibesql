@@ -134,35 +134,8 @@ export async function POST(
     }
   }
 
-  // Fall back to mock data for non-PostgreSQL or unknown connections
-  const mockSchema: TableInfo[] = [
-    {
-      name: "users",
-      rowCount: "12,453",
-      columns: [
-        { name: "id", type: "uuid", nullable: false, isPk: true },
-        { name: "email", type: "varchar(255)", nullable: false, isPk: false },
-        { name: "created_at", type: "timestamptz", nullable: false, isPk: false },
-      ],
-    },
-    {
-      name: "orders",
-      rowCount: "84,291",
-      columns: [
-        { name: "id", type: "uuid", nullable: false, isPk: true },
-        { name: "user_id", type: "uuid", nullable: false, isPk: false },
-        { name: "amount", type: "numeric(10,2)", nullable: false, isPk: false },
-        { name: "status", type: "varchar(20)", nullable: false, isPk: false },
-        { name: "created_at", type: "timestamptz", nullable: false, isPk: false },
-      ],
-    },
-  ];
-
-  return NextResponse.json({
-    data: {
-      connectionId: id,
-      tables: mockSchema,
-      scannedAt: new Date().toISOString(),
-    },
-  });
+  return NextResponse.json(
+    { error: "이 데이터베이스 유형의 스키마 스캔은 아직 지원되지 않습니다." },
+    { status: 501 }
+  );
 }

@@ -135,7 +135,7 @@ async function introspectPostgres(conn: StoredConnection): Promise<TableMeta[]> 
 }
 
 // ---------------------------------------------------------------------------
-// No-connection fallback (shown in schema browser before a connection is selected)
+// Demo schema (shown in schema browser before a connection is selected)
 // ---------------------------------------------------------------------------
 
 const mockTables: TableMeta[] = [

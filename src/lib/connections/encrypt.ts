@@ -11,6 +11,12 @@ function isKeyConfigured(): boolean {
 export function encryptPassword(plaintext: string): string {
   if (!plaintext) return "";
   if (!isKeyConfigured()) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "CONNECTION_ENCRYPTION_KEY must be set in production. " +
+          "Generate one with: openssl rand -hex 32"
+      );
+    }
     // Development fallback — not cryptographically secure
     return Buffer.from(plaintext).toString("base64");
   }

@@ -565,6 +565,19 @@ export default function SavedPage() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          icon={<Clock size={12} />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(
+                              `/schedules?sql=${encodeURIComponent(query.sql)}&name=${encodeURIComponent(query.name)}&dialect=${encodeURIComponent(query.dialect)}`
+                            );
+                          }}
+                        >
+                          스케줄 등록
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           icon={<Play size={12} />}
                           onClick={(e) => {
                             e.stopPropagation();

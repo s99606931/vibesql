@@ -8,6 +8,10 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
+    env: {
+      VIBESQL_DEV_AUTH_BYPASS: "1",
+      VIBESQL_DEV_AS_ADMIN: "1",
+    },
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error vitest 4.x type defs lag behind runtime support
     environmentMatchGlobs: [

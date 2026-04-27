@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUserId } from "@/lib/auth/require-user";
 import { memAiProviders, persistAiProviders } from "@/lib/db/mem-ai-providers";
+import { validateExternalUrl } from "@/lib/ssrf-guard";
 
 export type AiProviderType = "anthropic" | "openai" | "google" | "lmstudio" | "ollama" | "vllm" | "openai_compat";
 
@@ -76,6 +77,16 @@ export async function POST(req: Request) {
   }
 
   const { isActive, ...rest } = parsed.data;
+
+  // H3: Block SSRF via user-supplied baseUrl at save time.
+  // Local-only provider types (lmstudio, ollama, vllm) may use localhost.
+  const LOCAL_PROVIDER_TYPES = new Set(["lmstudio", "ollama", "vllm"]);
+  if (rest.baseUrl && !LOCAL_PROVIDER_TYPES.has(rest.type)) {
+    const check = validateExternalUrl(rest.baseUrl);
+    if (!check.ok) {
+      return NextResponse.json({ error: check.reason }, { status: 400 });
+    }
+  }
 
   if (process.env.DATABASE_URL) {
     try {

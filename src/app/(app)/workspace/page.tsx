@@ -19,6 +19,9 @@ import {
   Check,
   Save,
   LayoutDashboard,
+  FileText,
+  Search,
+  X,
 } from "lucide-react";
 import { useState, useRef, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
@@ -69,6 +72,292 @@ function SqlParamLoader() {
   return null;
 }
 
+// ─── Template Picker Modal ────────────────────────────────────────────────────
+
+interface QueryTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  nlQuery: string;
+  sql: string;
+  dialect: string;
+  tags: string[];
+}
+
+function TemplatePicker({
+  onSelect,
+  onClose,
+}: {
+  onSelect: (t: QueryTemplate) => void;
+  onClose: () => void;
+}) {
+  const [search, setSearch] = useState("");
+
+  const { data: templates = [], isLoading } = useQuery<QueryTemplate[]>({
+    queryKey: ["templates"],
+    queryFn: async () => {
+      const r = await fetch("/api/templates?limit=20");
+      const j = (await r.json()) as { data?: QueryTemplate[] };
+      return Array.isArray(j.data) ? j.data : [];
+    },
+    staleTime: 60_000,
+  });
+
+  const filtered = templates.filter(
+    (t) =>
+      !search ||
+      t.name.toLowerCase().includes(search.toLowerCase()) ||
+      t.nlQuery.toLowerCase().includes(search.toLowerCase()) ||
+      t.description.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="템플릿 불러오기"
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        background: "var(--ds-overlay-bg, color-mix(in srgb, var(--ds-bg) 40%, black))",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "var(--ds-sp-4)",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          maxWidth: 560,
+          maxHeight: "80vh",
+          background: "var(--ds-surface)",
+          borderRadius: "var(--ds-r-8)",
+          border: "1px solid var(--ds-border)",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: "var(--ds-shadow-modal)",
+          overflow: "hidden",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--ds-sp-2)",
+            padding: "var(--ds-sp-4)",
+            borderBottom: "1px solid var(--ds-border)",
+          }}
+        >
+          <FileText size={16} style={{ color: "var(--ds-accent)", flexShrink: 0 }} />
+          <span
+            style={{
+              fontSize: "var(--ds-fs-16)",
+              fontWeight: "var(--ds-fw-bold)",
+              color: "var(--ds-text)",
+              fontFamily: "var(--ds-font-sans)",
+              flex: 1,
+            }}
+          >
+            템플릿 불러오기
+          </span>
+          <button
+            onClick={onClose}
+            aria-label="닫기"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 28,
+              height: 28,
+              borderRadius: "var(--ds-r-6)",
+              border: "none",
+              background: "transparent",
+              color: "var(--ds-text-faint)",
+              cursor: "pointer",
+            }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Search */}
+        <div
+          style={{
+            padding: "var(--ds-sp-3) var(--ds-sp-4)",
+            borderBottom: "1px solid var(--ds-border)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--ds-sp-2)",
+              border: "1px solid var(--ds-border)",
+              borderRadius: "var(--ds-r-6)",
+              background: "var(--ds-fill)",
+              padding: "var(--ds-sp-1) var(--ds-sp-2)",
+            }}
+          >
+            <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+            <input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="템플릿 검색..."
+              style={{
+                border: "none",
+                background: "transparent",
+                color: "var(--ds-text)",
+                fontSize: "var(--ds-fs-13)",
+                outline: "none",
+                fontFamily: "var(--ds-font-sans)",
+                flex: 1,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Template list */}
+        <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-2)" }}>
+          {isLoading && (
+            <div
+              style={{
+                padding: "var(--ds-sp-5)",
+                textAlign: "center",
+                color: "var(--ds-text-faint)",
+                fontSize: "var(--ds-fs-12)",
+              }}
+            >
+              템플릿 불러오는 중...
+            </div>
+          )}
+
+          {!isLoading && filtered.length === 0 && (
+            <div
+              style={{
+                padding: "var(--ds-sp-5)",
+                textAlign: "center",
+                color: "var(--ds-text-faint)",
+                fontSize: "var(--ds-fs-12)",
+              }}
+            >
+              검색 결과가 없습니다.
+            </div>
+          )}
+
+          {!isLoading &&
+            filtered.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => onSelect(t)}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  background: "transparent",
+                  border: "1px solid transparent",
+                  borderRadius: "var(--ds-r-8)",
+                  padding: "var(--ds-sp-3)",
+                  cursor: "pointer",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "var(--ds-sp-1)",
+                  transition: "background var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
+                  fontFamily: "var(--ds-font-sans)",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = "var(--ds-fill)";
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--ds-border)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "transparent";
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--ds-sp-2)",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "var(--ds-fs-13)",
+                      fontWeight: "var(--ds-fw-semibold)",
+                      color: "var(--ds-text)",
+                    }}
+                  >
+                    {t.name}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "var(--ds-fs-10)",
+                      color: "var(--ds-text-faint)",
+                      fontFamily: "var(--ds-font-mono)",
+                      background: "var(--ds-surface-2)",
+                      border: "1px solid var(--ds-border)",
+                      borderRadius: "var(--ds-r-6)",
+                      padding: "1px 6px",
+                    }}
+                  >
+                    {t.dialect}
+                  </span>
+                </div>
+                {t.nlQuery && (
+                  <div
+                    style={{
+                      fontSize: "var(--ds-fs-12)",
+                      color: "var(--ds-text-mute)",
+                    }}
+                  >
+                    {t.nlQuery}
+                  </div>
+                )}
+                <pre
+                  style={{
+                    fontSize: "var(--ds-fs-11)",
+                    fontFamily: "var(--ds-font-mono)",
+                    color: "var(--ds-text-faint)",
+                    background: "var(--ds-surface-2, var(--ds-fill))",
+                    border: "1px solid var(--ds-border)",
+                    borderRadius: "var(--ds-r-6)",
+                    padding: "var(--ds-sp-1) var(--ds-sp-2)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    margin: 0,
+                  }}
+                >
+                  {t.sql.slice(0, 100)}{t.sql.length > 100 ? "..." : ""}
+                </pre>
+              </button>
+            ))}
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            padding: "var(--ds-sp-3) var(--ds-sp-4)",
+            borderTop: "1px solid var(--ds-border)",
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
+        >
+          <Button variant="ghost" size="md" onClick={onClose}>
+            닫기
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function WorkspacePage() {
   const {
     status,
@@ -100,6 +389,7 @@ export default function WorkspacePage() {
   const [savedOk, setSavedOk] = useState(false);
   const savedOkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -149,7 +439,7 @@ export default function WorkspacePage() {
     mutationFn: async ({ dashId, label }: { dashId: string; label: string }) => {
       const dash = (dashboards ?? []).find((d) => d.id === dashId);
       const existingWidgets = Array.isArray(dash?.widgets) ? dash!.widgets : [];
-      const newWidget = { type: "table", label, sql, createdAt: new Date().toISOString() };
+      const newWidget = { type: "table", label, sql, connectionId: activeConnectionId ?? undefined, createdAt: new Date().toISOString() };
       const r = await fetch(`/api/dashboards/${dashId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -351,6 +641,16 @@ export default function WorkspacePage() {
                 </option>
               ))}
             </select>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<FileText size={13} />}
+              onClick={() => setTemplatePickerOpen(true)}
+              title="템플릿 불러오기"
+            >
+              템플릿
+            </Button>
 
             {showResults && (
               <>
@@ -720,6 +1020,18 @@ export default function WorkspacePage() {
         open={shareOpen}
         onClose={() => setShareOpen(false)}
       />
+
+      {templatePickerOpen && (
+        <TemplatePicker
+          onSelect={(t) => {
+            setSql(t.sql);
+            setNlQuery(t.nlQuery);
+            setStatus("ready");
+            setTemplatePickerOpen(false);
+          }}
+          onClose={() => setTemplatePickerOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -69,12 +69,20 @@ export async function requireUser(): Promise<AuthUser | NextResponse> {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (process.env.NODE_ENV === "production") {
+  // Explicit opt-in required — VIBESQL_DEV_AUTH_BYPASS=1 in .env.local
+  if (process.env.VIBESQL_DEV_AUTH_BYPASS !== "1") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Local dev fallback: admin access
-  return { userId: "dev-user", email: "dev@vibesql.dev", name: "Dev User", role: "ADMIN" };
+  if (process.env.NODE_ENV === "production") {
+    // Safety net: never allow bypass in production regardless of env var
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  console.warn("[vibeSQL] DEV AUTH BYPASS active — all requests run as USER. Set VIBESQL_DEV_AUTH_BYPASS=1 in .env.local only.");
+  // Default to USER role — use VIBESQL_DEV_AS_ADMIN=1 to elevate for local admin testing
+  const role: UserRole = process.env.VIBESQL_DEV_AS_ADMIN === "1" ? "ADMIN" : "USER";
+  return { userId: "dev-user", email: "dev@vibesql.dev", name: "Dev User", role };
 }
 
 async function resolveRole(userId: string): Promise<UserRole> {

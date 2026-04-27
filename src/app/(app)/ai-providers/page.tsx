@@ -412,7 +412,7 @@ export default function AiProvidersPage() {
     setTestingId(id);
     try {
       await fetch(`/api/ai-providers/${id}/test`, { method: "POST" });
-      void qc.invalidateQueries({ queryKey: ["ai-providers"] });
+      await qc.invalidateQueries({ queryKey: ["ai-providers"] });
     } finally {
       setTestingId(null);
     }
