@@ -385,6 +385,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
 
             {testMutation.isError && (
               <div
+                role="alert"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -482,6 +483,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
 
             {scanMutation.isError && (
               <div
+                role="alert"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -500,6 +502,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
         {/* Global error (create failure on step 1→2 transition) */}
         {stepError && step !== "test" && step !== "scan" && (
           <div
+            role="alert"
             style={{
               marginTop: "var(--ds-sp-3)",
               display: "flex",

@@ -231,6 +231,7 @@ function TemplateCard({
       {/* SQL preview */}
       <div>
         <button
+          type="button"
           aria-expanded={expanded}
           onClick={() => setExpanded((v) => !v)}
           style={{
@@ -265,6 +266,8 @@ function TemplateCard({
           {template.tags.map((tag) => (
             <button
               key={tag}
+              type="button"
+              aria-label={`${tag} 태그로 필터`}
               onClick={() => onTagClick?.(tag)}
               style={{
                 background: "none", border: "none", cursor: onTagClick ? "pointer" : "default",

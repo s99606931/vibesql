@@ -588,6 +588,9 @@ export default function SchedulesPage() {
               >
                 {/* Active toggle */}
                 <button
+                  type="button"
+                  role="switch"
+                  aria-checked={schedule.isActive}
                   aria-label={schedule.isActive ? "비활성화" : "활성화"}
                   disabled={togglingId === schedule.id}
                   onClick={() => { void handleToggleActive(schedule); }}
