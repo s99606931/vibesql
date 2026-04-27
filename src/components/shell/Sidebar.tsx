@@ -273,7 +273,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
       >
         {collapsed ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ds-sp-1)" }}>
-            <Link href="/" style={{ textDecoration: "none" }} title="vibeSQL 홈">
+            <Link href="/" style={{ textDecoration: "none" }} title="vibeSQL 홈" aria-label="vibeSQL 홈">
               <div
                 style={{
                   width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
