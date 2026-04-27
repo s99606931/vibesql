@@ -517,7 +517,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
           breadcrumbs={[{ label: "vibeSQL" }, { label: "대시보드", href: "/dashboards" }, { label: "오류" }]}
         />
         <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
-          <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-danger)" }}>
+          <div role="alert" style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-danger)" }}>
             대시보드를 불러오지 못했습니다.
           </div>
           <Button

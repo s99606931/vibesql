@@ -217,7 +217,7 @@ export default function SettingsPage() {
         breadcrumbs={[{ label: "vibeSQL" }, { label: "설정" }]}
         actions={
           saveStatus !== "idle" ? (
-            <span style={{ fontSize: "var(--ds-fs-12)", color: saveStatus === "saved" ? "var(--ds-success)" : "var(--ds-text-faint)" }}>
+            <span role="status" aria-live="polite" style={{ fontSize: "var(--ds-fs-12)", color: saveStatus === "saved" ? "var(--ds-success)" : "var(--ds-text-faint)" }}>
               {saveStatus === "saving" ? "저장 중..." : "저장됨"}
             </span>
           ) : undefined

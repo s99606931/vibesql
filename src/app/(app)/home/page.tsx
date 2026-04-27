@@ -829,7 +829,7 @@ function StatsSection() {
               {statsLoading ? (
                 <Skeleton className="h-7 w-16 mt-1" />
               ) : statsError ? (
-                <div style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-danger)", marginTop: 4 }}>오류</div>
+                <div role="alert" style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-danger)", marginTop: 4 }}>오류</div>
               ) : (
                 <div
                   style={{

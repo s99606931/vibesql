@@ -929,7 +929,7 @@ export default function WorkspacePage() {
               )}
               <div style={{ flex: 1 }} />
               {copyFailed && (
-                <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-danger, #e53e3e)" }}>복사 실패</span>
+                <span role="alert" aria-live="assertive" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-danger, #e53e3e)" }}>복사 실패</span>
               )}
               <Button
                 variant="ghost"
