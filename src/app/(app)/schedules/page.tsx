@@ -74,9 +74,9 @@ function formatRelativeTime(iso: string | null | undefined): string {
 
 function statusIcon(status: string | null | undefined) {
   if (!status) return null;
-  if (status === "success") return <CheckCircle2 size={14} style={{ color: "var(--ds-success)" }} />;
-  if (status === "error") return <XCircle size={14} style={{ color: "var(--ds-danger)" }} />;
-  return <Loader size={14} style={{ color: "var(--ds-warn)" }} />;
+  if (status === "success") return <span role="img" aria-label="성공"><CheckCircle2 size={14} style={{ color: "var(--ds-success)" }} /></span>;
+  if (status === "error") return <span role="img" aria-label="오류"><XCircle size={14} style={{ color: "var(--ds-danger)" }} /></span>;
+  return <span role="img" aria-label="실행 중"><Loader size={14} style={{ color: "var(--ds-warn)" }} /></span>;
 }
 
 // ─── Form ─────────────────────────────────────────────────────────────────────
