@@ -333,6 +333,9 @@ export default function AdminUsersPage() {
       {/* Role change confirm dialog */}
       {confirmRole && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="역할 변경"
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
           onClick={() => setConfirmRole(null)}
           onKeyDown={(e) => { if (e.key === "Escape") setConfirmRole(null); }}
@@ -367,6 +370,9 @@ export default function AdminUsersPage() {
       {/* Delete confirm dialog */}
       {confirmDelete && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="사용자 삭제"
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
           onClick={() => setConfirmDelete(null)}
           onKeyDown={(e) => { if (e.key === "Escape") setConfirmDelete(null); }}

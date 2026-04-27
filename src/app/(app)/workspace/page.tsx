@@ -1130,6 +1130,9 @@ export default function WorkspacePage() {
 
       {saveModal && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="쿼리 저장"
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
           onClick={() => setSaveModal(false)}
           onKeyDown={(e) => { if (e.key === "Escape") setSaveModal(false); }}
@@ -1189,6 +1192,9 @@ export default function WorkspacePage() {
 
       {addToDashModal && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="대시보드에 추가"
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
           onClick={() => setAddToDashModal(null)}
           onKeyDown={(e) => { if (e.key === "Escape") setAddToDashModal(null); }}
