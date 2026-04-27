@@ -833,6 +833,7 @@ export default function WorkspacePage() {
               variant="accent"
               size="sm"
               loading={status === "generating"}
+              aria-keyshortcuts="Meta+Enter"
               onClick={handleGenerate}
             >
               {status === "generating" ? "생성 중..." : "SQL 생성"}
@@ -950,6 +951,7 @@ export default function WorkspacePage() {
                 size="sm"
                 loading={status === "running"}
                 icon={<Play size={12} />}
+                aria-keyshortcuts="Alt+Enter"
                 onClick={handleRun}
               >
                 실행 ⌥⏎
