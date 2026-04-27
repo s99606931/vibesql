@@ -310,6 +310,7 @@ export default function HistoryPage() {
                     tabIndex={0}
                     aria-expanded={expandedErrorId === item.id}
                     aria-controls={`history-detail-${item.id}`}
+                    aria-label={`${expandedErrorId === item.id ? "접기" : "상세 보기"}: ${(item.nlQuery ?? item.sql).slice(0, 60)}`}
                     className="group hover:bg-fill transition-colors"
                     style={{
                       display: "flex",

@@ -910,6 +910,7 @@ function StatsSection() {
                   key={item.id}
                   role="button"
                   tabIndex={0}
+                  aria-label={`워크스페이스에서 열기: ${item.nlQuery || item.sql}`}
                   onClick={() => {
                     if (item.nlQuery) setNlQuery(item.nlQuery);
                     setSql(item.sql);
