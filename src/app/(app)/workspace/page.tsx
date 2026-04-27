@@ -202,6 +202,8 @@ function TemplatePicker({
           }}
         >
           <div
+            role="search"
+            aria-label="템플릿 검색"
             style={{
               display: "flex",
               alignItems: "center",

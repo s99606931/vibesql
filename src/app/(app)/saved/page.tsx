@@ -447,6 +447,8 @@ export default function SavedPage() {
           }}
         >
           <div
+            role="search"
+            aria-label="저장된 쿼리 검색"
             style={{
               display: "flex",
               alignItems: "center",

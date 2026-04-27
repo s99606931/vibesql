@@ -285,6 +285,8 @@ export default function DashboardsPage() {
           ))}
           <div style={{ flex: 1 }} />
           <div
+            role="search"
+            aria-label="대시보드 검색"
             style={{
               display: "flex",
               alignItems: "center",

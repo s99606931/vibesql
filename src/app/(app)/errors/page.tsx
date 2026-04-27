@@ -238,7 +238,7 @@ export default function ErrorsPage() {
 
             {!historyLoading && allErrors.length > 0 && (
               <>
-                <div style={{ position: "relative", maxWidth: 320, marginBottom: "var(--ds-sp-3)" }}>
+                <div role="search" aria-label="오류 검색" style={{ position: "relative", maxWidth: 320, marginBottom: "var(--ds-sp-3)" }}>
                   <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
                   <input
                     ref={searchRef}

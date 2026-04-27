@@ -211,6 +211,8 @@ export default function GlossaryPage() {
               )}
             </div>
             <div
+              role="search"
+              aria-label="용어 검색"
               style={{
                 display: "flex",
                 alignItems: "center",

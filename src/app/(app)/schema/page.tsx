@@ -165,7 +165,7 @@ export default function SchemaPage() {
             alignItems: "center",
           }}
         >
-          <div style={{ position: "relative", flex: 1, maxWidth: 360 }}>
+          <div role="search" aria-label="테이블 검색" style={{ position: "relative", flex: 1, maxWidth: 360 }}>
             <Search
               size={14}
               style={{

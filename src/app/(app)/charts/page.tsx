@@ -277,7 +277,7 @@ export default function ChartsPage() {
             );
           })}
           <div style={{ flex: 1 }} />
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", padding: "var(--ds-sp-1) var(--ds-sp-2)", width: 200 }}>
+          <div role="search" aria-label="차트 검색" style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", padding: "var(--ds-sp-1) var(--ds-sp-2)", width: 200 }}>
             <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <input
               ref={searchRef}

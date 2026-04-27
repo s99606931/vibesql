@@ -218,7 +218,7 @@ export default function HistoryPage() {
             </button>
           ))}
           <div style={{ flex: 1 }} />
-          <div style={{ position: "relative" }}>
+          <div role="search" aria-label="히스토리 검색" style={{ position: "relative" }}>
             <input
               ref={searchRef}
               type="search"

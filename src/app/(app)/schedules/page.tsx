@@ -552,7 +552,7 @@ export default function SchedulesPage() {
         {!isLoading && schedules.length > 0 && (
           <>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-3)" }}>
-              <div style={{ position: "relative", flex: 1, maxWidth: 320 }}>
+              <div role="search" aria-label="스케줄 검색" style={{ position: "relative", flex: 1, maxWidth: 320 }}>
                 <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
                 <input
                   ref={searchRef}
