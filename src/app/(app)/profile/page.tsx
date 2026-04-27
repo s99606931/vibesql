@@ -233,6 +233,7 @@ export default function ProfilePage() {
                   </span>
                   {currentUser?.email && (
                     <button
+                      type="button"
                       aria-label="이메일 복사"
                       onClick={handleCopyEmail}
                       style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: copiedEmail ? "var(--ds-success)" : "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)", transition: "color var(--ds-dur-fast) var(--ds-ease)" }}

@@ -59,6 +59,7 @@ function ValuePreview({ value }: { value: string }) {
       </div>
       {isLong && (
         <button
+          type="button"
           aria-expanded={expanded}
           onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
           style={{ display: "inline-flex", alignItems: "center", gap: 2, marginTop: 2, background: "none", border: "none", cursor: "pointer", fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)", padding: 0, fontFamily: "var(--ds-font-sans)" }}
@@ -139,6 +140,8 @@ function RuleModal({
             return (
               <button
                 key={t}
+                type="button"
+                aria-pressed={form.ruleType === t}
                 onClick={() => set("ruleType", t)}
                 style={{
                   display: "flex",
@@ -577,6 +580,7 @@ export default function AiContextPage() {
                               </span>
                             )}
                             <button
+                              type="button"
                               aria-label="값 복사"
                               onClick={() => {
                                 navigator.clipboard.writeText(rule.value);
@@ -589,6 +593,9 @@ export default function AiContextPage() {
                               {copiedRuleId === rule.id ? <Check size={13} /> : <Copy size={13} />}
                             </button>
                             <button
+                              type="button"
+                              aria-label={rule.isActive ? "비활성화" : "활성화"}
+                              aria-pressed={rule.isActive}
                               onClick={() => toggleMutation.mutate({ id: rule.id, isActive: !rule.isActive })}
                               title={rule.isActive ? "비활성화" : "활성화"}
                               style={{

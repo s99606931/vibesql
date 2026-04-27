@@ -442,6 +442,7 @@ export default function ConnectionsPage() {
                             </span>
                             {conn.host && (
                               <button
+                                type="button"
                                 onClick={() => {
                                   void navigator.clipboard.writeText(`${conn.host}:${conn.port ?? ""}`);
                                   setCopiedHostId(conn.id);

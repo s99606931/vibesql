@@ -566,6 +566,7 @@ export default function DashboardsPage() {
             <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
               <button type="button" onClick={() => setEditModal(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
               <button
+                type="button"
                 onClick={() => { if (editName.trim()) { editMutation.mutate({ id: editModal.id, name: editName.trim(), description: editDesc.trim(), isPublic: editPublic }); setEditModal(null); } }}
                 disabled={!editName.trim() || editMutation.isPending}
                 style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
