@@ -306,7 +306,7 @@ export default function SchemaPage() {
                       </button>
                       <button
                         onClick={(e) => handleTableRun(e, table)}
-                        title="워크스페이스에서 SELECT 실행"
+                        aria-label="워크스페이스에서 SELECT 실행"
                         style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-accent)", display: "flex", alignItems: "center", padding: 2, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
                         className="hover:opacity-70"
                       >

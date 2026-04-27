@@ -204,7 +204,7 @@ export default function AuditLogsPage() {
           filtered.length > 0 ? (
             <button
               onClick={exportCsv}
-              title="CSV 내보내기"
+              aria-label="CSV 내보내기"
               style={{ display: "flex", alignItems: "center", gap: 4, padding: "var(--ds-sp-1) var(--ds-sp-3)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-12)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }}
             >
               <Download size={12} />
@@ -277,7 +277,7 @@ export default function AuditLogsPage() {
             type="date"
             value={dateFrom}
             onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
-            title="시작 날짜"
+            aria-label="시작 날짜"
             style={{
               padding: "var(--ds-sp-2) var(--ds-sp-3)", background: "var(--ds-fill)",
               border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)",
@@ -289,7 +289,7 @@ export default function AuditLogsPage() {
             type="date"
             value={dateTo}
             onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
-            title="종료 날짜"
+            aria-label="종료 날짜"
             style={{
               padding: "var(--ds-sp-2) var(--ds-sp-3)", background: "var(--ds-fill)",
               border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)",
