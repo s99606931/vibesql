@@ -192,7 +192,7 @@ export default function ProfilePage() {
         breadcrumbs={[{ label: "vibeSQL" }, { label: "프로필" }]}
       />
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflowY: "auto", padding: "var(--ds-sp-6)" }}>
         <div
           style={{
             maxWidth: 720,
