@@ -7,6 +7,7 @@ import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Plus, Trash2, ExternalLink, Search, BarChart2,
   Wrench, FileText, Bug, Star, Tag, ChevronDown, ChevronRight, Copy, Check, X,
@@ -432,8 +433,10 @@ export default function TemplatesPage() {
 
         {/* Template list */}
         {isLoading ? (
-          <div style={{ color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)", padding: "var(--ds-sp-5) 0" }}>
-            불러오는 중...
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}>
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-20 w-full rounded-lg" />
+            ))}
           </div>
         ) : templates.length === 0 ? (
           <div style={{

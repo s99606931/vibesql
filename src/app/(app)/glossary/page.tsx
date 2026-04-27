@@ -7,6 +7,7 @@ import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Card } from "@/components/ui-vs/Card";
 import { AICallout } from "@/components/ui-vs/AICallout";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Search, BookOpen, Trash2, X, Pencil, Download, Copy, Check, ExternalLink } from "lucide-react";
 import type { GlossaryTerm } from "@/types";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
@@ -289,8 +290,10 @@ export default function GlossaryPage() {
 
           <div style={{ flex: 1, overflow: "auto" }}>
             {isLoading && (
-              <div style={{ padding: "var(--ds-sp-4)", fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)" }}>
-                로딩 중...
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-2)" }}>
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-12 w-full rounded-lg" />
+                ))}
               </div>
             )}
             {!isLoading && filtered.length === 0 && (

@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Activity, Shield, Database, Zap, FileText, Settings, Download, X } from "lucide-react";
 import type { AuditLogItem } from "@/app/api/audit-logs/route";
 
@@ -325,8 +326,10 @@ export default function AuditLogsPage() {
 
         {/* Log list */}
         {isLoading ? (
-          <div style={{ color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)", padding: "var(--ds-sp-5) 0" }}>
-            불러오는 중...
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-14 w-full rounded-lg" />
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <Card style={{ padding: "var(--ds-sp-6)", textAlign: "center" }}>
