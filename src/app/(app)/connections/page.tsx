@@ -271,7 +271,7 @@ export default function ConnectionsPage() {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: "var(--ds-fill)" }}>
-                    {["이름", "종류", "호스트", "마지막 테스트", "상태", ""].map(
+                    {["이름", "종류", "호스트", "데이터베이스", "마지막 테스트", "상태", ""].map(
                       (col) => (
                         <th
                           key={col}
@@ -339,6 +339,17 @@ export default function ConnectionsPage() {
                             }}
                           >
                             {conn.host ?? "—"}
+                          </span>
+                        </td>
+                        <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
+                          <span
+                            className="ds-mono"
+                            style={{
+                              fontSize: "var(--ds-fs-12)",
+                              color: "var(--ds-text-mute)",
+                            }}
+                          >
+                            {conn.database ?? "—"}
                           </span>
                         </td>
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>

@@ -5,14 +5,14 @@ import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Card } from "@/components/ui-vs/Card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import {
   Plus, ExternalLink, BarChart2, TrendingUp, PieChart,
-  Table2, Search, Play, RefreshCw, AlertCircle,
+  Table2, Search, Play, RefreshCw, AlertCircle, LayoutDashboard,
 } from "lucide-react";
 
 const ResultChart = dynamic(
@@ -72,9 +72,39 @@ export default function ChartsPage() {
   const [activeFilter, setActiveFilter] = useState<ChartFilterType>("전체");
   const [search, setSearch] = useState("");
   const [cardStates, setCardStates] = useState<Map<string, CardState>>(new Map());
+  const [addDashModal, setAddDashModal] = useState<{ chartId: string; chartName: string; sql: string } | null>(null);
+  const [selectedDashId, setSelectedDashId] = useState("");
   const { setSql, setStatus, activeConnectionId } = useWorkspaceStore();
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  const { data: dashboards = [] } = useQuery<Array<{ id: string; name: string; widgets: unknown[] }>>({
+    queryKey: ["dashboards"],
+    queryFn: async () => {
+      const r = await fetch("/api/dashboards");
+      const j = await r.json() as { data?: Array<{ id: string; name: string; widgets: unknown[] }> };
+      return Array.isArray(j.data) ? j.data : [];
+    },
+    staleTime: 60_000,
+    enabled: !!addDashModal,
+  });
+
+  const addToDashMutation = useMutation({
+    mutationFn: async ({ dashId, sql, label }: { dashId: string; sql: string; label: string }) => {
+      const dash = dashboards.find((d) => d.id === dashId);
+      const widgets = Array.isArray(dash?.widgets) ? dash!.widgets : [];
+      const r = await fetch(`/api/dashboards/${dashId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ widgets: [...widgets, { type: "table", label, sql, createdAt: new Date().toISOString() }] }),
+      });
+      if (!r.ok) throw new Error("추가 실패");
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["dashboards"] });
+      setAddDashModal(null);
+    },
+  });
 
   const { data: savedQueries, isLoading } = useQuery({
     queryKey: ["saved"],
@@ -357,6 +387,14 @@ export default function ChartsPage() {
                     >
                       워크스페이스
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={<LayoutDashboard size={11} />}
+                      onClick={() => { setSelectedDashId(""); setAddDashModal({ chartId: chart.id, chartName: chart.name, sql: chart.sql }); }}
+                    >
+                      대시보드
+                    </Button>
                   </div>
                 </Card>
               );
@@ -364,6 +402,32 @@ export default function ChartsPage() {
           </div>
         )}
       </div>
+
+      {addDashModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setAddDashModal(null)}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 300, maxWidth: 380, display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>대시보드에 추가</div>
+            <div style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-text-mute)" }}>"{addDashModal.chartName}"</div>
+            {dashboards.length === 0 ? (
+              <div style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)", textAlign: "center", padding: "var(--ds-sp-4)" }}>대시보드를 먼저 생성하세요.</div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)", maxHeight: 160, overflowY: "auto" }}>
+                {dashboards.map((d) => (
+                  <button key={d.id} onClick={() => setSelectedDashId(d.id)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-3)", borderRadius: "var(--ds-r-6)", border: `1px solid ${selectedDashId === d.id ? "var(--ds-accent)" : "var(--ds-border)"}`, background: selectedDashId === d.id ? "var(--ds-accent-soft)" : "transparent", color: selectedDashId === d.id ? "var(--ds-accent)" : "var(--ds-text)", cursor: "pointer", textAlign: "left", fontSize: "var(--ds-fs-13)", fontFamily: "var(--ds-font-sans)" }}>
+                    {d.name}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button variant="ghost" size="sm" onClick={() => setAddDashModal(null)}>취소</Button>
+              <Button variant="accent" size="sm" disabled={!selectedDashId || addToDashMutation.isPending} onClick={() => addToDashMutation.mutate({ dashId: selectedDashId, sql: addDashModal.sql, label: addDashModal.chartName })}>
+                {addToDashMutation.isPending ? "추가 중..." : "추가"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

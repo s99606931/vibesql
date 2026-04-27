@@ -389,10 +389,16 @@ export default function TemplatesPage() {
           <div style={{
             border: "1px dashed var(--ds-border)", borderRadius: "var(--ds-r-8)",
             padding: "var(--ds-sp-6)", textAlign: "center",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ds-sp-3)",
           }}>
-            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-3)" }}>
-              {search || category !== "all" ? "검색 결과가 없습니다." : "등록된 템플릿이 없습니다."}
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>
+              {search ? "검색 결과가 없습니다." : category === "custom" ? "아직 저장한 템플릿이 없습니다." : "등록된 템플릿이 없습니다."}
             </div>
+            {category === "custom" && !search && (
+              <Button variant="accent" size="sm" icon={<Plus size={13} />} onClick={() => setSaveModal(true)}>
+                첫 템플릿 저장하기
+              </Button>
+            )}
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>

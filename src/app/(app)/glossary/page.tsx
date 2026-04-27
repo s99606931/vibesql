@@ -441,9 +441,15 @@ export default function GlossaryPage() {
           )}
 
           {!selected && !showAdd && !isLoading && (
-            <div style={{ textAlign: "center", padding: "var(--ds-sp-8)", color: "var(--ds-text-faint)" }}>
-              <BookOpen size={32} style={{ margin: "0 auto var(--ds-sp-3)", opacity: 0.4 }} />
+            <div style={{ textAlign: "center", padding: "var(--ds-sp-8)", color: "var(--ds-text-faint)", display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ds-sp-3)" }}>
+              <BookOpen size={32} style={{ opacity: 0.4 }} />
               <div style={{ fontSize: "var(--ds-fs-14)" }}>용어를 선택하거나 새 용어를 추가하세요</div>
+              <button
+                onClick={() => setShowAdd(true)}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", color: "var(--ds-accent-on)", fontSize: "var(--ds-fs-12)", cursor: "pointer", fontFamily: "var(--ds-font-sans)", fontWeight: "var(--ds-fw-medium)" }}
+              >
+                + 첫 용어 추가하기
+              </button>
             </div>
           )}
         </div>

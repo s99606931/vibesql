@@ -604,6 +604,27 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+      {/* Reset section */}
+      <div style={{ padding: "var(--ds-sp-4) var(--ds-sp-6)", borderTop: "1px solid var(--ds-border)", display: "flex", justifyContent: "flex-end" }}>
+        <button
+          onClick={() => {
+            setTheme("indigo");
+            setMode("dark");
+            setDensity("regular");
+            setDialect("postgresql");
+            setTemperature(0.3);
+            setSessionTimeout(30);
+            if (!notifySuccess) toggle("notifySuccess");
+            if (!notifyError) toggle("notifyError");
+            if (notifyLong) toggle("notifyLong");
+            if (alwaysExplain) toggle("alwaysExplain");
+            persistSettings();
+          }}
+          style={{ padding: "var(--ds-sp-1) var(--ds-sp-4)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text-mute)", fontSize: "var(--ds-fs-12)", cursor: "pointer", fontFamily: "var(--ds-font-sans)" }}
+        >
+          설정 초기화 (기본값 복원)
+        </button>
+      </div>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
