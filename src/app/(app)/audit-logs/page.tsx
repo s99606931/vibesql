@@ -318,7 +318,7 @@ export default function AuditLogsPage() {
             </button>
           )}
         </div>
-        <div style={{ display: "flex", gap: "var(--ds-sp-1)", flexWrap: "wrap", marginBottom: "var(--ds-sp-4)" }}>
+        <div role="group" aria-label="액션 그룹 필터" style={{ display: "flex", gap: "var(--ds-sp-1)", flexWrap: "wrap", marginBottom: "var(--ds-sp-4)" }}>
           {GROUP_OPTIONS.map((opt) => (
             <button
               key={opt.value}

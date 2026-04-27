@@ -253,6 +253,8 @@ export default function DashboardsPage() {
 
         {/* Filter / search bar */}
         <div
+          role="group"
+          aria-label="대시보드 필터"
           style={{
             display: "flex",
             gap: "var(--ds-sp-2)",

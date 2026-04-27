@@ -186,6 +186,8 @@ export default function HistoryPage() {
       <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
         {/* Filter bar */}
         <div
+          role="group"
+          aria-label="결과 필터"
           style={{
             display: "flex",
             gap: "var(--ds-sp-2)",
