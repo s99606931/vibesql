@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
@@ -42,9 +42,12 @@ const DEFAULT_FORM: RuleFormData = {
 function ValuePreview({ value }: { value: string }) {
   const [expanded, setExpanded] = useState(false);
   const isLong = value.length > 100;
+  const uid = useId();
+  const textId = `value-preview-${uid}`;
   return (
     <div>
       <div
+        id={textId}
         style={{
           fontSize: "var(--ds-fs-11)",
           fontFamily: "var(--ds-font-mono)",
@@ -61,6 +64,7 @@ function ValuePreview({ value }: { value: string }) {
         <button
           type="button"
           aria-expanded={expanded}
+          aria-controls={textId}
           onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
           style={{ display: "inline-flex", alignItems: "center", gap: 2, marginTop: 2, background: "none", border: "none", cursor: "pointer", fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)", padding: 0, fontFamily: "var(--ds-font-sans)" }}
         >

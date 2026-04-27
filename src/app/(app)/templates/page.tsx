@@ -233,6 +233,7 @@ function TemplateCard({
         <button
           type="button"
           aria-expanded={expanded}
+          aria-controls={`tmpl-sql-${template.id}`}
           onClick={() => setExpanded((v) => !v)}
           style={{
             background: "none", border: "none", cursor: "pointer",
@@ -246,17 +247,19 @@ function TemplateCard({
             {expanded ? "SQL 숨기기" : "SQL 보기"}
           </span>
         </button>
-        {expanded && (
-          <pre style={{
+        <pre
+          id={`tmpl-sql-${template.id}`}
+          hidden={!expanded}
+          style={{
             background: "var(--ds-fill)", borderRadius: "var(--ds-r-6)",
             padding: "var(--ds-sp-2) var(--ds-sp-3)", margin: 0,
             fontSize: "var(--ds-fs-11)", fontFamily: "var(--ds-font-mono)",
             color: "var(--ds-text-mute)", overflowX: "auto", lineHeight: 1.6,
             whiteSpace: "pre-wrap", wordBreak: "break-all",
-          }}>
-            {template.sql}
-          </pre>
-        )}
+          }}
+        >
+          {template.sql}
+        </pre>
       </div>
 
       {/* Tags */}

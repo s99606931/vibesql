@@ -671,6 +671,7 @@ export default function SchedulesPage() {
                     role={schedule.sql.length > 60 ? "button" : undefined}
                     tabIndex={schedule.sql.length > 60 ? 0 : undefined}
                     aria-expanded={schedule.sql.length > 60 ? expandedSqlId === schedule.id : undefined}
+                    aria-controls={schedule.sql.length > 60 ? `sched-sql-${schedule.id}` : undefined}
                     aria-label={schedule.sql.length > 60 ? "SQL 전체 보기" : undefined}
                     onClick={() => setExpandedSqlId((prev) => prev === schedule.id ? null : schedule.id)}
                     onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setExpandedSqlId((prev) => prev === schedule.id ? null : schedule.id); } }}
@@ -689,10 +690,12 @@ export default function SchedulesPage() {
                         {expandedSqlId === schedule.id ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
                       </span>
                     )}
-                    {expandedSqlId === schedule.id
-                      ? <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{schedule.sql}</span>
-                      : <span title={schedule.sql} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{schedule.sql.slice(0, 80)}{schedule.sql.length > 80 ? "..." : ""}</span>
-                    }
+                    <span id={`sched-sql-${schedule.id}`}>
+                      {expandedSqlId === schedule.id
+                        ? <span style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{schedule.sql}</span>
+                        : <span title={schedule.sql} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{schedule.sql.slice(0, 80)}{schedule.sql.length > 80 ? "..." : ""}</span>
+                      }
+                    </span>
                   </div>
                   <div
                     style={{

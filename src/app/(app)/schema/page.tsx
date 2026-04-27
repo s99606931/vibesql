@@ -288,6 +288,7 @@ export default function SchemaPage() {
                 key={table.name}
                 hoverable
                 aria-expanded={expandedTable === table.name}
+                aria-controls={`schema-cols-${table.name}`}
                 style={{ cursor: "pointer" }}
                 onClick={() => handleTableClick(table)}
               >
@@ -331,6 +332,7 @@ export default function SchemaPage() {
 
                 {/* Columns */}
                 <div
+                  id={`schema-cols-${table.name}`}
                   style={{
                     display: "flex",
                     gap: "var(--ds-sp-1)",
