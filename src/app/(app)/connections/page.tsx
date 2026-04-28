@@ -211,8 +211,22 @@ export default function ConnectionsPage() {
       delete next[id];
       return next;
     });
+    // Optimistic patch helper — keeps the status Pill in sync with the
+    // feedback text until the invalidate→refetch settles. Without this,
+    // the Pill shows the stale `lastTestedOk` while the new feedback is
+    // already visible, producing a brief "연결 실패 + 연결 정상" flicker.
+    const patchCache = (ok: boolean) => {
+      queryClient.setQueryData<Connection[] | undefined>(["connections"], (old) =>
+        old?.map((c) =>
+          c.id === id
+            ? { ...c, lastTestedOk: ok, lastTestedAt: new Date().toISOString() }
+            : c
+        )
+      );
+    };
     testMutation.mutate(id, {
       onSuccess: (data) => {
+        patchCache(Boolean(data.ok));
         setTestFeedback((prev) => ({
           ...prev,
           [id]: {
@@ -225,6 +239,7 @@ export default function ConnectionsPage() {
         scheduleFeedbackClear(id);
       },
       onError: (err) => {
+        patchCache(false);
         setTestFeedback((prev) => ({
           ...prev,
           [id]: {
