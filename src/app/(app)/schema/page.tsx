@@ -45,6 +45,14 @@ export default function SchemaPage() {
   const router = useRouter();
   const { data: connections } = useConnections();
 
+  // Auto-select the first connection so users with at least one real
+  // connection never land on the demo schema by default.
+  useEffect(() => {
+    if (!activeConnectionId && connections && connections.length > 0) {
+      setActiveConnection(connections[0].id);
+    }
+  }, [activeConnectionId, connections, setActiveConnection]);
+
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["schema", activeConnectionId],
     queryFn: async () => {
@@ -139,7 +147,6 @@ export default function SchemaPage() {
                 fontFamily: "var(--ds-font-sans)",
               }}
             >
-              <option value="">데모 스키마</option>
               {connections.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}

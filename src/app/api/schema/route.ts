@@ -65,6 +65,28 @@ interface ColumnsRow {
   column_name: string;
 }
 
+// Heuristic PII detection — flags a table if any column name matches one of
+// these well-known PII patterns. Conservative whitelist; refine over time.
+// Reference: NIST SP 800-122, GDPR Art. 4(1), Korean PIPA Art. 2.
+const PII_PATTERNS: RegExp[] = [
+  /(^|_)email(_|$)/i,
+  /(^|_)phone(_|$)|mobile|tel(_|$)/i,
+  /ssn|social_security|national_id|resident(_|$)|jumin/i,
+  // Only flag "name" when prefixed with people-context (first/last/full/user/customer/employee/owner).
+  // Plain `name` on tables like products/categories is not PII.
+  /(?:^|_)(?:first|last|full|user|customer|employee|owner|member|patient|client)_?name(?:_|$)/i,
+  /birth|dob(_|$)/i,
+  /address|street|city|zipcode|postal/i,
+  /passport|driver_?license|license_?no|id_?number/i,
+  /card_?number|credit_?card|bank_?account|iban|account_?no/i,
+  /(^|_)ip(_|$)|ip_addr|user_?agent/i,
+  /password|passwd|secret|api_?key|token/i,
+];
+
+function detectPii(cols: string[]): boolean {
+  return cols.some((c) => PII_PATTERNS.some((rx) => rx.test(c)));
+}
+
 interface RowCountRow {
   table_name: string;
   approx_rows: number;
@@ -125,7 +147,7 @@ async function introspectPostgres(conn: StoredConnection): Promise<TableMeta[]> 
         description: "",
         cols,
         fks: [],
-        pii: false,
+        pii: detectPii(cols),
       });
     }
     return tables;
