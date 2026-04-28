@@ -1,0 +1,802 @@
+{
+  "baseUrl": "http://localhost:3000",
+  "results": [
+    {
+      "route": "/home",
+      "finalUrl": "http://localhost:3000/home",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        },
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        }
+      ],
+      "buttons": {
+        "total": 65,
+        "clicked": 8,
+        "skipped": 52,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"61\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"62\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"62\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"63\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"63\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"64\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"64\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 21865
+    },
+    {
+      "route": "/workspace",
+      "finalUrl": "http://localhost:3000/workspace",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 38,
+        "clicked": 5,
+        "skipped": 28,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"34\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"35\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"35\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"36\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"36\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"37\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"37\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 16551
+    },
+    {
+      "route": "/connections",
+      "finalUrl": "http://localhost:3000/connections",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 33,
+        "clicked": 1,
+        "skipped": 27,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"29\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"30\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"30\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"31\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"31\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"32\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"32\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 18490
+    },
+    {
+      "route": "/schema",
+      "finalUrl": "http://localhost:3000/schema",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 35,
+        "clicked": 4,
+        "skipped": 26,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"31\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"32\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"32\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"33\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"33\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"34\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"34\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 16735
+    },
+    {
+      "route": "/charts",
+      "finalUrl": "http://localhost:3000/charts",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 39,
+        "clicked": 6,
+        "skipped": 28,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"35\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"36\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"36\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"37\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"37\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"38\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"38\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 17513
+    },
+    {
+      "route": "/dashboards",
+      "finalUrl": "http://localhost:3000/dashboards",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 36,
+        "clicked": 4,
+        "skipped": 27,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"32\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"33\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"33\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"34\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"34\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"35\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"35\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 19886
+    },
+    {
+      "route": "/reports",
+      "finalUrl": "http://localhost:3000/reports",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 34,
+        "clicked": 1,
+        "skipped": 28,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"30\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"31\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"31\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"32\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"32\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"33\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"33\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 15829
+    },
+    {
+      "route": "/saved",
+      "finalUrl": "http://localhost:3000/saved",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 33,
+        "clicked": 1,
+        "skipped": 27,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"29\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"30\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"30\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"31\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"31\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"32\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"32\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 18437
+    },
+    {
+      "route": "/history",
+      "finalUrl": "http://localhost:3000/history",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 36,
+        "clicked": 5,
+        "skipped": 26,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"32\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"33\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"33\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"34\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"34\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"35\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"35\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 16879
+    },
+    {
+      "route": "/templates",
+      "finalUrl": "http://localhost:3000/templates",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 79,
+        "clicked": 7,
+        "skipped": 67,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"75\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"76\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"76\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"77\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"77\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"78\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"78\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 18011
+    },
+    {
+      "route": "/glossary",
+      "finalUrl": "http://localhost:3000/glossary",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 33,
+        "clicked": 2,
+        "skipped": 26,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"29\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"30\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"30\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"31\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"31\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"32\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"32\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 19074
+    },
+    {
+      "route": "/catalog",
+      "finalUrl": "http://localhost:3000/catalog",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 33,
+        "clicked": 1,
+        "skipped": 27,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"29\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"30\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"30\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"31\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"31\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"32\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"32\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 15614
+    },
+    {
+      "route": "/schedules",
+      "finalUrl": "http://localhost:3000/schedules",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 33,
+        "clicked": 1,
+        "skipped": 27,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"29\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"30\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"30\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"31\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"31\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"32\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"32\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 18589
+    },
+    {
+      "route": "/notifications",
+      "finalUrl": "http://localhost:3000/notifications",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 33,
+        "clicked": 1,
+        "skipped": 27,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"29\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"30\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"30\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"31\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"31\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"32\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"32\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 15670
+    },
+    {
+      "route": "/profile",
+      "finalUrl": "http://localhost:3000/profile",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "Failed to execute 'writeText' on 'Clipboard': Write permission denied."
+      ],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 43,
+        "clicked": 3,
+        "skipped": 26,
+        "failed": 1
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        }
+      ],
+      "durationMs": 8095
+    },
+    {
+      "route": "/settings",
+      "finalUrl": "http://localhost:3000/settings",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [],
+      "buttons": {
+        "total": 46,
+        "clicked": 6,
+        "skipped": 35,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "label": "⌘K 명령 팔레트",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"25\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"25\" title=\"AI 어시스턴트 (⌘"
+        },
+        {
+          "label": "닫기",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"42\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" aria-label=\"닫기\" title=\"닫기 (Esc)\" da"
+        },
+        {
+          "label": "이 테이블의 중복 데이터를 찾는 SQL은?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"43\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"43\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "GROUP BY와 HAVING의 차이는?",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"44\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"44\" class=\"hover:bg-fi"
+        },
+        {
+          "label": "워크스페이스 사용법을 알려줘",
+          "reason": "locator.click: Timeout 3000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-av-idx=\"45\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-av-idx=\"45\" class=\"hover:bg-fi"
+        }
+      ],
+      "durationMs": 17712
+    },
+    {
+      "route": "/ai-context",
+      "finalUrl": "http://localhost:3000/home",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        },
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        },
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        }
+      ],
+      "buttons": {
+        "total": 65,
+        "clicked": 1,
+        "skipped": 2,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 3966
+    },
+    {
+      "route": "/ai-providers",
+      "finalUrl": "http://localhost:3000/home",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        },
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        },
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        }
+      ],
+      "buttons": {
+        "total": 65,
+        "clicked": 1,
+        "skipped": 2,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 3993
+    },
+    {
+      "route": "/audit-logs",
+      "finalUrl": "http://localhost:3000/home",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        },
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        },
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        }
+      ],
+      "buttons": {
+        "total": 65,
+        "clicked": 1,
+        "skipped": 2,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 3827
+    },
+    {
+      "route": "/errors",
+      "finalUrl": "http://localhost:3000/home",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        },
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        },
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        }
+      ],
+      "buttons": {
+        "total": 65,
+        "clicked": 1,
+        "skipped": 2,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 3943
+    },
+    {
+      "route": "/admin",
+      "finalUrl": "http://localhost:3000/home",
+      "status": 200,
+      "loadOk": true,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "[error] Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        },
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        },
+        {
+          "url": "http://localhost:3000/api/ai-providers",
+          "status": 403
+        }
+      ],
+      "buttons": {
+        "total": 65,
+        "clicked": 1,
+        "skipped": 2,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 3875
+    }
+  ]
+}

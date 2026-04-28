@@ -1,0 +1,636 @@
+{
+  "baseUrl": "http://localhost:3000",
+  "results": [
+    {
+      "route": "/home",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 790
+    },
+    {
+      "route": "/workspace",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 637
+    },
+    {
+      "route": "/connections",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 610
+    },
+    {
+      "route": "/schema",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 615
+    },
+    {
+      "route": "/charts",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 613
+    },
+    {
+      "route": "/dashboards",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 601
+    },
+    {
+      "route": "/reports",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 597
+    },
+    {
+      "route": "/saved",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 600
+    },
+    {
+      "route": "/history",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 597
+    },
+    {
+      "route": "/templates",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 606
+    },
+    {
+      "route": "/glossary",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 604
+    },
+    {
+      "route": "/catalog",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 613
+    },
+    {
+      "route": "/schedules",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 637
+    },
+    {
+      "route": "/notifications",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 601
+    },
+    {
+      "route": "/profile",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 607
+    },
+    {
+      "route": "/settings",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 601
+    },
+    {
+      "route": "/ai-context",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 617
+    },
+    {
+      "route": "/ai-providers",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 605
+    },
+    {
+      "route": "/audit-logs",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 593
+    },
+    {
+      "route": "/errors",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 599
+    },
+    {
+      "route": "/admin",
+      "finalUrl": "http://localhost:3000/signin",
+      "status": 500,
+      "loadOk": false,
+      "consoleErrors": [
+        "[error] Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/register/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found",
+        "[error] ./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found"
+      ],
+      "consoleWarnings": [],
+      "pageErrors": [
+        "./apps/web/src/lib/db/prisma.ts:4:1\nModule not found: Can't resolve '.prisma/client'\n  2 | // generated types in node_modules/.prisma/client/ rather than the\n  3 | // unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).\n> 4 | import { PrismaClient } from \".prisma/client\";\n    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  5 | import { PrismaPg } from \"@prisma/adapter-pg\";\n  6 | import pg from \"pg\";\n  7 |\n\n\n\nImport trace:\n  App Route:\n    ./apps/web/src/lib/db/prisma.ts\n    ./apps/web/src/app/api/auth/login/route.ts\n\nhttps://nextjs.org/docs/messages/module-not-found\n\n"
+      ],
+      "network4xx5xx": [
+        {
+          "url": "http://localhost:3000/signin",
+          "status": 500
+        }
+      ],
+      "buttons": {
+        "total": 0,
+        "clicked": 0,
+        "skipped": 0,
+        "failed": 0
+      },
+      "failures": [],
+      "durationMs": 604
+    }
+  ]
+}
