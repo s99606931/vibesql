@@ -15,7 +15,9 @@ export interface MemAiContextRule {
   updatedAt: string;
 }
 
-const PERSIST_PATH = path.resolve(process.cwd(), ".bkit/state/ai-context-rules.json");
+const STATE_DIR =
+  process.env.VIBESQL_STATE_DIR ?? path.resolve(process.cwd(), ".vibesql");
+const PERSIST_PATH = path.join(STATE_DIR, "ai-context-rules.json");
 
 function loadFromDisk(): MemAiContextRule[] {
   try {

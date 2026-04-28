@@ -41,4 +41,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-.bkit/state/ai-providers.json
+
+# Test artifacts
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# Local AI-agent metadata (NOT for the public repo)
+.bkit/
+.claude/
+.bkit-memory.json
+
+# vibeSQL runtime state (in-memory mode persistence — host-local)
+.vibesql/

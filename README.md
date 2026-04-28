@@ -5,6 +5,10 @@
 vibeSQL takes a question in plain language ("이번 주 매출 상위 10명"), generates dialect-specific SQL via Claude, executes it read-only against a connected database, and shows the results in a workspace UI with a built-in AI assistant.
 
 [![CI](https://github.com/s99606931/vibesql/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/s99606931/vibesql/actions/workflows/ci-cd.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node ≥22](https://img.shields.io/badge/node-%E2%89%A522-339933.svg?logo=node.js&logoColor=white)](#quickstart--local-dev-without-docker)
+
+🇰🇷 [한국어 README](README.ko.md) · 📖 [User Guide](docs/USER_GUIDE.md) · 🔒 [Security](SECURITY.md) · 🤝 [Contributing](CONTRIBUTING.md)
 
 ---
 

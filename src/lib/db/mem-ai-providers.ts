@@ -1,9 +1,13 @@
 /**
  * In-memory AI provider store shared across all API routes.
- * Persists to .bkit/state/ai-providers.json so hot-reloads don't wipe state.
+ * Persists to a state file (default `.vibesql/ai-providers.json`,
+ * overridable via VIBESQL_STATE_DIR) so hot-reloads don't wipe state.
  */
 import fs from "fs";
 import path from "path";
+
+const STATE_DIR =
+  process.env.VIBESQL_STATE_DIR ?? path.resolve(process.cwd(), ".vibesql");
 
 export type AiProviderType =
   | "anthropic"
@@ -31,7 +35,7 @@ export interface MemAiProvider {
   updatedAt: string;
 }
 
-const PERSIST_PATH = path.resolve(process.cwd(), ".bkit/state/ai-providers.json");
+const PERSIST_PATH = path.join(STATE_DIR, "ai-providers.json");
 
 function loadFromDisk(): MemAiProvider[] {
   try {

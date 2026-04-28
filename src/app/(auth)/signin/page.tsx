@@ -297,7 +297,7 @@ export default function SignInPage() {
               justifyContent: "center",
               padding: "var(--ds-sp-2) var(--ds-sp-4)",
               background: loading ? "var(--ds-fill)" : "var(--ds-accent)",
-              color: loading ? "var(--ds-text-mute)" : "#ffffff",
+              color: loading ? "var(--ds-text-mute)" : "var(--ds-text-on-accent)",
               borderRadius: "var(--ds-r-6)",
               fontSize: "var(--ds-fs-13)",
               fontWeight: "var(--ds-fw-medium)",

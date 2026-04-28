@@ -1,7 +1,33 @@
 {
-  "name": "web",
+  "name": "vibesql",
   "version": "0.1.0",
   "private": true,
+  "description": "Natural-language to SQL workbench. Ask questions in Korean/English, generate dialect-specific SQL via Claude, execute read-only against your DB, and explore results with a built-in AI assistant.",
+  "keywords": [
+    "nl2sql",
+    "text-to-sql",
+    "claude",
+    "anthropic",
+    "nextjs",
+    "react",
+    "postgres",
+    "sql",
+    "ai",
+    "workbench"
+  ],
+  "homepage": "https://github.com/s99606931/vibesql#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/s99606931/vibesql.git"
+  },
+  "bugs": {
+    "url": "https://github.com/s99606931/vibesql/issues"
+  },
+  "license": "MIT",
+  "author": "vibeSQL contributors",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

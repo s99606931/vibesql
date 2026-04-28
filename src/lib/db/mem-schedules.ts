@@ -28,7 +28,9 @@ export interface MemScheduleRun {
   createdAt: string;
 }
 
-const PERSIST_PATH = path.resolve(process.cwd(), ".bkit/state/schedules.json");
+const STATE_DIR =
+  process.env.VIBESQL_STATE_DIR ?? path.resolve(process.cwd(), ".vibesql");
+const PERSIST_PATH = path.join(STATE_DIR, "schedules.json");
 
 function loadFromDisk(): { schedules: MemScheduledQuery[]; runs: MemScheduleRun[] } {
   try {
