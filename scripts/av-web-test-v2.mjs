@@ -140,10 +140,28 @@ async function deepTest(context, route, outDir) {
       document.querySelectorAll("input:not([type=hidden]):not([disabled])").forEach((i) => out.inputs++);
       document.querySelectorAll("textarea:not([disabled])").forEach(() => out.textareas++);
       document.querySelectorAll("select:not([disabled])").forEach(() => out.selects++);
+      // Ignore elements inside aria-hidden="true" subtree or transformed off-viewport
+      // (closed AI chat panel uses translateX(100%) + aria-hidden — its children
+      //  should not be considered clickable; otherwise Playwright wastes per-click
+      //  timeout trying to scroll-into-view something that can never become visible).
+      const inHiddenAncestor = (el) => {
+        for (let cur = el; cur && cur !== document.body; cur = cur.parentElement) {
+          if (cur.getAttribute && cur.getAttribute("aria-hidden") === "true") return true;
+        }
+        return false;
+      };
+      const inViewport = (el) => {
+        const r = el.getBoundingClientRect();
+        return r.right > 0 && r.left < window.innerWidth && r.bottom > 0 && r.top < window.innerHeight;
+      };
       const visible = (el) => {
+        if (inHiddenAncestor(el)) return false;
         const r = el.getBoundingClientRect();
         const s = window.getComputedStyle(el);
-        return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none";
+        return r.width > 0 && r.height > 0
+          && s.visibility !== "hidden" && s.display !== "none"
+          && s.pointerEvents !== "none"
+          && inViewport(el);
       };
       Array.from(document.querySelectorAll('button:not([disabled])')).slice(0, 80).forEach((b, i) => {
         if (!visible(b)) return;

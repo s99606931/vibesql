@@ -442,7 +442,7 @@ export default function HistoryPage() {
                         icon={copiedId === item.id ? <Check size={12} style={{ color: "var(--ds-success)" }} /> : <Copy size={12} />}
                         onClick={(e) => {
                           e.stopPropagation();
-                          void navigator.clipboard.writeText(item.sql);
+                          navigator.clipboard.writeText(item.sql).catch(() => {});
                           setCopiedId(item.id);
                           setTimeout(() => setCopiedId(null), 1500);
                         }}

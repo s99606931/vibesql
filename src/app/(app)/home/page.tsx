@@ -969,7 +969,7 @@ function StatsSection() {
                     aria-label={copiedHistId === item.id ? "복사됨" : "SQL 복사"}
                     onClick={(e) => {
                       e.stopPropagation();
-                      void navigator.clipboard.writeText(item.sql);
+                      navigator.clipboard.writeText(item.sql).catch(() => {});
                       setCopiedHistId(item.id);
                       setTimeout(() => setCopiedHistId(null), 1500);
                     }}

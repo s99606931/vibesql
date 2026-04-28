@@ -463,7 +463,7 @@ export default function ConnectionsPage() {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  void navigator.clipboard.writeText(`${conn.host}:${conn.port ?? ""}`);
+                                  navigator.clipboard.writeText(`${conn.host}:${conn.port ?? ""}`).catch(() => {});
                                   setCopiedHostId(conn.id);
                                   setTimeout(() => setCopiedHostId((prev) => prev === conn.id ? null : prev), 1500);
                                 }}

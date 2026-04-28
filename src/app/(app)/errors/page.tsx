@@ -302,7 +302,7 @@ export default function ErrorsPage() {
                           type="button"
                           aria-label={copied ? "복사됨" : "SQL 복사"}
                           onClick={() => {
-                            void navigator.clipboard.writeText(err.sql);
+                            navigator.clipboard.writeText(err.sql).catch(() => {});
                             setCopiedId(err.id);
                             setTimeout(() => setCopiedId(null), 1500);
                           }}

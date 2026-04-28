@@ -766,7 +766,7 @@ export default function SchedulesPage() {
                     size="sm"
                     icon={copiedSqlId === schedule.id ? <Check size={12} style={{ color: "var(--ds-success)" }} /> : <Copy size={12} />}
                     onClick={() => {
-                      void navigator.clipboard.writeText(schedule.sql);
+                      navigator.clipboard.writeText(schedule.sql).catch(() => {});
                       setCopiedSqlId(schedule.id);
                       setTimeout(() => setCopiedSqlId(null), 1500);
                     }}

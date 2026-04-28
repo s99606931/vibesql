@@ -379,7 +379,7 @@ export default function GlossaryPage() {
                   aria-label={copiedTermId === term.id ? "복사됨" : "용어명 복사"}
                   onClick={(e) => {
                     e.stopPropagation();
-                    void navigator.clipboard.writeText(term.term);
+                    navigator.clipboard.writeText(term.term).catch(() => {});
                     setCopiedTermId(term.id);
                     setTimeout(() => setCopiedTermId(null), 1500);
                   }}
@@ -387,7 +387,7 @@ export default function GlossaryPage() {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       e.stopPropagation();
-                      void navigator.clipboard.writeText(term.term);
+                      navigator.clipboard.writeText(term.term).catch(() => {});
                       setCopiedTermId(term.id);
                       setTimeout(() => setCopiedTermId(null), 1500);
                     }
@@ -532,7 +532,7 @@ export default function GlossaryPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        void navigator.clipboard.writeText(selected.sql ?? "");
+                        navigator.clipboard.writeText(selected.sql ?? "").catch(() => {});
                         setCopiedSqlId(selected.id);
                         setTimeout(() => setCopiedSqlId((p) => p === selected.id ? null : p), 1500);
                       }}

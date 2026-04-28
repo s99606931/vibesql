@@ -58,10 +58,10 @@ function SqlBlock({ code, lang, isSql, onApply }: { code: string; lang: string; 
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
-    void navigator.clipboard.writeText(code).then(() => {
+    navigator.clipboard.writeText(code).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
-    });
+    }).catch(() => {});
   }
 
   return (
@@ -350,13 +350,14 @@ export function AiChatPanel({
           }}
           className="hover:bg-accent-soft"
         />
-        {/* Header */}
+        {/* Header — height matches TopBar/Sidebar header for unified top line */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: "var(--ds-sp-2)",
-            padding: "var(--ds-sp-3) var(--ds-sp-4)",
+            height: "var(--ds-topbar-h)",
+            padding: "0 var(--ds-sp-4)",
             borderBottom: "1px solid var(--ds-border)",
             flexShrink: 0,
           }}
@@ -629,9 +630,7 @@ export function AiChatPanel({
               borderRadius: "var(--ds-r-8)",
               background: "var(--ds-bg)",
               padding: "var(--ds-sp-2) var(--ds-sp-2) var(--ds-sp-2) var(--ds-sp-3)",
-              transition: "border-color var(--ds-dur-fast) var(--ds-ease)",
             }}
-            className="focus-within:border-accent"
           >
             <textarea
               ref={inputRef}

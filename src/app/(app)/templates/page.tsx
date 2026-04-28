@@ -200,7 +200,7 @@ function TemplateCard({
             title="SQL 복사"
             icon={copied ? <Check size={13} style={{ color: "var(--ds-success)" }} /> : <Copy size={13} />}
             onClick={() => {
-              void navigator.clipboard.writeText(template.sql);
+              navigator.clipboard.writeText(template.sql).catch(() => {});
               setCopied(true);
               setTimeout(() => setCopied(false), 1500);
             }}

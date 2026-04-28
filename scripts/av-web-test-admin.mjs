@@ -130,10 +130,28 @@ async function deepTest(context, route, outDir) {
 
     // Enumerate interactive elements via DOM (snapshot label data — never holds element handles)
     const enumeration = await page.evaluate(() => {
+      // Ignore elements whose ancestor is aria-hidden=true or off-viewport via transform
+      // (closed AI chat panel uses translateX(100%) + aria-hidden — its children should
+      //  not be considered clickable). Without this, Playwright click hangs on
+      //  "scroll into view" for elements that can never become visible.
+      const inHiddenAncestor = (el) => {
+        for (let cur = el; cur && cur !== document.body; cur = cur.parentElement) {
+          if (cur.getAttribute && cur.getAttribute("aria-hidden") === "true") return true;
+        }
+        return false;
+      };
+      const inViewport = (el) => {
+        const r = el.getBoundingClientRect();
+        return r.right > 0 && r.left < window.innerWidth && r.bottom > 0 && r.top < window.innerHeight;
+      };
       const visible = (el) => {
+        if (inHiddenAncestor(el)) return false;
         const r = el.getBoundingClientRect();
         const s = window.getComputedStyle(el);
-        return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none";
+        return r.width > 0 && r.height > 0
+          && s.visibility !== "hidden" && s.display !== "none"
+          && s.pointerEvents !== "none"
+          && inViewport(el);
       };
       const out = { items: [] };
       const all = document.querySelectorAll('button:not([disabled]), a[href], [role="button"]');

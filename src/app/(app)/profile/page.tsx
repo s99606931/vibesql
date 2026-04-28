@@ -89,7 +89,7 @@ export default function ProfilePage() {
 
   const handleCopyEmail = useCallback(() => {
     if (!currentUser?.email) return;
-    void navigator.clipboard.writeText(currentUser.email);
+    navigator.clipboard.writeText(currentUser.email).catch(() => {});
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 1500);
   }, [currentUser?.email]);

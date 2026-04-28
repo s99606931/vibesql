@@ -491,7 +491,7 @@ export default function ChartsPage() {
                       size="sm"
                       icon={copiedChartId === chart.id ? <Check size={11} style={{ color: "var(--ds-success)" }} /> : <Copy size={11} />}
                       onClick={() => {
-                        void navigator.clipboard.writeText(chart.sql);
+                        navigator.clipboard.writeText(chart.sql).catch(() => {});
                         setCopiedChartId(chart.id);
                         setTimeout(() => setCopiedChartId(null), 1500);
                       }}
