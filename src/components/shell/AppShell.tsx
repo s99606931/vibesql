@@ -73,6 +73,7 @@ export function AppShell({ children }: AppShellProps) {
     <div style={{ display: "flex", height: "100vh", background: "var(--ds-bg)" }}>
       <a
         href="#main-content"
+        data-testid="skip-to-main"
         style={{
           position: "absolute",
           left: -9999,

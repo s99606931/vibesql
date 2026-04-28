@@ -288,6 +288,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
               type="button"
               aria-label="사이드바 펼치기"
               aria-keyshortcuts="Meta+\"
+              data-testid="sidebar-toggle"
               onClick={onToggleCollapse}
               title="사이드바 펼치기 (⌘\\)"
               style={{
@@ -325,6 +326,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                   type="button"
                   aria-label="사이드바 접기"
                   aria-keyshortcuts="Meta+\"
+                  data-testid="sidebar-toggle"
                   onClick={(e) => { e.preventDefault(); onToggleCollapse?.(); }}
                   title="사이드바 접기 (⌘\\)"
                   style={{
