@@ -276,6 +276,8 @@ async function main() {
   console.log(`[v2] BASE=${BASE} OUT_DIR=${OUT_DIR}`);
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  // Guard: block logout endpoint so accidental clicks during deep test can't kill the session
+  await context.route("**/api/auth/logout", (r) => r.abort());
   const lp = await context.newPage();
   const loginMethod = await login(lp);
   await lp.close();
