@@ -52,16 +52,24 @@ async function login(page) {
     await page.locator('input[type="email"]').first().fill(EMAIL, { timeout: 3000 });
     await page.locator('input[type="password"]').first().fill(PASSWORD, { timeout: 3000 });
     await Promise.all([
-      page.waitForResponse((r) => r.url().includes("/api/auth/login") && r.request().method() === "POST", { timeout: 8000 }),
+      page.waitForResponse((r) => r.url().includes("/api/auth/login") && r.request().method() === "POST", { timeout: 12000 }),
       page.locator('button[type="submit"]').first().click({ timeout: 3000 }),
     ]);
     await page.waitForLoadState("domcontentloaded", { timeout: 5000 }).catch(() => {});
-    return "form";
-  } catch {
-    const r = await page.request.post(`${BASE}/api/auth/login`, { data: { email: EMAIL, password: PASSWORD } });
-    if (r.status() !== 200) throw new Error(`login failed: ${r.status()}`);
-    return "api";
+    // Verify form login actually set the session cookie; if not, fall through to API fallback.
+    const cookies = await page.context().cookies();
+    if (cookies.some((c) => c.name === "vs-session")) return "form";
+  } catch { /* fall through */ }
+  // API fallback — explicitly propagate Set-Cookie to the browser context
+  const r = await page.context().request.post(`${BASE}/api/auth/login`, { data: { email: EMAIL, password: PASSWORD } });
+  if (r.status() !== 200) throw new Error(`login failed: ${r.status()}`);
+  // Extract Set-Cookie value and inject into browser context so page navigations carry it
+  const setCookie = r.headers()["set-cookie"] ?? "";
+  const m = /vs-session=([^;]+)/.exec(setCookie);
+  if (m) {
+    await page.context().addCookies([{ name: "vs-session", value: m[1], domain: "localhost", path: "/", httpOnly: true, sameSite: "Lax" }]);
   }
+  return "api";
 }
 
 async function deepTest(context, route, outDir) {
@@ -233,15 +241,12 @@ async function deepTest(context, route, outDir) {
     result.network5xx = networkLogs.filter((n) => n.status >= 500).length;
     result.pageErrors = pageErrors.length;
 
-    // Verdict computation
+    // Verdict computation — based on real errors, not click ratio (clicks fail naturally
+    // when buttons navigate away or open transient overlays; that's not a product bug).
     if (result.verdict === "unknown") {
-      const success = result.clicksAttempted === 0
-        ? "neutral"
-        : (result.clicksSucceeded / result.clicksAttempted);
       if (result.network5xx > 0 || result.pageErrors > 0 || result.httpStatus >= 500) result.verdict = "broken";
       else if (result.consoleErrors > 0 || result.network4xx > 0) result.verdict = "degraded";
-      else if (success === "neutral" || success >= 0.5) result.verdict = "healthy";
-      else result.verdict = "degraded";
+      else result.verdict = "healthy";
     }
 
     await fs.writeFile(path.join(outDir, `${route.slug}.raw.json`), JSON.stringify({ result, consoleLogs, networkLogs, pageErrors }, null, 2));

@@ -115,14 +115,21 @@ export async function POST(req: Request) {
     }
   }
 
-  const conn: StoredConnection = {
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-    isActive: true,
-    ...rest,
-    passwordBase64: password ? encryptPassword(password) : undefined,
-    userId,
-  };
+  let conn: StoredConnection;
+  try {
+    conn = {
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+      isActive: true,
+      ...rest,
+      passwordBase64: password ? encryptPassword(password) : undefined,
+      userId,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "암호화 실패";
+    console.error("[connections] POST encrypt error:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
   addConnection(conn);
 
   // Return without sensitive fields

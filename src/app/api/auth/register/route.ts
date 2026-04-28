@@ -31,8 +31,14 @@ export async function POST(req: Request) {
       if (existing) {
         return NextResponse.json({ error: "이미 사용 중인 이메일입니다." }, { status: 409 });
       }
+      // First non-system user becomes ADMIN (parity with in-memory branch).
+      // System seed users (system, dev-user) are excluded from the count.
+      const realUserCount = await prisma.user.count({
+        where: { id: { notIn: ["system", "dev-user"] } },
+      });
+      const initialRole: UserRole = realUserCount === 0 ? "ADMIN" : "USER";
       const user = await prisma.user.create({
-        data: { email, name, passwordHash: pwHash, role: "USER" },
+        data: { email, name, passwordHash: pwHash, role: initialRole },
         select: { id: true, role: true },
       });
       userId = user.id;

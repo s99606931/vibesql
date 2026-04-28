@@ -36,8 +36,10 @@ async function createConnection(config: ConnectionConfig): Promise<Connection> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(config),
   });
-  const json = (await res.json()) as { data: Connection; error?: string };
-  if (!res.ok) throw new Error(json.error ?? "Failed to create connection");
+  const text = await res.text();
+  const json = (text ? JSON.parse(text) : {}) as { data?: Connection; error?: string };
+  if (!res.ok) throw new Error(json.error ?? `Failed to create connection (HTTP ${res.status})`);
+  if (!json.data) throw new Error("응답에 data가 없습니다");
   return json.data;
 }
 
