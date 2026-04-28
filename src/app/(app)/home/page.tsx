@@ -31,6 +31,7 @@ import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useIsAdmin } from "@/hooks/useCurrentUser";
 
 // ─── 워크플로 스텝 ─────────────────────────────────────────────────────────────
 
@@ -335,6 +336,8 @@ export default function HomePage() {
     staleTime: 30_000,
   });
 
+  const isAdmin = useIsAdmin();
+
   const { data: aiProviders, isLoading: aiLoading } = useQuery({
     queryKey: ["ai-providers"],
     queryFn: async () => {
@@ -344,6 +347,7 @@ export default function HomePage() {
       return j.data ?? [];
     },
     staleTime: 30_000,
+    enabled: isAdmin,
   });
 
   function getStatus(key: "connections" | "ai-providers"): CheckStatus {
@@ -351,6 +355,7 @@ export default function HomePage() {
       if (connLoading) return "loading";
       return (connections?.length ?? 0) > 0 ? "ok" : "empty";
     }
+    if (!isAdmin) return "ok";
     if (aiLoading) return "loading";
     return (aiProviders?.length ?? 0) > 0 ? "ok" : "empty";
   }
@@ -594,7 +599,7 @@ export default function HomePage() {
             <StatusCard
               icon={<Cpu size={14} />}
               label="AI 프로바이더"
-              value={aiLoading ? "—" : `${aiProviders?.length ?? 0}개`}
+              value={!isAdmin ? "관리됨" : aiLoading ? "—" : `${aiProviders?.length ?? 0}개`}
               status={aiStatus}
               href="/settings"
               emptyMsg="AI 설정이 필요합니다"
