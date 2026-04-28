@@ -2,6 +2,8 @@
 
 import { ReactNode, useState, useCallback, useEffect, useMemo } from "react";
 import { usePathname } from "next/navigation";
+import { Bot } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Sidebar } from "./Sidebar";
 import { CommandPalette } from "./CommandPalette";
 import { AiChatPanel } from "./AiChatPanel";
@@ -30,7 +32,7 @@ export function AppShell({ children }: AppShellProps) {
 
   const openCmd = useCallback(() => setCmdOpen(true), []);
   const closeCmd = useCallback(() => setCmdOpen(false), []);
-  const openChat = useCallback(() => setChatOpen(true), []);
+  const toggleChat = useCallback(() => setChatOpen((v) => !v), []);
   const closeChat = useCallback(() => setChatOpen(false), []);
   const toggleSidebar = useCallback(() => setSidebarCollapsed((v) => !v), []);
 
@@ -90,8 +92,6 @@ export function AppShell({ children }: AppShellProps) {
       </a>
       <Sidebar
         onOpenCommandPalette={openCmd}
-        onOpenChat={openChat}
-        chatOpen={chatOpen}
         collapsed={sidebarCollapsed}
         onToggleCollapse={toggleSidebar}
       />
@@ -110,6 +110,42 @@ export function AppShell({ children }: AppShellProps) {
       >
         {children}
       </main>
+      {/* Global AI assistant button — fixed in top-right, aligned with TopBar height */}
+      <button
+        type="button"
+        aria-label={chatOpen ? "AI 채팅 닫기" : "AI 채팅 열기"}
+        aria-pressed={chatOpen}
+        aria-keyshortcuts="Meta+i"
+        onClick={toggleChat}
+        title="AI 어시스턴트 (⌘I)"
+        style={{
+          position: "fixed",
+          top: 0,
+          right: chatOpen ? chatWidth : 0,
+          width: 152,
+          height: "var(--ds-topbar-h)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "var(--ds-sp-2)",
+          padding: "0 var(--ds-sp-4)",
+          background: chatOpen ? "var(--ds-accent-soft)" : "var(--ds-surface)",
+          border: "none",
+          borderLeft: "1px solid var(--ds-border)",
+          borderBottom: "1px solid var(--ds-border)",
+          cursor: "pointer",
+          color: chatOpen ? "var(--ds-accent)" : "var(--ds-text-mute)",
+          fontSize: "var(--ds-fs-12)",
+          fontWeight: "var(--ds-fw-medium)",
+          zIndex: "calc(var(--ds-z-sticky) + 1)",
+          transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), right var(--ds-dur-normal, 200ms) var(--ds-ease, ease)",
+        }}
+        className={cn(!chatOpen && "hover:bg-fill hover:text-text")}
+      >
+        <Bot aria-hidden="true" size={14} style={{ flexShrink: 0 }} />
+        <span>AI 어시스턴트</span>
+        <span style={{ fontSize: "var(--ds-fs-10)", fontFamily: "var(--ds-font-mono)", opacity: 0.6 }}>⌘I</span>
+      </button>
       <CommandPalette open={cmdOpen} onClose={closeCmd} />
       <AiChatPanel
         open={chatOpen}

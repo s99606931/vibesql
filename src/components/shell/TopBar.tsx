@@ -24,7 +24,11 @@ export function TopBar({ title, breadcrumbs, actions }: TopBarProps) {
         borderBottom: "1px solid var(--ds-border)",
         display: "flex",
         alignItems: "center",
-        padding: "0 var(--ds-sp-6)",
+        // Reserve right space for the global AI assistant button so page actions never overlap
+        paddingTop: 0,
+        paddingBottom: 0,
+        paddingLeft: "var(--ds-sp-6)",
+        paddingRight: "calc(152px + var(--ds-sp-3))",
         gap: "var(--ds-sp-4)",
         position: "sticky",
         top: 0,

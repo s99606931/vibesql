@@ -285,6 +285,18 @@
     outline: none;
     box-shadow: var(--ds-focus-ring);
   }
+  /* Form fields: suppress the focus ring — focus is conveyed by caret + container hover/border */
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible,
+  select:focus,
+  select:focus-visible,
+  [contenteditable]:focus,
+  [contenteditable]:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
 }
 
 /* ============================================================

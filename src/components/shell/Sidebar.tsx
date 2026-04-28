@@ -5,8 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { useWorkspaceStore } from "@/store/useWorkspaceStore";
-import { useConnections } from "@/hooks/useConnections";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import type { UserRole } from "@/lib/auth/jwt";
 import {
@@ -124,17 +122,14 @@ const navGroups: NavGroup[] = [
 
 interface SidebarProps {
   onOpenCommandPalette?: () => void;
-  onOpenChat?: () => void;
-  chatOpen?: boolean;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
 }
 
-export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed = false, onToggleCollapse }: SidebarProps) {
+export function Sidebar({ onOpenCommandPalette, collapsed = false, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const activeConnectionId = useWorkspaceStore((s) => s.activeConnectionId);
 
   const { data: currentUser } = useCurrentUser();
   const userRole = currentUser?.role ?? "USER";
@@ -173,9 +168,6 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
     },
     staleTime: 60_000,
   });
-
-  const { data: connections } = useConnections();
-  const activeConnection = (connections ?? []).find((c) => c.id === activeConnectionId);
 
   function canShow(requiredRole?: UserRole): boolean {
     if (!requiredRole) return true;
@@ -261,57 +253,39 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
         transition: "width 200ms var(--ds-ease, ease)",
       }}
     >
-      {/* Logo / header */}
+      {/* Logo / header — height matches TopBar so sidebar top-line aligns with main header */}
       <div
         style={{
-          padding: collapsed ? "var(--ds-sp-2)" : "var(--ds-sp-2) var(--ds-sp-3)",
+          height: "var(--ds-topbar-h)",
+          padding: collapsed ? "0 var(--ds-sp-1)" : "0 var(--ds-sp-3)",
           borderBottom: "1px solid var(--ds-border)",
           display: "flex",
-          flexDirection: "column",
-          gap: "var(--ds-sp-1)",
+          alignItems: "center",
+          justifyContent: collapsed ? "center" : "space-between",
+          gap: "var(--ds-sp-2)",
+          flexShrink: 0,
         }}
       >
         {collapsed ? (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ds-sp-1)" }}>
-            <Link href="/" style={{ textDecoration: "none" }} title="vibeSQL 홈" aria-label="vibeSQL 홈">
-              <div
-                style={{
-                  width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
-                  borderRadius: "var(--ds-r-6)", cursor: "pointer",
-                }}
-                className="hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
-              >
-                <Zap aria-hidden="true" size={14} style={{ color: "var(--ds-accent)" }} />
-              </div>
-            </Link>
-            <button
-              type="button"
-              aria-label="사이드바 펼치기"
-              aria-keyshortcuts="Meta+\"
-              data-testid="sidebar-toggle"
-              onClick={onToggleCollapse}
-              title="사이드바 펼치기 (⌘\\)"
-              style={{
-                width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
-                borderRadius: "var(--ds-r-6)", background: "transparent", border: "none", cursor: "pointer",
-                color: "var(--ds-text-faint)",
-              }}
-              className="hover:bg-fill hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
-            >
-              <ChevronRight aria-hidden="true" size={13} />
-            </button>
-            <span
-              style={{
-                width: 6, height: 6, borderRadius: "var(--ds-r-full)",
-                background: activeConnection ? "var(--ds-success)" : "var(--ds-text-faint)",
-                display: "inline-block", margin: "2px auto",
-              }}
-              title={activeConnection ? activeConnection.name : "연결 없음"}
-            />
-          </div>
+          <button
+            type="button"
+            aria-label="사이드바 펼치기"
+            aria-keyshortcuts="Meta+\"
+            data-testid="sidebar-toggle"
+            onClick={onToggleCollapse}
+            title="사이드바 펼치기 (⌘\\)"
+            style={{
+              width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
+              borderRadius: "var(--ds-r-6)", background: "transparent", border: "none", cursor: "pointer",
+              color: "var(--ds-accent)",
+            }}
+            className="hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
+          >
+            <Zap aria-hidden="true" size={14} />
+          </button>
         ) : (
           <>
-            <Link href="/" style={{ textDecoration: "none" }}>
+            <Link href="/" style={{ textDecoration: "none", flex: 1, minWidth: 0 }}>
               <div
                 style={{
                   display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", width: "100%",
@@ -322,40 +296,25 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
               >
                 <Zap aria-hidden="true" size={14} style={{ color: "var(--ds-accent)" }} />
                 <span style={{ flex: 1 }}>vibeSQL</span>
-                <button
-                  type="button"
-                  aria-label="사이드바 접기"
-                  aria-keyshortcuts="Meta+\"
-                  data-testid="sidebar-toggle"
-                  onClick={(e) => { e.preventDefault(); onToggleCollapse?.(); }}
-                  title="사이드바 접기 (⌘\\)"
-                  style={{
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    width: 20, height: 20, borderRadius: "var(--ds-r-6)",
-                    background: "transparent", border: "none", cursor: "pointer",
-                    color: "var(--ds-text-faint)", padding: 0,
-                  }}
-                  className="hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
-                >
-                  <ChevronLeft aria-hidden="true" size={12} />
-                </button>
               </div>
             </Link>
-
-            {/* Active connection chip */}
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-1)", padding: "var(--ds-sp-1) var(--ds-sp-2)" }}>
-              <span style={{
-                width: 6, height: 6, borderRadius: "var(--ds-r-full)",
-                background: activeConnection ? "var(--ds-success)" : "var(--ds-text-faint)",
-                display: "inline-block", flexShrink: 0,
-              }} />
-              <span title={activeConnection ? activeConnection.name : "연결 없음"} style={{
-                fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)",
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
-                {activeConnection ? activeConnection.name : "연결 없음"}
-              </span>
-            </div>
+            <button
+              type="button"
+              aria-label="사이드바 접기"
+              aria-keyshortcuts="Meta+\"
+              data-testid="sidebar-toggle"
+              onClick={onToggleCollapse}
+              title="사이드바 접기 (⌘\\)"
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center",
+                width: 24, height: 24, borderRadius: "var(--ds-r-6)",
+                background: "transparent", border: "none", cursor: "pointer",
+                color: "var(--ds-text-faint)", padding: 0, flexShrink: 0,
+              }}
+              className="hover:bg-fill hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
+            >
+              <ChevronLeft aria-hidden="true" size={12} />
+            </button>
           </>
         )}
       </div>
@@ -485,7 +444,6 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
         {collapsed ? (
           <>
             {iconOnlyBtn(<User aria-hidden="true" size={13} />, undefined, currentUser?.name ?? "사용자")}
-            {iconOnlyBtn(<Bot aria-hidden="true" size={13} />, onOpenChat, "AI 어시스턴트 (⌘I)", chatOpen)}
           </>
         ) : (
           <>
@@ -542,25 +500,6 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
               className="hover:bg-fill hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
             >
               ⌘K 명령 팔레트
-            </button>
-            <button
-              type="button"
-              aria-label="AI 채팅 열기"
-              onClick={onOpenChat}
-              style={{
-                display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", width: "100%",
-                padding: "var(--ds-sp-1) var(--ds-sp-2)", borderRadius: "var(--ds-r-6)",
-                background: chatOpen ? "var(--ds-accent-soft)" : "transparent",
-                border: "none", cursor: "pointer",
-                color: chatOpen ? "var(--ds-accent)" : "var(--ds-text-faint)",
-                fontSize: "var(--ds-fs-11)", marginTop: 2,
-                transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
-              }}
-              className={cn(!chatOpen && "hover:bg-fill hover:text-text-mute")}
-            >
-              <Bot aria-hidden="true" size={12} style={{ flexShrink: 0 }} />
-              <span>AI 어시스턴트</span>
-              <span style={{ marginLeft: "auto", fontSize: "var(--ds-fs-10)", fontFamily: "var(--ds-font-mono)", opacity: 0.6 }}>⌘I</span>
             </button>
           </>
         )}
