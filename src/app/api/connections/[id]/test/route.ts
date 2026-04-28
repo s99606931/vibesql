@@ -100,7 +100,7 @@ export async function POST(
       });
 
       return NextResponse.json({
-        data: { success: true, latencyMs, serverVersion },
+        data: { ok: true, latencyMs, serverVersion },
       });
     } catch (err) {
       console.error("[test] connection error:", err instanceof Error ? err.message : err);
@@ -131,7 +131,7 @@ export async function POST(
 
   return NextResponse.json({
     data: {
-      success: true,
+      ok: true,
       latencyMs: Math.floor(Math.random() * 50) + 10,
       serverVersion: "PostgreSQL 16.1",
     },
