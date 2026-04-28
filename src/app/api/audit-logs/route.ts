@@ -38,7 +38,14 @@ export async function GET(req: Request) {
       },
     });
 
-    const data: AuditLogItem[] = logs.map((log) => ({
+    const data: AuditLogItem[] = logs.map((log: {
+      id: string;
+      action: string;
+      userId: string | null;
+      ipAddress: string | null;
+      metadata: unknown;
+      createdAt: Date;
+    }) => ({
       id: log.id,
       action: log.action,
       userId: log.userId,

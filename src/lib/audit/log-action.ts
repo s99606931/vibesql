@@ -34,7 +34,7 @@ async function _writeLog(params: LogActionParams): Promise<void> {
         userId: params.userId ?? null,
         ipAddress: params.ipAddress ?? null,
         userAgent: params.userAgent ?? null,
-        metadata: params.metadata as unknown as import("@prisma/client").Prisma.InputJsonValue | undefined,
+        metadata: params.metadata as unknown as import(".prisma/client").Prisma.InputJsonValue | undefined,
       },
     });
   } catch (err) {

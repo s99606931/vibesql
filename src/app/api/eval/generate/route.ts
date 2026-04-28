@@ -13,6 +13,7 @@ import { Pool } from "pg";
 import { runPipeline } from "@/lib/nl2sql/pipeline";
 import { buildCatalog, type SqlDialect } from "@/lib/sql/validate";
 import { persistTrace } from "@/lib/audit/trace";
+import { requireAdmin } from "@/lib/auth/require-user";
 
 const BodySchema = z.object({
   question: z.string().min(1).max(2000),
@@ -23,11 +24,12 @@ const BodySchema = z.object({
   schemaName: z.string().optional().default("ecommerce_mini"),
 });
 
-function isAuthorized(req: Request): boolean {
-  if (process.env.NODE_ENV !== "production") return true;
+// Secondary token check for non-browser callers (CI pipelines, scripts).
+// This does NOT replace requireAdmin() — it only provides an additional path
+// for automated eval runners that cannot obtain a session cookie.
+function hasEvalToken(req: Request): boolean {
   const token = req.headers.get("x-eval-token");
-  if (process.env.EVAL_TOKEN && token === process.env.EVAL_TOKEN) return true;
-  return false;
+  return Boolean(process.env.EVAL_TOKEN && token === process.env.EVAL_TOKEN);
 }
 
 let cachedPool: Pool | null = null;
@@ -42,8 +44,13 @@ function getPool(): Pool {
 }
 
 export async function POST(req: Request) {
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Primary auth: must be an authenticated ADMIN user.
+  // Fallback: EVAL_TOKEN header for non-interactive CI/script callers.
+  // NODE_ENV is NOT used as an auth bypass — this endpoint is sensitive
+  // regardless of environment (it executes DB queries via the pipeline).
+  if (!hasEvalToken(req)) {
+    const authResult = await requireAdmin();
+    if (authResult instanceof NextResponse) return authResult;
   }
 
   let body: unknown;

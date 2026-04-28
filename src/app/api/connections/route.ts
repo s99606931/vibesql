@@ -51,8 +51,9 @@ export async function GET() {
         orderBy: { createdAt: "desc" },
       });
       return NextResponse.json({ data: conns });
-    } catch {
-      /* fall through */
+    } catch (err) {
+      console.error("[connections] GET prisma error:", err instanceof Error ? err.message : err);
+      /* fall through to in-memory */
     }
   }
 
@@ -67,7 +68,10 @@ export async function POST(req: Request) {
   if (authResult instanceof NextResponse) return authResult;
   const userId = authResult;
 
-  const body = await req.json();
+  const body = await req.json().catch(() => null);
+  if (body === null) {
+    return NextResponse.json({ error: "올바른 JSON이 아닙니다." }, { status: 400 });
+  }
   const parsed = ConnectionSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
@@ -105,8 +109,9 @@ export async function POST(req: Request) {
         metadata: { connectionId: conn.id, name: conn.name },
       });
       return NextResponse.json({ data: conn }, { status: 201 });
-    } catch {
-      /* fall through */
+    } catch (err) {
+      console.error("[connections] POST prisma error:", err instanceof Error ? err.message : err);
+      /* fall through to in-memory */
     }
   }
 

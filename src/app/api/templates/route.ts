@@ -177,7 +177,19 @@ export async function GET(req: Request) {
       });
       templates = [
         ...BUILT_IN,
-        ...rows.map((r) => ({
+        ...rows.map((r: {
+          id: string;
+          userId: string | null;
+          name: string;
+          description: string | null;
+          category: string;
+          nlQuery: string;
+          sql: string;
+          dialect: string;
+          tags: unknown;
+          usageCount: number;
+          createdAt: Date;
+        }) => ({
           id: r.id,
           userId: r.userId,
           name: r.name,

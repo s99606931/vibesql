@@ -1,4 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+// Use the locally-generated client directly so TypeScript resolves the
+// generated types in node_modules/.prisma/client/ rather than the
+// unresolved re-export in @prisma/client (Prisma 7 pnpm quirk).
+import { PrismaClient } from ".prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 

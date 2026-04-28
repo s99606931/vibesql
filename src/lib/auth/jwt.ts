@@ -15,11 +15,16 @@ const EXPIRY_SECS = 7 * 24 * 60 * 60; // 7 days
 
 function getSecretBytes(): Uint8Array<ArrayBuffer> {
   const secret = process.env.JWT_SECRET;
-  // Throw lazily (not at module load) so Next.js build-time static analysis doesn't crash
-  if (process.env.NODE_ENV === "production" && !secret) {
-    throw new Error("JWT_SECRET environment variable is required in production");
+  // JWT_SECRET is required in ALL environments — a leaked default secret
+  // lets attackers forge arbitrary session tokens regardless of NODE_ENV.
+  // Throw lazily (not at module load) so Next.js build-time analysis doesn't crash.
+  if (!secret) {
+    throw new Error(
+      "JWT_SECRET environment variable is required. " +
+        "Generate one with: openssl rand -hex 32"
+    );
   }
-  const encoded = new TextEncoder().encode(secret ?? "vibesql-dev-secret-change-in-production");
+  const encoded = new TextEncoder().encode(secret);
   return new Uint8Array(encoded.buffer.slice(0) as ArrayBuffer);
 }
 

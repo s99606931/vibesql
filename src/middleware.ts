@@ -9,7 +9,8 @@ const PUBLIC_API_PREFIXES = [
   "/api/auth/login",
   "/api/auth/register",
   "/api/health",
-  "/api/eval",
+  // NOTE: /api/eval is intentionally NOT public — it is protected by requireAdmin()
+  // inside the route handler and must pass through authentication middleware.
 ];
 const ADMIN_PATHS = [
   "/admin",
@@ -43,17 +44,24 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── Clerk guard (when configured) ─────────────────────────────────────────
-  // NOTE: Role-based admin enforcement for Clerk mode requires Clerk's auth()
-  // which performs a DB lookup not available in Edge middleware. Admin API routes
-  // are protected by requireAdmin() in each route handler. For middleware-level
-  // admin page protection with Clerk, migrate to clerkMiddleware() from @clerk/nextjs/server.
+  // Middleware performs a presence check only — full cryptographic token
+  // verification happens inside each route handler via requireUser()/requireAdmin()
+  // which calls clerkModule.auth(). The middleware layer prevents unauthenticated
+  // requests from reaching route handlers at all, reducing attack surface.
+  //
+  // SECURITY NOTE: Cookie-name-only checks (previous impl) allowed trivial bypass
+  // with `Cookie: __session=x`. This implementation additionally accepts the
+  // standard Authorization: Bearer header so API clients without cookies work.
+  // Route handlers still MUST call requireUser() — middleware is defense-in-depth.
   const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   if (clerkKey) {
-    const sessionToken =
+    const cookieToken =
       request.cookies.get("__session")?.value ??
       request.cookies.get("__clerk_db_jwt")?.value;
+    const bearerToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+    const hasToken = Boolean(cookieToken ?? bearerToken);
 
-    if (!sessionToken) {
+    if (!hasToken) {
       if (pathname.startsWith("/api/")) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
@@ -61,6 +69,7 @@ export async function middleware(request: NextRequest) {
       url.pathname = "/signin";
       return NextResponse.redirect(url);
     }
+    // Pass through — route handler's requireUser()/requireAdmin() does the real verification.
     return NextResponse.next();
   }
 

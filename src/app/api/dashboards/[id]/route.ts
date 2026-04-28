@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUserId } from "@/lib/auth/require-user";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from ".prisma/client";
 
 const UpdateSchema = z.object({
   name: z.string().min(1).max(100).optional(),
