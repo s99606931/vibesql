@@ -17,6 +17,7 @@ const OUT_DIR = process.argv[2] ?? "docs/03-analysis/web-test-admin";
 const NAV_TIMEOUT = 20_000;
 const ACTION_TIMEOUT = 4_000;
 const MAX_CLICKS_PER_PAGE = 25;
+const PER_ROUTE_DEADLINE_MS = 180_000; // 3 min cap per route — prevents whole-run hangs on a single page
 
 const ROUTES = [
   { path: "/home",            slug: "home",            cat: "core",   feature: "워크플로 카드 + 빠른 시작 CTA (admin: ai-providers fetch enabled)" },
@@ -127,41 +128,69 @@ async function deepTest(context, route, outDir) {
     // Screenshot
     await page.screenshot({ path: path.join(outDir, `${route.slug}.png`), fullPage: false }).catch(() => {});
 
-    // Enumerate interactive elements
-    const buttons = await page.locator('button:visible, a[href]:visible, [role=button]:visible').all();
-    result.interactiveCount = buttons.length;
+    // Enumerate interactive elements via DOM (snapshot label data — never holds element handles)
+    const enumeration = await page.evaluate(() => {
+      const visible = (el) => {
+        const r = el.getBoundingClientRect();
+        const s = window.getComputedStyle(el);
+        return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none";
+      };
+      const out = { items: [] };
+      const all = document.querySelectorAll('button:not([disabled]), a[href], [role="button"]');
+      Array.from(all).slice(0, 80).forEach((el) => {
+        if (!visible(el)) return;
+        const tag = el.tagName.toLowerCase();
+        const text = (el.innerText || el.textContent || "").trim().slice(0, 50);
+        const ariaLabel = el.getAttribute("aria-label") || "";
+        const dataTestid = el.getAttribute("data-testid") || "";
+        const href = el.getAttribute("href") || "";
+        if (href && /^https?:\/\//.test(href) && !href.includes("localhost")) return;
+        out.items.push({ tag, text, ariaLabel, dataTestid, href });
+      });
+      return out;
+    }).catch(() => ({ items: [] }));
 
-    const safeButtons = [];
-    for (const b of buttons.slice(0, 80)) {
-      const text = (await b.textContent().catch(() => "") || "").trim();
-      const aria = (await b.getAttribute("aria-label").catch(() => "") || "").trim();
-      const href = (await b.getAttribute("href").catch(() => "") || "").trim();
-      const label = text || aria || href;
+    result.interactiveCount = enumeration.items.length;
+
+    // Click strategy: re-resolve fresh selector each iteration (testid → aria-label → text → href).
+    // This avoids the stale-element class of false alarms that cropped up in iter2.
+    const startUrl = page.url();
+    let clicksDone = 0;
+    for (const item of enumeration.items) {
+      if (clicksDone >= MAX_CLICKS_PER_PAGE) break;
+      const label = item.text || item.ariaLabel || item.href;
       if (!label) continue;
       if (isDestructive(label)) continue;
-      if (href && (href.startsWith("http") && !href.includes("localhost"))) continue;
-      safeButtons.push({ el: b, label: label.slice(0, 60) });
-    }
-
-    // Click safe buttons (max N, navigate-back if route changes)
-    const startUrl = page.url();
-    for (let i = 0; i < Math.min(safeButtons.length, MAX_CLICKS_PER_PAGE); i++) {
-      const { el, label } = safeButtons[i];
       result.clicksAttempted++;
+
+      let loc = null;
+      if (item.dataTestid) {
+        loc = page.locator(`[data-testid="${item.dataTestid.replace(/"/g, '\\"')}"]:visible`).first();
+      } else if (item.ariaLabel) {
+        loc = page.locator(`${item.tag}[aria-label="${item.ariaLabel.replace(/"/g, '\\"')}"]:visible`).first();
+      } else if (item.text) {
+        loc = page.locator(`${item.tag}:visible`, { hasText: item.text }).first();
+      } else if (item.href) {
+        loc = page.locator(`a[href="${item.href.replace(/"/g, '\\"')}"]:visible`).first();
+      }
+      if (!loc) continue;
+
       try {
-        await el.click({ timeout: ACTION_TIMEOUT, trial: false });
+        await loc.click({ timeout: ACTION_TIMEOUT });
         result.clicksSucceeded++;
+        clicksDone++;
         await page.waitForTimeout(150);
-        // close any opened dialog
-        const dialog = page.locator('[role=dialog]:visible');
+        const dialog = page.locator('[role="dialog"]:visible');
         if (await dialog.count() > 0) {
           result.modalsOpened++;
           await page.keyboard.press("Escape").catch(() => {});
+          await page.waitForTimeout(80);
         }
         if (page.url() !== startUrl) {
           await page.goto(`${BASE}${route.path}`, { waitUntil: "domcontentloaded", timeout: 8000 }).catch(() => {});
+          await page.waitForTimeout(200);
         }
-      } catch { /* click failed silently */ }
+      } catch { /* click missed (re-render or stale) — proceed */ }
     }
 
     // Find all text inputs and type a probe value (no submit)
@@ -204,13 +233,40 @@ async function main() {
   const loginMethod = await login(lp);
   await lp.close();
 
-  const summary = { base: BASE, email: EMAIL, role: "ADMIN", loginMethod, startedAt: new Date().toISOString(), routes: [] };
+  const summary = { base: BASE, email: EMAIL, role: "ADMIN", loginMethod, startedAt: new Date().toISOString(), routes: [], partial: false };
+
+  // Persist partial summary on any abnormal exit (SIGTERM, SIGINT, unhandled rejection)
+  const writePartial = async (note) => {
+    try {
+      summary.partial = true;
+      summary.partialReason = note;
+      summary.finishedAt = new Date().toISOString();
+      await fs.writeFile(path.join(OUT_DIR, "summary.json"), JSON.stringify(summary, null, 2));
+    } catch { /* best-effort */ }
+  };
+  process.on("SIGTERM", () => writePartial("SIGTERM").then(() => process.exit(143)));
+  process.on("SIGINT",  () => writePartial("SIGINT").then(() => process.exit(130)));
+  process.on("unhandledRejection", async (r) => { await writePartial("unhandledRejection: " + (r?.message ?? r)); process.exit(1); });
 
   for (const route of ROUTES) {
     process.stdout.write(`[admin-deep] ${route.path.padEnd(20)} ... `);
-    const r = await deepTest(context, route, OUT_DIR);
+    // Race deepTest against per-route deadline so one bad page can't hang the whole run
+    const deadline = new Promise((resolve) => setTimeout(() => resolve({
+      path: route.path, slug: route.slug, cat: route.cat, feature: route.feature,
+      finalUrl: null, httpStatus: null,
+      interactiveCount: 0, clicksAttempted: 0, clicksSucceeded: 0,
+      inputsFound: 0, inputsTyped: 0, modalsOpened: 0,
+      consoleErrors: 0, network4xx: 0, network5xx: 0,
+      durationMs: PER_ROUTE_DEADLINE_MS,
+      verdict: "⚠️ timeout",
+      issues: [`route deadline ${PER_ROUTE_DEADLINE_MS}ms exceeded`],
+    }), PER_ROUTE_DEADLINE_MS));
+    const r = await Promise.race([deepTest(context, route, OUT_DIR), deadline]);
     summary.routes.push(r);
     console.log(`${r.verdict.padEnd(8)} clicks=${r.clicksSucceeded}/${r.clicksAttempted} inputs=${r.inputsTyped}/${r.inputsFound} modals=${r.modalsOpened} consoleErr=${r.consoleErrors} 4xx=${r.network4xx} 5xx=${r.network5xx} (${r.durationMs}ms)`);
+    // Persist after every route so an external kill leaves a usable file
+    summary.finishedAt = new Date().toISOString();
+    await fs.writeFile(path.join(OUT_DIR, "summary.json"), JSON.stringify(summary, null, 2)).catch(() => {});
   }
 
   summary.finishedAt = new Date().toISOString();

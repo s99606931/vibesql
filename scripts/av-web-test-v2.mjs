@@ -17,6 +17,7 @@ const OUT_DIR = process.argv[2] ?? "docs/03-analysis/web-test-v2";
 const NAV_TIMEOUT = 20_000;
 const ACTION_TIMEOUT = 4_000;
 const MAX_CLICKS_PER_PAGE = 25;
+const PER_ROUTE_DEADLINE_MS = 180_000; // 3 min cap per route — prevents whole-run hangs on a single page
 
 const ROUTES = [
   { path: "/home",            slug: "home",            cat: "core",   feature: "워크플로 카드 + 빠른 시작 CTA" },
@@ -282,13 +283,38 @@ async function main() {
   const loginMethod = await login(lp);
   await lp.close();
 
-  const summary = { base: BASE, email: EMAIL, loginMethod, startedAt: new Date().toISOString(), routes: [], adminBlockCheck: [] };
+  const summary = { base: BASE, email: EMAIL, loginMethod, startedAt: new Date().toISOString(), routes: [], adminBlockCheck: [], partial: false };
+
+  // Persist partial summary on abnormal exit so an external kill leaves usable data
+  const writePartial = async (note) => {
+    try {
+      summary.partial = true;
+      summary.partialReason = note;
+      summary.finishedAt = new Date().toISOString();
+      await fs.writeFile(path.join(OUT_DIR, "summary.json"), JSON.stringify(summary, null, 2));
+    } catch { /* best-effort */ }
+  };
+  process.on("SIGTERM", () => writePartial("SIGTERM").then(() => process.exit(143)));
+  process.on("SIGINT",  () => writePartial("SIGINT").then(() => process.exit(130)));
+  process.on("unhandledRejection", async (r) => { await writePartial("unhandledRejection: " + (r?.message ?? r)); process.exit(1); });
 
   for (const route of ROUTES) {
     process.stdout.write(`[deep] ${route.path.padEnd(20)} ... `);
-    const r = await deepTest(context, route, OUT_DIR);
+    const deadline = new Promise((resolve) => setTimeout(() => resolve({
+      path: route.path, slug: route.slug,
+      finalUrl: null, httpStatus: null,
+      interactiveCount: 0, clicksAttempted: 0, clicksSucceeded: 0,
+      inputsFound: 0, inputsTyped: 0, modalsOpened: 0,
+      consoleErrors: 0, network4xx: 0, network5xx: 0, pageErrors: 0,
+      durationMs: PER_ROUTE_DEADLINE_MS,
+      verdict: "timeout",
+      notes: [`route deadline ${PER_ROUTE_DEADLINE_MS}ms exceeded`],
+    }), PER_ROUTE_DEADLINE_MS));
+    const r = await Promise.race([deepTest(context, route, OUT_DIR), deadline]);
     summary.routes.push(r);
-    console.log(`${r.verdict.padEnd(8)} clicks=${r.clicksSucceeded}/${r.clicksAttempted} inputs=${r.inputsTyped}/${r.inputsFound} modals=${r.modalsOpened} consoleErr=${r.consoleErrors} 4xx=${r.network4xx} 5xx=${r.network5xx} (${r.durationMs}ms)`);
+    console.log(`${(r.verdict || "?").padEnd(8)} clicks=${r.clicksSucceeded}/${r.clicksAttempted} inputs=${r.inputsTyped}/${r.inputsFound} modals=${r.modalsOpened} consoleErr=${r.consoleErrors} 4xx=${r.network4xx} 5xx=${r.network5xx} (${r.durationMs}ms)`);
+    summary.finishedAt = new Date().toISOString();
+    await fs.writeFile(path.join(OUT_DIR, "summary.json"), JSON.stringify(summary, null, 2)).catch(() => {});
   }
 
   console.log(`[adminBlockCheck] verifying admin routes redirect for USER role`);
