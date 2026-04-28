@@ -30,7 +30,7 @@ const ROUTES = [
   { path: "/glossary",        slug: "glossary",        cat: "data",   feature: "용어 사전" },
   { path: "/history",         slug: "history",         cat: "ops",    feature: "쿼리 이력" },
   { path: "/saved",           slug: "saved",           cat: "ops",    feature: "저장된 쿼리" },
-  { path: "/templates",       slug: "templates",       cat: "ops",    feature: "쿼리 템플릿" },
+  { path: "/templates",       slug: "templates",       cat: "ops",    feature: "쿼리 템플릿", maxClicks: 8 },
   { path: "/schedules",       slug: "schedules",       cat: "ops",    feature: "스케줄 목록" },
   { path: "/reports",         slug: "reports",         cat: "ops",    feature: "리포트" },
   { path: "/profile",         slug: "profile",         cat: "user",   feature: "프로필" },
@@ -168,14 +168,25 @@ async function deepTest(context, route, outDir) {
       return out;
     }).catch(() => ({ items: [] }));
 
+    // Dedupe by (tag, text, ariaLabel, href, testid) — same logical button repeated
+    // across N cards (template cards, history rows, etc.) collapses to one entry,
+    // since `.first()` selector would target the same DOM node anyway.
+    const seenKeys = new Set();
+    enumeration.items = enumeration.items.filter((it) => {
+      const k = `${it.tag}|${it.text}|${it.ariaLabel}|${it.href}|${it.dataTestid}`;
+      if (seenKeys.has(k)) return false;
+      seenKeys.add(k);
+      return true;
+    });
     result.interactiveCount = enumeration.items.length;
 
     // Click strategy: re-resolve fresh selector each iteration (testid → aria-label → text → href).
     // This avoids the stale-element class of false alarms that cropped up in iter2.
     const startUrl = page.url();
     let clicksDone = 0;
+    const cap = route.maxClicks ?? MAX_CLICKS_PER_PAGE;
     for (const item of enumeration.items) {
-      if (clicksDone >= MAX_CLICKS_PER_PAGE) break;
+      if (clicksDone >= cap) break;
       const label = item.text || item.ariaLabel || item.href;
       if (!label) continue;
       if (isDestructive(label)) continue;

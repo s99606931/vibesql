@@ -30,7 +30,7 @@ const ROUTES = [
   { path: "/glossary",        slug: "glossary",        cat: "data",   feature: "용어 사전 검색 + 신규 추가" },
   { path: "/history",         slug: "history",         cat: "ops",    feature: "쿼리 이력 목록 + 별표/공유" },
   { path: "/saved",           slug: "saved",           cat: "ops",    feature: "저장된 쿼리 + 버전 관리" },
-  { path: "/templates",       slug: "templates",       cat: "ops",    feature: "쿼리 템플릿 라이브러리" },
+  { path: "/templates",       slug: "templates",       cat: "ops",    feature: "쿼리 템플릿 라이브러리", maxClicks: 8 },
   { path: "/schedules",       slug: "schedules",       cat: "ops",    feature: "스케줄 목록 + 즉시 실행" },
   { path: "/reports",         slug: "reports",         cat: "ops",    feature: "리포트 (soon)" },
   { path: "/profile",         slug: "profile",         cat: "user",   feature: "프로필 정보 + 비밀번호 변경" },
@@ -190,6 +190,21 @@ async function deepTest(context, route, outDir) {
       result.notes.push("enumeration failed");
       result.verdict = "broken";
     } else {
+      // Dedup: collapse identical card-internal duplicates that .first() would all collide on
+      const seenBtn = new Set();
+      enumeration.buttons = enumeration.buttons.filter((b) => {
+        const k = `${b.text}|${b.ariaLabel || ""}|${b.dataTestid || ""}`;
+        if (seenBtn.has(k)) return false;
+        seenBtn.add(k);
+        return true;
+      });
+      const seenLink = new Set();
+      enumeration.links = enumeration.links.filter((a) => {
+        const k = `${a.text}|${a.href}`;
+        if (seenLink.has(k)) return false;
+        seenLink.add(k);
+        return true;
+      });
       result.interactiveCount = enumeration.buttons.length + enumeration.links.length;
       result.inputsFound = enumeration.inputs + enumeration.textareas + enumeration.selects;
       result.formsFound = enumeration.forms;
@@ -206,8 +221,9 @@ async function deepTest(context, route, outDir) {
       // Click buttons (non-destructive, with text or aria-label)
       let clicksDone = 0;
       const beforeUrl = page.url();
+      const cap = route.maxClicks ?? MAX_CLICKS_PER_PAGE;
       for (const btn of enumeration.buttons) {
-        if (clicksDone >= MAX_CLICKS_PER_PAGE) break;
+        if (clicksDone >= cap) break;
         const txt = btn.text || btn.ariaLabel || "";
         if (!txt) continue;
         if (isDestructive(txt)) {

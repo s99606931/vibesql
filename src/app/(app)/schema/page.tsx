@@ -356,7 +356,7 @@ export default function SchemaPage() {
                       aria-label={`${col} 복사`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigator.clipboard.writeText(col);
+                        navigator.clipboard.writeText(col).catch(() => {});
                         setCopiedCol(col);
                         setTimeout(() => setCopiedCol((p) => p === col ? null : p), 1500);
                       }}
@@ -364,7 +364,7 @@ export default function SchemaPage() {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
                           e.stopPropagation();
-                          navigator.clipboard.writeText(col);
+                          navigator.clipboard.writeText(col).catch(() => {});
                           setCopiedCol(col);
                           setTimeout(() => setCopiedCol((p) => p === col ? null : p), 1500);
                         }

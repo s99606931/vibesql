@@ -592,7 +592,7 @@ export default function AiContextPage() {
                               type="button"
                               aria-label={copiedRuleId === rule.id ? "복사됨" : "값 복사"}
                               onClick={() => {
-                                navigator.clipboard.writeText(rule.value);
+                                navigator.clipboard.writeText(rule.value).catch(() => {});
                                 setCopiedRuleId(rule.id);
                                 setTimeout(() => setCopiedRuleId((prev) => prev === rule.id ? null : prev), 2000);
                               }}

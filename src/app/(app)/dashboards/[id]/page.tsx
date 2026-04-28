@@ -637,7 +637,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                     <button
                       type="button"
                       onClick={() => {
-                        navigator.clipboard.writeText(window.location.href);
+                        navigator.clipboard.writeText(window.location.href).catch(() => {});
                         setCopiedUrl(true);
                         setTimeout(() => setCopiedUrl(false), 2000);
                       }}
