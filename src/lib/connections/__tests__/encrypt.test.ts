@@ -6,6 +6,11 @@ describe("encryptPassword / decryptPassword — key 미설정 (dev fallback)", (
   beforeEach(() => {
     vi.resetModules();
     vi.unstubAllEnvs();
+    // unstubAllEnvs() also clears env entries injected via vitest.config `test.env`
+    // (VIBESQL_DEV_AUTH_BYPASS, NODE_ENV). Re-stub them so the dev fallback branch
+    // of encryptPassword() stays enabled in this describe block.
+    vi.stubEnv("VIBESQL_DEV_AUTH_BYPASS", "1");
+    vi.stubEnv("NODE_ENV", "test");
     vi.stubEnv("CONNECTION_ENCRYPTION_KEY", ""); // force base64 fallback regardless of CI env
   });
 

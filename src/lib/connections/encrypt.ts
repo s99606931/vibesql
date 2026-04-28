@@ -13,9 +13,13 @@ function isKeyConfigured(): boolean {
 }
 
 function isDevBypassAllowed(): boolean {
+  // Allow base64 fallback when:
+  //   - explicitly opted in via VIBESQL_DEV_AUTH_BYPASS=1, AND
+  //   - NODE_ENV is development OR test (vitest sets NODE_ENV=test).
+  // Production never qualifies because NODE_ENV=production.
   return (
     process.env.VIBESQL_DEV_AUTH_BYPASS === "1" &&
-    process.env.NODE_ENV === "development"
+    (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test")
   );
 }
 

@@ -169,8 +169,9 @@ describe("WorkspacePage — confidence score badge", () => {
     const generateButton = screen.getByRole("button", { name: /SQL 생성/ });
     fireEvent.click(generateButton);
 
-    // Wait for the badge to appear
-    const badge = await screen.findByText("신뢰도 높음");
+    // Wait for the badge to appear. The badge text includes a trailing
+    // percent (e.g. "신뢰도 높음 90%") so we match with a regex.
+    const badge = await screen.findByText(/신뢰도 높음/);
     expect(badge).toBeInTheDocument();
 
     // Color should use ds-success token
@@ -187,7 +188,7 @@ describe("WorkspacePage — confidence score badge", () => {
     const generateButton = screen.getByRole("button", { name: /SQL 생성/ });
     fireEvent.click(generateButton);
 
-    const badge = await screen.findByText("신뢰도 중간");
+    const badge = await screen.findByText(/신뢰도 중간/);
     expect(badge).toBeInTheDocument();
 
     expect(badge).toHaveStyle({ color: "var(--ds-warn)" });
@@ -203,7 +204,7 @@ describe("WorkspacePage — confidence score badge", () => {
     const generateButton = screen.getByRole("button", { name: /SQL 생성/ });
     fireEvent.click(generateButton);
 
-    const badge = await screen.findByText("신뢰도 낮음");
+    const badge = await screen.findByText(/신뢰도 낮음/);
     expect(badge).toBeInTheDocument();
 
     expect(badge).toHaveStyle({ color: "var(--ds-danger)" });

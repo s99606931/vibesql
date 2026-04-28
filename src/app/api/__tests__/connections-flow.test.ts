@@ -200,6 +200,8 @@ describe("[연결 테스트] POST /api/connections/{id}/test", () => {
     })) as unknown as ApiResponse;
     expect(res.status).toBe(200);
     const data = body(res)["data"] as Record<string, unknown>;
-    expect(data["success"]).toBe(true);
+    // Route returns `ok: true` (not `success`) — matches the shape used by
+    // /apps/web/src/app/(app)/connections/page.tsx (`data.ok`).
+    expect(data["ok"]).toBe(true);
   });
 });

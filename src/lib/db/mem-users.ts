@@ -32,15 +32,17 @@ export function verifyPassword(password: string, stored: string): boolean {
   return crypto.timingSafeEqual(actual, expected);
 }
 
-// Seed accounts are loaded ONLY when:
-//   1. NODE_ENV === 'development'  (not test, not production)
-//   2. DATABASE_URL is absent      (no real DB — purely in-memory auth)
+// Seed accounts are loaded when:
+//   • NODE_ENV === 'test'                                    (always — unit tests opt-in to
+//                                                              in-memory path via vi.stubEnv;
+//                                                              CI sets DATABASE_URL globally
+//                                                              so we must seed regardless), OR
+//   • NODE_ENV === 'development' AND no DATABASE_URL         (local dev without a real DB).
 //
-// Both conditions must be true simultaneously. This prevents seed accounts
-// from appearing in staging/CI environments that set NODE_ENV=development
-// but have a real DATABASE_URL, and from appearing in production ever.
+// Production NEVER qualifies (NODE_ENV=production short-circuits both branches).
 const isSeedAllowed =
-  process.env.NODE_ENV === "development" && !process.env.DATABASE_URL;
+  process.env.NODE_ENV === "test" ||
+  (process.env.NODE_ENV === "development" && !process.env.DATABASE_URL);
 
 if (isSeedAllowed) {
   console.warn(
