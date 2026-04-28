@@ -15,6 +15,7 @@ build
 .env
 .env.*
 !.env.example
+!.env.docker.example
 
 # Local data
 *.log
@@ -40,7 +41,7 @@ Dockerfile
 .dockerignore
 docker-compose*.yml
 
-# Tests / docs
+# Tests / docs / one-off scripts
 __tests__
 tests
 *.test.ts
@@ -49,3 +50,9 @@ tests
 *.spec.tsx
 README.md
 docs
+playwright-report
+playwright.config.ts
+
+# bkit project state (local agent metadata)
+.bkit
+.claude

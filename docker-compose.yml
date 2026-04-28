@@ -1,0 +1,72 @@
+# vibeSQL — local docker compose
+#
+# Usage:
+#   1. cp .env.docker.example .env.docker  (set ANTHROPIC_API_KEY at minimum)
+#   2. docker compose up -d --build
+#   3. open http://localhost:3000
+#
+# The first registered account becomes ADMIN automatically.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vibesql-postgres
+    environment:
+      POSTGRES_USER: vibesql
+      POSTGRES_PASSWORD: vibesql_local
+      POSTGRES_DB: vibesql
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vibesql -d vibesql"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: .
+      target: builder
+    image: vibesql-web:builder
+    container_name: vibesql-migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://vibesql:vibesql_local@postgres:5432/vibesql
+    command: ["sh", "-c", "npx prisma db push --accept-data-loss"]
+    restart: "no"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vibesql-web:latest
+    container_name: vibesql-web
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    env_file:
+      - path: .env.docker
+        required: false
+    environment:
+      DATABASE_URL: postgresql://vibesql:vibesql_local@postgres:5432/vibesql
+      NODE_ENV: production
+    ports:
+      - "${WEB_HOST_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local

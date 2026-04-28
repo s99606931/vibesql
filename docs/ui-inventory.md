@@ -262,4 +262,4 @@
 
 ---
 
-*정적 분석: 소스코드 grep | 동적 검사: Playwright 1.59 헤드리스 (scripts/ui-audit-interactive.mjs)*
+*정적 분석: 소스코드 grep | 동적 검사: Playwright 1.59 헤드리스 (tests/e2e/av-browser-sweep.spec.ts)*
