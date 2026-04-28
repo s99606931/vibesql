@@ -1,0 +1,1 @@
+- [VibeSQL Roadmap 2026-04-27](project_vibesql_roadmap_2026-04-27.md) — USER/ADMIN 18개 항목 3-Tier 분류, Tier 1 보안 4건 즉시, Tier 2 Easy 12건 이번 스프린트, Tier 3 설계 2건

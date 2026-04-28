@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Card, CardHead } from "@/components/ui-vs/Card";
@@ -9,8 +9,21 @@ import { Pill } from "@/components/ui-vs/Pill";
 import { ConnectionWizard } from "@/components/connections/ConnectionWizard";
 import { useConnections, useTestConnection, useUpdateConnection } from "@/hooks/useConnections";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, RefreshCw, Loader2, Trash2, Pencil, X } from "lucide-react";
+import { Plus, RefreshCw, Loader2, Trash2, Pencil, X, Copy, Check, Search, Zap, Download, XCircle } from "lucide-react";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import type { DbDialect, Connection } from "@/types";
+
+function formatRelativeElapsed(iso: string | null | undefined): string {
+  if (!iso) return "미테스트";
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 60_000) return "방금 전";
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMs / 3_600_000);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffMs / 86_400_000);
+  return `${diffDay}일 전`;
+}
 
 const dialectLabels: Record<DbDialect, string> = {
   postgresql: "PostgreSQL",
@@ -79,28 +92,28 @@ function EditConnectionForm({
       />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ds-sp-3)", marginTop: "var(--ds-sp-3)" }}>
         <div>
-          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>이름</label>
-          <input style={inputStyle} value={form.name} onChange={(e) => set("name", e.target.value)} />
+          <label htmlFor="conn-name" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>이름</label>
+          <input id="conn-name" autoFocus style={inputStyle} value={form.name} onChange={(e) => set("name", e.target.value)} />
         </div>
         <div>
-          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>호스트</label>
-          <input style={inputStyle} value={form.host} onChange={(e) => set("host", e.target.value)} placeholder="db.example.com" />
+          <label htmlFor="conn-host" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>호스트</label>
+          <input id="conn-host" style={inputStyle} value={form.host} onChange={(e) => set("host", e.target.value)} placeholder="db.example.com" />
         </div>
         <div>
-          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>포트</label>
-          <input style={{ ...inputStyle, fontFamily: "var(--ds-font-mono)" }} value={form.port} onChange={(e) => set("port", e.target.value)} placeholder="5432" />
+          <label htmlFor="conn-port" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>포트</label>
+          <input id="conn-port" style={{ ...inputStyle, fontFamily: "var(--ds-font-mono)" }} value={form.port} onChange={(e) => set("port", e.target.value)} placeholder="5432" />
         </div>
         <div>
-          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>데이터베이스</label>
-          <input style={inputStyle} value={form.database} onChange={(e) => set("database", e.target.value)} />
+          <label htmlFor="conn-database" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>데이터베이스</label>
+          <input id="conn-database" style={inputStyle} value={form.database} onChange={(e) => set("database", e.target.value)} />
         </div>
         <div>
-          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>사용자명</label>
-          <input style={inputStyle} value={form.username} onChange={(e) => set("username", e.target.value)} />
+          <label htmlFor="conn-username" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>사용자명</label>
+          <input id="conn-username" style={inputStyle} value={form.username} onChange={(e) => set("username", e.target.value)} />
         </div>
         <div>
-          <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>비밀번호 (변경 시만 입력)</label>
-          <input style={inputStyle} type="password" value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="••••••••" />
+          <label htmlFor="conn-password" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>비밀번호 (변경 시만 입력)</label>
+          <input id="conn-password" style={inputStyle} type="password" autoComplete="new-password" value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="••••••••" />
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-3)", marginTop: "var(--ds-sp-3)" }}>
@@ -118,12 +131,112 @@ function EditConnectionForm({
   );
 }
 
+interface ConnTestFeedback {
+  status: "success" | "error";
+  latencyMs?: number;
+  serverVersion?: string;
+  message?: string;
+}
+
+function exportConnectionsCsv(conns: Connection[]) {
+  const headers = ["이름", "유형", "호스트", "포트", "데이터베이스", "사용자", "SSL", "활성", "마지막 테스트", "생성일"];
+  const esc = (v: string) => (v.includes(",") || v.includes('"') || v.includes("\n") ? `"${v.replace(/"/g, '""')}"` : v);
+  const rows = conns.map((c) => [
+    c.name, c.type, c.host ?? "", String(c.port ?? ""), c.database, c.username ?? "",
+    c.ssl ? "Y" : "N", c.isActive ? "Y" : "N",
+    c.lastTestedAt ? new Date(c.lastTestedAt).toLocaleString("ko-KR") : "",
+    new Date(c.createdAt).toLocaleString("ko-KR"),
+  ].map(esc).join(","));
+  const csv = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `connections-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function ConnectionsPage() {
   const [showWizard, setShowWizard] = useState(false);
   const [editingConn, setEditingConn] = useState<Connection | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+  const activeConnectionId = useWorkspaceStore((s) => s.activeConnectionId);
+  const [testFeedback, setTestFeedback] = useState<Record<string, ConnTestFeedback>>({});
+  const [copiedHostId, setCopiedHostId] = useState<string | null>(null);
   const { data: connections, isLoading, isError, error } = useConnections();
   const testMutation = useTestConnection();
   const queryClient = useQueryClient();
+  const feedbackTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  useEffect(() => {
+    const timers = feedbackTimers.current;
+    return () => {
+      Object.values(timers).forEach((t) => clearTimeout(t));
+    };
+  }, []);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  function scheduleFeedbackClear(id: string) {
+    if (feedbackTimers.current[id]) {
+      clearTimeout(feedbackTimers.current[id]);
+    }
+    feedbackTimers.current[id] = setTimeout(() => {
+      setTestFeedback((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      delete feedbackTimers.current[id];
+    }, 5000);
+  }
+
+  function handleTest(id: string) {
+    if (feedbackTimers.current[id]) {
+      clearTimeout(feedbackTimers.current[id]);
+      delete feedbackTimers.current[id];
+    }
+    setTestFeedback((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    testMutation.mutate(id, {
+      onSuccess: (data) => {
+        setTestFeedback((prev) => ({
+          ...prev,
+          [id]: {
+            status: data.ok ? "success" : "error",
+            latencyMs: data.latencyMs,
+            serverVersion: data.serverVersion,
+          },
+        }));
+        void queryClient.invalidateQueries({ queryKey: ["connections"] });
+        scheduleFeedbackClear(id);
+      },
+      onError: (err) => {
+        setTestFeedback((prev) => ({
+          ...prev,
+          [id]: {
+            status: "error",
+            message: err instanceof Error ? err.message : "연결 실패",
+          },
+        }));
+        void queryClient.invalidateQueries({ queryKey: ["connections"] });
+        scheduleFeedbackClear(id);
+      },
+    });
+  }
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -152,18 +265,45 @@ export default function ConnectionsPage() {
         title="연결"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "연결" }]}
         actions={
-          <Button
-            variant="primary"
-            size="sm"
-            icon={<Plus size={13} />}
-            onClick={() => setShowWizard(true)}
-          >
-            새 연결
-          </Button>
+          <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+            {connections && connections.length > 0 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<Download size={13} />}
+                  onClick={() => exportConnectionsCsv(connections)}
+                >
+                  CSV
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<Zap size={13} />}
+                  disabled={testMutation.isPending}
+                  onClick={() => {
+                    connections.forEach((conn) => handleTest(conn.id));
+                  }}
+                >
+                  전체 테스트
+                </Button>
+              </>
+            )}
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Plus size={13} />}
+              onClick={() => setShowWizard(true)}
+            >
+              새 연결
+            </Button>
+          </div>
         }
       />
 
       <div
+        aria-busy={isLoading}
+        aria-live="polite"
         style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}
       >
         {isLoading && (
@@ -185,6 +325,7 @@ export default function ConnectionsPage() {
 
         {isError && (
           <div
+            role="alert"
             style={{
               fontSize: "var(--ds-fs-13)",
               color: "var(--ds-danger)",
@@ -196,15 +337,41 @@ export default function ConnectionsPage() {
         )}
 
         {!isLoading && !isError && connections && connections.length > 0 && (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-3)" }}>
+              <div role="search" aria-label="연결 검색" style={{ position: "relative", maxWidth: 320, flex: 1 }}>
+                <Search aria-hidden="true" size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+                <input
+                  ref={searchRef}
+                  type="search"
+                  aria-label="연결 검색"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="연결 검색... (⌘F)"
+                  style={{ width: "100%", paddingLeft: 30, paddingRight: search ? 28 : "var(--ds-sp-3)", paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", boxSizing: "border-box" }}
+                />
+                {search && (
+                  <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
+                    <XCircle aria-hidden="true" size={13} />
+                  </button>
+                )}
+              </div>
+              {search && (
+                <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", flexShrink: 0 }}>
+                  {connections.filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()) || (c.host ?? "").toLowerCase().includes(search.toLowerCase()) || c.database.toLowerCase().includes(search.toLowerCase())).length}/{connections.length}개
+                </span>
+              )}
+            </div>
           <Card padding={0}>
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table aria-label="데이터베이스 연결 목록" style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: "var(--ds-fill)" }}>
-                    {["이름", "종류", "호스트", "마지막 테스트", "상태", ""].map(
+                    {["이름", "종류", "호스트", "포트", "데이터베이스", "마지막 테스트", "상태", ""].map(
                       (col) => (
                         <th
                           key={col}
+                          scope="col"
                           style={{
                             padding: "var(--ds-sp-2) var(--ds-sp-4)",
                             textAlign: "left",
@@ -226,33 +393,73 @@ export default function ConnectionsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {connections.map((conn) => {
+                  {connections.filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()) || (c.host ?? "").toLowerCase().includes(search.toLowerCase()) || c.database.toLowerCase().includes(search.toLowerCase())).map((conn) => {
                     const isTesting =
                       testMutation.isPending &&
                       testMutation.variables === conn.id;
+                    const feedback = testFeedback[conn.id];
                     return (
                       <tr
                         key={conn.id}
-                        className="hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
+                        className="group hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
                         style={{ borderBottom: "1px solid var(--ds-border)" }}
                       >
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
-                          <span
-                            style={{
-                              fontFamily: "var(--ds-font-mono)",
-                              fontSize: "var(--ds-fs-13)",
-                              color: "var(--ds-text)",
-                              fontWeight:
-                                "var(--ds-fw-medium)" as React.CSSProperties["fontWeight"],
-                            }}
-                          >
-                            {conn.name}
-                          </span>
+                          <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
+                            <span
+                              title={conn.name}
+                              style={{
+                                fontFamily: "var(--ds-font-mono)",
+                                fontSize: "var(--ds-fs-13)",
+                                color: "var(--ds-text)",
+                                fontWeight:
+                                  "var(--ds-fw-medium)" as React.CSSProperties["fontWeight"],
+                              }}
+                            >
+                              {conn.name}
+                            </span>
+                            {activeConnectionId === conn.id && (
+                              <Pill variant="success" dot="ok">활성</Pill>
+                            )}
+                          </div>
                         </td>
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
-                          <Pill variant="default">
-                            {dialectLabels[conn.type] ?? conn.type}
-                          </Pill>
+                          <div style={{ display: "flex", gap: "var(--ds-sp-1)", flexWrap: "wrap" }}>
+                            <Pill variant="default">
+                              {dialectLabels[conn.type] ?? conn.type}
+                            </Pill>
+                            {conn.ssl && (
+                              <Pill variant="success">SSL</Pill>
+                            )}
+                          </div>
+                        </td>
+                        <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <span
+                              className="ds-mono"
+                              style={{
+                                fontSize: "var(--ds-fs-12)",
+                                color: "var(--ds-text-mute)",
+                              }}
+                            >
+                              {conn.host ?? "—"}
+                            </span>
+                            {conn.host && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  void navigator.clipboard.writeText(`${conn.host}:${conn.port ?? ""}`);
+                                  setCopiedHostId(conn.id);
+                                  setTimeout(() => setCopiedHostId((prev) => prev === conn.id ? null : prev), 1500);
+                                }}
+                                aria-label={copiedHostId === conn.id ? "복사됨" : "host:port 복사"}
+                                className="opacity-0 group-hover:opacity-100"
+                                style={{ background: "none", border: "none", cursor: "pointer", color: copiedHostId === conn.id ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+                              >
+                                {copiedHostId === conn.id ? <Check aria-hidden="true" size={10} /> : <Copy aria-hidden="true" size={10} />}
+                              </button>
+                            )}
+                          </div>
                         </td>
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
                           <span
@@ -262,41 +469,69 @@ export default function ConnectionsPage() {
                               color: "var(--ds-text-mute)",
                             }}
                           >
-                            {conn.host ?? "—"}
+                            {conn.port ?? "—"}
                           </span>
                         </td>
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
                           <span
+                            className="ds-mono"
+                            style={{
+                              fontSize: "var(--ds-fs-12)",
+                              color: "var(--ds-text-mute)",
+                            }}
+                          >
+                            {conn.database ?? "—"}
+                          </span>
+                        </td>
+                        <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
+                          <span
+                            title={conn.lastTestedAt ? new Date(conn.lastTestedAt).toLocaleString("ko-KR") : undefined}
                             style={{
                               fontSize: "var(--ds-fs-12)",
                               color: "var(--ds-text-faint)",
                             }}
                           >
-                            {conn.lastTestedAt
-                              ? new Date(conn.lastTestedAt).toLocaleString("ko-KR")
-                              : "미테스트"}
+                            {formatRelativeElapsed(conn.lastTestedAt)}
                           </span>
                         </td>
                         <td style={{ padding: "var(--ds-sp-3) var(--ds-sp-4)" }}>
-                          {isTesting ? (
-                            <Pill variant="info">
-                              <Loader2
-                                size={10}
-                                style={{ animation: "spin 1s linear infinite" }}
-                              />
-                              테스트 중
-                            </Pill>
-                          ) : conn.lastTestedOk === true ? (
-                            <Pill variant="success" dot="ok">
-                              연결됨
-                            </Pill>
-                          ) : conn.lastTestedOk === false ? (
-                            <Pill variant="danger" dot="err">
-                              오류
-                            </Pill>
-                          ) : (
-                            <Pill variant="default">미확인</Pill>
-                          )}
+                          <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
+                            {isTesting ? (
+                              <Pill variant="info">
+                                <Loader2
+                                  aria-hidden="true"
+                                  size={10}
+                                  style={{ animation: "spin 1s linear infinite" }}
+                                />
+                                테스트 중
+                              </Pill>
+                            ) : conn.lastTestedOk === true ? (
+                              <Pill variant="success" dot="ok">
+                                연결 정상
+                              </Pill>
+                            ) : conn.lastTestedOk === false ? (
+                              <Pill variant="danger" dot="err">
+                                연결 실패
+                              </Pill>
+                            ) : (
+                              <Pill variant="default">테스트 안함</Pill>
+                            )}
+                            {feedback && !isTesting && (
+                              <span
+                                role="status"
+                                aria-live="polite"
+                                style={{
+                                  fontSize: "var(--ds-fs-11)",
+                                  color: feedback.status === "success" ? "var(--ds-success)" : "var(--ds-danger)",
+                                  fontFamily: "var(--ds-font-mono)",
+                                }}
+                              >
+                                {feedback.status === "success"
+                                  ? `${typeof feedback.latencyMs === "number" ? `${feedback.latencyMs}ms` : ""}${feedback.serverVersion ? ` · ${feedback.serverVersion}` : ""}`.trim() || "OK"
+                                  : feedback.message ?? "연결 실패"}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)" }}>
                           <div
@@ -328,22 +563,16 @@ export default function ConnectionsPage() {
                                 )
                               }
                               disabled={isTesting}
-                              onClick={() =>
-                                testMutation.mutate(conn.id)
-                              }
+                              onClick={() => handleTest(conn.id)}
                             >
-                              재테스트
+                              {isTesting ? "테스트 중" : "재테스트"}
                             </Button>
                             <Button
                               variant="danger"
                               size="sm"
                               icon={<Trash2 size={12} />}
                               disabled={deleteMutation.isPending && deleteMutation.variables === conn.id}
-                              onClick={() => {
-                                if (confirm(`"${conn.name}" 연결을 삭제하시겠습니까?`)) {
-                                  deleteMutation.mutate(conn.id);
-                                }
-                              }}
+                              onClick={() => setDeleteConfirmId(conn.id)}
                             >
                               삭제
                             </Button>
@@ -354,12 +583,32 @@ export default function ConnectionsPage() {
                   })}
                 </tbody>
               </table>
+              {search && connections.filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()) || (c.host ?? "").toLowerCase().includes(search.toLowerCase()) || c.database.toLowerCase().includes(search.toLowerCase())).length === 0 && (
+                <div style={{ textAlign: "center", padding: "var(--ds-sp-5)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
+                  <div>검색 결과가 없습니다.</div>
+                  <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setSearch("")}>
+                    검색 지우기
+                  </Button>
+                </div>
+              )}
             </div>
           </Card>
+          </>
         )}
 
         {editingConn && (
-          <EditConnectionForm conn={editingConn} onClose={() => setEditingConn(null)} />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="연결 편집"
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
+            onClick={() => setEditingConn(null)}
+            onKeyDown={(e) => { if (e.key === "Escape") setEditingConn(null); }}
+          >
+            <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto" }}>
+              <EditConnectionForm conn={editingConn} onClose={() => setEditingConn(null)} />
+            </div>
+          </div>
         )}
 
         {!isLoading && !isError && (!connections || connections.length === 0) && (
@@ -396,6 +645,19 @@ export default function ConnectionsPage() {
           onClose={() => setShowWizard(false)}
           onDone={() => setShowWizard(false)}
         />
+      )}
+
+      {deleteConfirmId && (
+        <div role="dialog" aria-modal="true" aria-label="연결 삭제" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteConfirmId(null)} onKeyDown={(e) => { if (e.key === "Escape") setDeleteConfirmId(null); }}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 280, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>연결 삭제</h2>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>이 연결을 삭제하시겠습니까? 연관된 저장 쿼리에 영향을 줄 수 있습니다.</div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button autoFocus variant="ghost" size="sm" onClick={() => setDeleteConfirmId(null)}>취소</Button>
+              <Button variant="danger" size="sm" onClick={() => { deleteMutation.mutate(deleteConfirmId); setDeleteConfirmId(null); }}>삭제</Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Plus, Trash2, Pencil, Zap, CheckCircle2, XCircle, Clock,
-  Wifi, WifiOff, Eye, EyeOff,
+  Wifi, WifiOff, Eye, EyeOff, Copy, Check,
 } from "lucide-react";
 import type { AiProviderType } from "@/app/api/ai-providers/route";
 
@@ -42,6 +43,18 @@ const PROVIDER_META: Record<AiProviderType, { label: string; needsKey: boolean; 
 };
 
 const TYPE_OPTIONS = Object.entries(PROVIDER_META).map(([k, v]) => ({ value: k as AiProviderType, label: v.label }));
+
+function formatRelativeElapsed(iso: string | null | undefined): string {
+  if (!iso) return "테스트 안 함";
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 60_000) return "방금 전";
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMs / 3_600_000);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffMs / 86_400_000);
+  return `${diffDay}일 전`;
+}
 
 // ─── form data ────────────────────────────────────────────────────────────────
 
@@ -101,12 +114,16 @@ function ProviderModal({
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="AI 프로바이더 설정"
       style={{
         position: "fixed", inset: 0, zIndex: 50,
         display: "flex", alignItems: "center", justifyContent: "center",
         background: "rgba(0,0,0,0.4)",
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
     >
       <div
         style={{
@@ -126,13 +143,15 @@ function ProviderModal({
           <h2 style={{ flex: 1, fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>
             {editId ? "AI 프로바이더 수정" : "AI 프로바이더 추가"}
           </h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", fontSize: 18, lineHeight: 1 }}>×</button>
+          <button type="button" onClick={onClose} aria-label="닫기" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", fontSize: 18, lineHeight: 1, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">×</button>
         </div>
 
         {/* Type */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>프로바이더 유형</label>
+          <label htmlFor="prov-type" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>프로바이더 유형</label>
           <select
+            id="prov-type"
+            aria-label="프로바이더 유형"
             value={form.type}
             onChange={(e) => onTypeChange(e.target.value as AiProviderType)}
             style={{ background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", padding: "var(--ds-sp-2)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", width: "100%" }}
@@ -143,8 +162,10 @@ function ProviderModal({
 
         {/* Name */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>이름</label>
+          <label htmlFor="prov-name" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>이름</label>
           <input
+            id="prov-name"
+            autoFocus
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
             placeholder={`예: 내 ${meta.label} 계정`}
@@ -154,8 +175,9 @@ function ProviderModal({
 
         {/* Model */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>모델명</label>
+          <label htmlFor="prov-model" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>모델명</label>
           <input
+            id="prov-model"
             value={form.model}
             onChange={(e) => set("model", e.target.value)}
             placeholder={meta.defaultModel}
@@ -166,12 +188,14 @@ function ProviderModal({
         {/* API Key */}
         {meta.needsKey && (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
+            <label htmlFor="prov-apikey" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
               API 키 {editId && <span style={{ color: "var(--ds-text-faint)", fontWeight: "normal" }}>(변경 시에만 입력)</span>}
             </label>
             <div style={{ position: "relative" }}>
               <input
                 type={showKey ? "text" : "password"}
+                id="prov-apikey"
+                aria-label="API 키"
                 value={form.apiKey}
                 onChange={(e) => set("apiKey", e.target.value)}
                 placeholder="sk-..."
@@ -179,10 +203,13 @@ function ProviderModal({
               />
               <button
                 type="button"
+                aria-label={showKey ? "API 키 숨기기" : "API 키 보기"}
+                aria-pressed={showKey}
                 onClick={() => setShowKey((v) => !v)}
-                style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center" }}
+                style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+                className="hover:opacity-70"
               >
-                {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
+                {showKey ? <EyeOff aria-hidden="true" size={14} /> : <Eye aria-hidden="true" size={14} />}
               </button>
             </div>
           </div>
@@ -191,8 +218,9 @@ function ProviderModal({
         {/* Base URL */}
         {(meta.needsBase || form.type === "openai_compat") && (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Base URL</label>
+            <label htmlFor="prov-baseurl" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Base URL</label>
             <input
+              id="prov-baseurl"
               value={form.baseUrl}
               onChange={(e) => set("baseUrl", e.target.value)}
               placeholder="http://localhost:1234"
@@ -204,8 +232,10 @@ function ProviderModal({
         {/* Temperature + MaxTokens */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ds-sp-3)" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Temperature</label>
+            <label htmlFor="prov-temp" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Temperature</label>
             <input
+              id="prov-temp"
+              aria-label="Temperature"
               type="number" min={0} max={2} step={0.1}
               value={form.temperature}
               onChange={(e) => set("temperature", parseFloat(e.target.value) || 0)}
@@ -213,8 +243,10 @@ function ProviderModal({
             />
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Max Tokens</label>
+            <label htmlFor="prov-maxtokens" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>Max Tokens</label>
             <input
+              id="prov-maxtokens"
+              aria-label="Max Tokens"
               type="number" min={256} max={32768} step={256}
               value={form.maxTokens}
               onChange={(e) => set("maxTokens", parseInt(e.target.value) || 2048)}
@@ -255,6 +287,12 @@ function ProviderModal({
 
 // ─── ProviderCard ─────────────────────────────────────────────────────────────
 
+interface TestFeedback {
+  status: "running" | "success" | "error";
+  latencyMs?: number;
+  message?: string;
+}
+
 function ProviderCard({
   provider,
   onEdit,
@@ -262,6 +300,7 @@ function ProviderCard({
   onTest,
   onActivate,
   testing,
+  feedback,
 }: {
   provider: ProviderRow;
   onEdit: () => void;
@@ -269,16 +308,43 @@ function ProviderCard({
   onTest: () => void;
   onActivate: () => void;
   testing: boolean;
+  feedback?: TestFeedback;
 }) {
   const meta = PROVIDER_META[provider.type];
+  const [copiedModel, setCopiedModel] = useState(false);
 
   function TestIcon() {
     if (provider.lastTestedOk === null || provider.lastTestedOk === undefined) {
-      return <Clock size={12} style={{ color: "var(--ds-text-faint)" }} />;
+      return <Clock aria-hidden="true" size={12} style={{ color: "var(--ds-text-faint)" }} />;
     }
     return provider.lastTestedOk
-      ? <CheckCircle2 size={12} style={{ color: "var(--ds-success)" }} />
-      : <XCircle size={12} style={{ color: "var(--ds-danger)" }} />;
+      ? <CheckCircle2 aria-hidden="true" size={12} style={{ color: "var(--ds-success)" }} />
+      : <XCircle aria-hidden="true" size={12} style={{ color: "var(--ds-danger)" }} />;
+  }
+
+  function FeedbackLine() {
+    if (!feedback) return null;
+    if (feedback.status === "running") {
+      return (
+        <div role="status" aria-live="polite" style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)" }}>
+          테스트 중...
+        </div>
+      );
+    }
+    if (feedback.status === "success") {
+      return (
+        <div role="status" aria-live="polite" style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-success)", display: "flex", alignItems: "center", gap: "var(--ds-sp-1)" }}>
+          <CheckCircle2 aria-hidden="true" size={12} />
+          <span>연결 성공{typeof feedback.latencyMs === "number" ? ` · ${feedback.latencyMs}ms` : ""}</span>
+        </div>
+      );
+    }
+    return (
+      <div role="alert" aria-live="assertive" style={{ marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-11)", color: "var(--ds-danger)", display: "flex", alignItems: "center", gap: "var(--ds-sp-1)" }}>
+        <XCircle aria-hidden="true" size={12} />
+        <span>{feedback.message ?? "연결 실패"}</span>
+      </div>
+    );
   }
 
   return (
@@ -296,8 +362,23 @@ function ProviderCard({
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-3)", flexWrap: "wrap" }}>
             <Pill variant="info">{meta.label}</Pill>
-            <span style={{ fontSize: "var(--ds-fs-11)", fontFamily: "var(--ds-font-mono)", color: "var(--ds-text-mute)" }}>
-              {provider.model}
+            <span style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-1)" }}>
+              <span style={{ fontSize: "var(--ds-fs-11)", fontFamily: "var(--ds-font-mono)", color: "var(--ds-text-mute)" }}>
+                {provider.model}
+              </span>
+              <button
+                type="button"
+                aria-label={copiedModel ? "복사됨" : "모델명 복사"}
+                onClick={() => {
+                  void navigator.clipboard.writeText(provider.model);
+                  setCopiedModel(true);
+                  setTimeout(() => setCopiedModel(false), 1500);
+                }}
+                style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)", transition: "color var(--ds-dur-fast) var(--ds-ease), opacity var(--ds-dur-fast) var(--ds-ease)" }}
+                className="hover:opacity-70"
+              >
+                {copiedModel ? <Check aria-hidden="true" size={11} style={{ color: "var(--ds-success)" }} /> : <Copy aria-hidden="true" size={11} />}
+              </button>
             </span>
             {provider.baseUrl && (
               <span style={{ fontSize: "var(--ds-fs-11)", fontFamily: "var(--ds-font-mono)", color: "var(--ds-text-faint)" }}>
@@ -307,9 +388,12 @@ function ProviderCard({
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginTop: "var(--ds-sp-2)" }}>
             <TestIcon />
-            <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
+            <span
+              title={provider.lastTestedAt ? new Date(provider.lastTestedAt).toLocaleString("ko-KR") : undefined}
+              style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", cursor: "default" }}
+            >
               {provider.lastTestedAt
-                ? `${provider.lastTestedOk ? "연결 성공" : "연결 실패"} · ${new Date(provider.lastTestedAt).toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
+                ? `${provider.lastTestedOk ? "연결 성공" : "연결 실패"} · ${formatRelativeElapsed(provider.lastTestedAt)}`
                 : "테스트 안 함"}
             </span>
             <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
@@ -329,24 +413,94 @@ function ProviderCard({
             disabled={testing}
             title="연결 테스트"
           >
-            {testing ? <WifiOff size={13} /> : <Wifi size={13} />}
+            {testing ? <WifiOff aria-hidden="true" size={13} /> : <Wifi aria-hidden="true" size={13} />}
             <span style={{ marginLeft: 4 }}>{testing ? "테스트 중" : "테스트"}</span>
           </Button>
           {!provider.isActive && (
-            <Button variant="ghost" size="sm" onClick={onActivate} title="활성화">
-              <Zap size={13} />
+            <Button variant="ghost" size="sm" onClick={onActivate}>
+              <Zap aria-hidden="true" size={13} />
               <span style={{ marginLeft: 4 }}>활성화</span>
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={onEdit} title="수정">
-            <Pencil size={13} />
+          <Button variant="ghost" size="sm" onClick={onEdit} aria-label="수정">
+            <Pencil aria-hidden="true" size={13} />
           </Button>
-          <Button variant="ghost" size="sm" onClick={onDelete} title="삭제">
-            <Trash2 size={13} style={{ color: "var(--ds-danger)" }} />
+          <Button variant="ghost" size="sm" onClick={onDelete} aria-label="삭제">
+            <Trash2 aria-hidden="true" size={13} style={{ color: "var(--ds-danger)" }} />
           </Button>
         </div>
       </div>
+      <FeedbackLine />
     </Card>
+  );
+}
+
+// ─── DeleteModal ──────────────────────────────────────────────────────────────
+
+function DeleteModal({
+  provider,
+  onCancel,
+  onConfirm,
+  deleting,
+}: {
+  provider: ProviderRow;
+  onCancel: () => void;
+  onConfirm: () => void;
+  deleting: boolean;
+}) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="프로바이더 삭제"
+      style={{
+        position: "fixed", inset: 0, zIndex: 50,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: "rgba(0,0,0,0.4)",
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+      onKeyDown={(e) => { if (e.key === "Escape") onCancel(); }}
+    >
+      <div
+        style={{
+          background: "var(--ds-surface)",
+          border: "1px solid var(--ds-border)",
+          borderRadius: "var(--ds-r-8)",
+          padding: "var(--ds-sp-5)",
+          width: 440,
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--ds-sp-3)",
+        }}
+      >
+        <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>
+          AI 프로바이더 삭제
+        </h2>
+        <p style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", margin: 0 }}>
+          <strong style={{ color: "var(--ds-text)" }}>&quot;{provider.name}&quot;</strong> 프로바이더를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+        </p>
+        {provider.isActive && (
+          <div
+            style={{
+              fontSize: "var(--ds-fs-12)",
+              color: "var(--ds-warn)",
+              padding: "var(--ds-sp-2) var(--ds-sp-3)",
+              border: "1px solid var(--ds-warn)",
+              borderRadius: "var(--ds-r-6)",
+              background: "var(--ds-warn-soft)",
+            }}
+          >
+            ⚠️ 이 프로바이더는 현재 활성 상태입니다. 삭제 시 AI 기능이 중단됩니다.
+          </div>
+        )}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)", marginTop: "var(--ds-sp-1)" }}>
+          <Button autoFocus variant="ghost" size="sm" onClick={onCancel} disabled={deleting}>취소</Button>
+          <Button size="sm" onClick={onConfirm} disabled={deleting}>
+            {deleting ? "삭제 중..." : "삭제"}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -358,6 +512,17 @@ export default function AiProvidersPage() {
     open: false, editId: null, initial: DEFAULT_FORM,
   });
   const [testingId, setTestingId] = useState<string | null>(null);
+  const [testFeedback, setTestFeedback] = useState<Record<string, TestFeedback>>({});
+  const [deleteTarget, setDeleteTarget] = useState<ProviderRow | null>(null);
+  const feedbackTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    const timers = feedbackTimers.current;
+    return () => {
+      Object.values(timers).forEach((t) => clearTimeout(t));
+    };
+  }, []);
 
   const { data: providers = [], isLoading } = useQuery<ProviderRow[]>({
     queryKey: ["ai-providers"],
@@ -397,7 +562,10 @@ export default function AiProvidersPage() {
       const res = await fetch(`/api/ai-providers/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("삭제 실패");
     },
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["ai-providers"] }); },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["ai-providers"] });
+      setDeleteTarget(null);
+    },
   });
 
   const activateMutation = useMutation({
@@ -408,13 +576,65 @@ export default function AiProvidersPage() {
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ["ai-providers"] }); },
   });
 
+  function scheduleFeedbackClear(id: string) {
+    if (feedbackTimers.current[id]) {
+      clearTimeout(feedbackTimers.current[id]);
+    }
+    feedbackTimers.current[id] = setTimeout(() => {
+      setTestFeedback((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      delete feedbackTimers.current[id];
+    }, 5000);
+  }
+
   async function handleTest(id: string) {
     setTestingId(id);
+    // Clear any pending auto-dismiss timer while a new test runs
+    if (feedbackTimers.current[id]) {
+      clearTimeout(feedbackTimers.current[id]);
+      delete feedbackTimers.current[id];
+    }
+    setTestFeedback((prev) => ({ ...prev, [id]: { status: "running" } }));
     try {
-      await fetch(`/api/ai-providers/${id}/test`, { method: "POST" });
+      const res = await fetch(`/api/ai-providers/${id}/test`, { method: "POST" });
+      const json = (await res.json().catch(() => ({}))) as {
+        data?: { ok?: boolean; latencyMs?: number; message?: string };
+        error?: string;
+      };
+      const payload = json.data;
+      if (res.ok && payload?.ok) {
+        setTestFeedback((prev) => ({
+          ...prev,
+          [id]: {
+            status: "success",
+            latencyMs: payload.latencyMs,
+            message: payload.message,
+          },
+        }));
+      } else {
+        setTestFeedback((prev) => ({
+          ...prev,
+          [id]: {
+            status: "error",
+            message: payload?.message ?? json.error ?? "연결 실패",
+          },
+        }));
+      }
       await qc.invalidateQueries({ queryKey: ["ai-providers"] });
+    } catch (err) {
+      setTestFeedback((prev) => ({
+        ...prev,
+        [id]: {
+          status: "error",
+          message: err instanceof Error ? err.message : "네트워크 오류",
+        },
+      }));
     } finally {
       setTestingId(null);
+      scheduleFeedbackClear(id);
     }
   }
 
@@ -444,13 +664,13 @@ export default function AiProvidersPage() {
         breadcrumbs={[{ label: "vibeSQL" }, { label: "AI 설정" }, { label: "AI 프로바이더" }]}
         actions={
           <Button size="sm" onClick={openAdd}>
-            <Plus size={13} />
+            <Plus aria-hidden="true" size={13} />
             <span style={{ marginLeft: 4 }}>프로바이더 추가</span>
           </Button>
         }
       />
 
-      <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
         {/* Stat row */}
         <div style={{ display: "flex", gap: "var(--ds-sp-3)", marginBottom: "var(--ds-sp-5)" }}>
           {[
@@ -477,8 +697,10 @@ export default function AiProvidersPage() {
 
         {/* Provider list */}
         {isLoading ? (
-          <div style={{ color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)", padding: "var(--ds-sp-5) 0" }}>
-            불러오는 중...
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-24 w-full rounded-lg" />
+            ))}
           </div>
         ) : providers.length === 0 ? (
           <div
@@ -491,7 +713,7 @@ export default function AiProvidersPage() {
               등록된 AI 프로바이더가 없습니다.
             </div>
             <Button size="sm" onClick={openAdd}>
-              <Plus size={13} />
+              <Plus aria-hidden="true" size={13} />
               <span style={{ marginLeft: 4 }}>첫 프로바이더 추가</span>
             </Button>
           </div>
@@ -503,10 +725,11 @@ export default function AiProvidersPage() {
                 key={p.id}
                 provider={p}
                 onEdit={() => openEdit(p)}
-                onDelete={() => { if (confirm(`"${p.name}" 프로바이더를 삭제할까요?`)) deleteMutation.mutate(p.id); }}
+                onDelete={() => setDeleteTarget(p)}
                 onTest={() => handleTest(p.id)}
                 onActivate={() => activateMutation.mutate(p.id)}
                 testing={testingId === p.id}
+                feedback={testFeedback[p.id]}
               />
             ))}
             {inactive.map((p) => (
@@ -514,10 +737,11 @@ export default function AiProvidersPage() {
                 key={p.id}
                 provider={p}
                 onEdit={() => openEdit(p)}
-                onDelete={() => { if (confirm(`"${p.name}" 프로바이더를 삭제할까요?`)) deleteMutation.mutate(p.id); }}
+                onDelete={() => setDeleteTarget(p)}
                 onTest={() => handleTest(p.id)}
                 onActivate={() => activateMutation.mutate(p.id)}
                 testing={testingId === p.id}
+                feedback={testFeedback[p.id]}
               />
             ))}
           </div>
@@ -531,6 +755,15 @@ export default function AiProvidersPage() {
           onSave={(form) => saveMutation.mutate({ editId: modal.editId, form })}
           onClose={() => setModal({ open: false, editId: null, initial: DEFAULT_FORM })}
           saving={saveMutation.isPending}
+        />
+      )}
+
+      {deleteTarget && (
+        <DeleteModal
+          provider={deleteTarget}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={() => deleteMutation.mutate(deleteTarget.id)}
+          deleting={deleteMutation.isPending}
         />
       )}
     </div>

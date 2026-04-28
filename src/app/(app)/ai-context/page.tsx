@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
-import { Plus, Trash2, Pencil, Lightbulb, ShieldX, Tag, ToggleLeft, ToggleRight } from "lucide-react";
+import { Plus, Trash2, Pencil, Lightbulb, ShieldX, Tag, ToggleLeft, ToggleRight, ChevronDown, ChevronRight, Copy, Check, Search, X } from "lucide-react";
 import type { AiContextRule, AiContextRuleType } from "@/types";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -37,6 +37,45 @@ const DEFAULT_FORM: RuleFormData = {
   priority: 0,
 };
 
+// ─── Value preview with expand ───────────────────────────────────────────────
+
+function ValuePreview({ value }: { value: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = value.length > 100;
+  const uid = useId();
+  const textId = `value-preview-${uid}`;
+  return (
+    <div>
+      <div
+        id={textId}
+        style={{
+          fontSize: "var(--ds-fs-11)",
+          fontFamily: "var(--ds-font-mono)",
+          color: "var(--ds-text-mute)",
+          whiteSpace: expanded ? "pre-wrap" : "nowrap",
+          overflow: expanded ? "visible" : "hidden",
+          textOverflow: expanded ? "clip" : "ellipsis",
+          wordBreak: expanded ? "break-all" : undefined,
+        }}
+      >
+        {expanded ? value : value.slice(0, 100) + (isLong ? "..." : "")}
+      </div>
+      {isLong && (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={textId}
+          onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 2, marginTop: 2, background: "none", border: "none", cursor: "pointer", fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)", padding: 0, fontFamily: "var(--ds-font-sans)" }}
+        >
+          {expanded ? <ChevronRight aria-hidden="true" size={10} /> : <ChevronDown aria-hidden="true" size={10} />}
+          {expanded ? "접기" : "전체 보기"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── Rule form modal ──────────────────────────────────────────────────────────
 
 function RuleModal({
@@ -64,7 +103,9 @@ function RuleModal({
     <div
       role="dialog"
       aria-modal="true"
+      aria-label={initial.key ? "규칙 편집" : "규칙 추가"}
       onClick={onClose}
+      onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       style={{
         position: "fixed",
         inset: 0,
@@ -91,9 +132,9 @@ function RuleModal({
           boxShadow: "var(--ds-shadow-modal)",
         }}
       >
-        <div style={{ fontSize: "var(--ds-fs-16)", fontWeight: "var(--ds-fw-bold)", color: "var(--ds-text)" }}>
+        <h2 style={{ fontSize: "var(--ds-fs-16)", fontWeight: "var(--ds-fw-bold)", color: "var(--ds-text)", margin: 0 }}>
           {initial.key ? "규칙 편집" : "규칙 추가"}
-        </div>
+        </h2>
 
         {/* Rule type */}
         <div style={{ display: "flex", gap: "var(--ds-sp-2)", flexWrap: "wrap" }}>
@@ -103,6 +144,8 @@ function RuleModal({
             return (
               <button
                 key={t}
+                type="button"
+                aria-pressed={form.ruleType === t}
                 onClick={() => set("ruleType", t)}
                 style={{
                   display: "flex",
@@ -116,9 +159,10 @@ function RuleModal({
                   fontSize: "var(--ds-fs-12)",
                   cursor: "pointer",
                   fontFamily: "var(--ds-font-sans)",
+                  transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
-                <m.icon size={12} />
+                <m.icon aria-hidden="true" size={12} />
                 {m.label}
               </button>
             );
@@ -131,10 +175,13 @@ function RuleModal({
 
         {/* Key field */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
-            {keyLabel} <span style={{ color: "var(--ds-danger)" }}>*</span>
+          <label htmlFor="rule-key" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
+            {keyLabel} <span aria-hidden="true" style={{ color: "var(--ds-danger)" }}>*</span>
           </label>
           <input
+            id="rule-key"
+            autoFocus
+            aria-required="true"
             value={form.key}
             onChange={(e) => set("key", e.target.value)}
             placeholder={form.ruleType === "few_shot" ? "예: 이번 달 매출 상위 10개 제품" : form.ruleType === "forbidden" ? "예: no_delete" : "예: 고객"}
@@ -153,10 +200,12 @@ function RuleModal({
 
         {/* Value field */}
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
-            {valueLabel} <span style={{ color: "var(--ds-danger)" }}>*</span>
+          <label htmlFor="rule-value" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>
+            {valueLabel} <span aria-hidden="true" style={{ color: "var(--ds-danger)" }}>*</span>
           </label>
           <textarea
+            id="rule-value"
+            aria-required="true"
             value={form.value}
             onChange={(e) => set("value", e.target.value)}
             rows={4}
@@ -185,8 +234,9 @@ function RuleModal({
         {/* Description + priority row */}
         <div style={{ display: "flex", gap: "var(--ds-sp-3)" }}>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>설명 (선택)</label>
+            <label htmlFor="rule-desc" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>설명 (선택)</label>
             <input
+              id="rule-desc"
               value={form.description}
               onChange={(e) => set("description", e.target.value)}
               placeholder="규칙 설명..."
@@ -203,8 +253,10 @@ function RuleModal({
             />
           </div>
           <div style={{ width: 80, display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>우선순위</label>
+            <label htmlFor="ctx-priority" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>우선순위</label>
             <input
+              id="ctx-priority"
+              aria-label="우선순위"
               type="number"
               min={0}
               max={100}
@@ -246,6 +298,19 @@ function RuleModal({
 export default function AiContextPage() {
   const queryClient = useQueryClient();
   const [modal, setModal] = useState<{ open: boolean; editing: AiContextRule | null }>({ open: false, editing: null });
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [copiedRuleId, setCopiedRuleId] = useState<string | null>(null);
+  const importRef = useRef<HTMLInputElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const { data: rules = [], isLoading } = useQuery({
     queryKey: ["ai-context"],
@@ -301,29 +366,76 @@ export default function AiContextPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ai-context"] }),
   });
 
+  const [search, setSearch] = useState("");
+
   const groupedRules = RULE_TYPES.map((t) => ({
     type: t,
-    items: rules.filter((r) => r.ruleType === t),
+    items: rules.filter((r) => {
+      if (r.ruleType !== t) return false;
+      if (!search) return true;
+      const lc = search.toLowerCase();
+      return r.key.toLowerCase().includes(lc) || r.value.toLowerCase().includes(lc) || (r.description ?? "").toLowerCase().includes(lc);
+    }),
   }));
+
+  function handleExport() {
+    const payload = rules.map(({ id: _id, createdAt: _c, updatedAt: _u, ...rest }) => rest);
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ai-context-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const items = JSON.parse(text) as RuleFormData[];
+      if (!Array.isArray(items)) throw new Error("Invalid format");
+      await Promise.allSettled(
+        items.map((item) =>
+          fetch("/api/ai-context", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item),
+          })
+        )
+      );
+      queryClient.invalidateQueries({ queryKey: ["ai-context"] });
+    } catch {
+      setImportError("JSON 파일 형식이 올바르지 않습니다.");
+    } finally {
+      if (importRef.current) importRef.current.value = "";
+    }
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+      <input ref={importRef} type="file" accept=".json" style={{ display: "none" }} onChange={handleImport} />
       <TopBar
         title="AI 컨텍스트 튜너"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "지식베이스" }, { label: "AI 컨텍스트" }]}
         actions={
-          <Button
-            variant="accent"
-            size="sm"
-            icon={<Plus size={13} />}
-            onClick={() => setModal({ open: true, editing: null })}
-          >
-            규칙 추가
-          </Button>
+          <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+            <Button variant="ghost" size="sm" onClick={handleExport}>내보내기</Button>
+            <Button variant="ghost" size="sm" onClick={() => importRef.current?.click()}>가져오기</Button>
+            <Button
+              variant="accent"
+              size="sm"
+              icon={<Plus size={13} />}
+              onClick={() => setModal({ open: true, editing: null })}
+            >
+              규칙 추가
+            </Button>
+          </div>
         }
       />
 
-      <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
         {/* Intro callout */}
         <div
           style={{
@@ -340,11 +452,47 @@ export default function AiContextPage() {
           SQL 생성 시 자동으로 AI 프롬프트에 주입되어 정확도를 향상시킵니다.
         </div>
 
+        {!isLoading && rules.length > 0 && (
+          <div style={{ marginBottom: "var(--ds-sp-4)", maxWidth: 320 }}>
+            <div role="search" aria-label="규칙 검색" style={{ position: "relative" }}>
+              <Search aria-hidden="true" size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+              <input
+                ref={searchRef}
+                type="search"
+                aria-label="규칙 검색"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="규칙 검색... (⌘F)"
+                style={{ width: "100%", paddingLeft: 30, paddingRight: search ? 28 : "var(--ds-sp-3)", paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", boxSizing: "border-box" }}
+              />
+              {search && (
+                <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
+                  <X aria-hidden="true" size={13} />
+                </button>
+              )}
+            </div>
+            {search && (
+              <div role="status" aria-live="polite" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: "var(--ds-sp-1)" }}>
+                {groupedRules.reduce((sum, g) => sum + g.items.length, 0)}/{rules.length}개 규칙 표시 중
+              </div>
+            )}
+          </div>
+        )}
+
         {isLoading && (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }}>
             {[1, 2, 3].map((i) => (
               <div key={i} style={{ height: 80, background: "var(--ds-fill)", borderRadius: "var(--ds-r-8)" }} className="ds-stripes" />
             ))}
+          </div>
+        )}
+
+        {!isLoading && search && groupedRules.every((g) => g.items.length === 0) && (
+          <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
+            <div>검색 결과가 없습니다.</div>
+            <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setSearch("")}>
+              검색 지우기
+            </Button>
           </div>
         )}
 
@@ -362,18 +510,19 @@ export default function AiContextPage() {
                       marginBottom: "var(--ds-sp-2)",
                     }}
                   >
-                    <meta.icon size={14} style={{ color: "var(--ds-text-faint)" }} />
-                    <span
+                    <meta.icon aria-hidden="true" size={14} style={{ color: "var(--ds-text-faint)" }} />
+                    <h3
                       style={{
                         fontSize: "var(--ds-fs-11)",
                         fontWeight: "var(--ds-fw-semibold)",
                         color: "var(--ds-text-mute)",
                         textTransform: "uppercase",
                         letterSpacing: "0.06em",
+                        margin: 0,
                       }}
                     >
                       {meta.label}
-                    </span>
+                    </h3>
                     <Pill variant={meta.variant}>{items.length}</Pill>
                   </div>
 
@@ -395,6 +544,7 @@ export default function AiContextPage() {
                       {items.map((rule, i) => (
                         <div
                           key={rule.id}
+                          className="group hover:bg-fill transition-colors"
                           style={{
                             display: "flex",
                             alignItems: "flex-start",
@@ -415,18 +565,7 @@ export default function AiContextPage() {
                             >
                               {rule.key}
                             </div>
-                            <div
-                              style={{
-                                fontSize: "var(--ds-fs-11)",
-                                fontFamily: "var(--ds-font-mono)",
-                                color: "var(--ds-text-mute)",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {rule.value.slice(0, 100)}{rule.value.length > 100 ? "..." : ""}
-                            </div>
+                            <ValuePreview value={rule.value} />
                             {rule.description && (
                               <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>
                                 {rule.description}
@@ -450,6 +589,22 @@ export default function AiContextPage() {
                               </span>
                             )}
                             <button
+                              type="button"
+                              aria-label={copiedRuleId === rule.id ? "복사됨" : "값 복사"}
+                              onClick={() => {
+                                navigator.clipboard.writeText(rule.value);
+                                setCopiedRuleId(rule.id);
+                                setTimeout(() => setCopiedRuleId((prev) => prev === rule.id ? null : prev), 2000);
+                              }}
+                              className="opacity-0 group-hover:opacity-100"
+                              style={{ background: "none", border: "none", cursor: "pointer", color: copiedRuleId === rule.id ? "var(--ds-success)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+                            >
+                              {copiedRuleId === rule.id ? <Check aria-hidden="true" size={13} /> : <Copy aria-hidden="true" size={13} />}
+                            </button>
+                            <button
+                              type="button"
+                              aria-label={rule.isActive ? "비활성화" : "활성화"}
+                              aria-pressed={rule.isActive}
                               onClick={() => toggleMutation.mutate({ id: rule.id, isActive: !rule.isActive })}
                               title={rule.isActive ? "비활성화" : "활성화"}
                               style={{
@@ -461,7 +616,7 @@ export default function AiContextPage() {
                                 alignItems: "center",
                               }}
                             >
-                              {rule.isActive ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                              {rule.isActive ? <ToggleRight aria-hidden="true" size={16} /> : <ToggleLeft aria-hidden="true" size={16} />}
                             </button>
                             <Button
                               variant="ghost"
@@ -476,11 +631,7 @@ export default function AiContextPage() {
                               size="sm"
                               icon={<Trash2 size={11} />}
                               loading={deleteMutation.isPending && deleteMutation.variables === rule.id}
-                              onClick={() => {
-                                if (confirm(`"${rule.key}" 규칙을 삭제할까요?`)) {
-                                  deleteMutation.mutate(rule.id);
-                                }
-                              }}
+                              onClick={() => setDeleteConfirmId(rule.id)}
                             >
                               삭제
                             </Button>
@@ -516,6 +667,31 @@ export default function AiContextPage() {
           }
           onClose={() => setModal({ open: false, editing: null })}
         />
+      )}
+
+      {importError && (
+        <div role="dialog" aria-modal="true" aria-label="가져오기 오류" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setImportError(null)} onKeyDown={(e) => { if (e.key === "Escape") setImportError(null); }}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 280, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-danger)", margin: 0 }}>가져오기 오류</h2>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>{importError}</div>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <Button autoFocus variant="ghost" size="sm" onClick={() => setImportError(null)}>닫기</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmId && (
+        <div role="dialog" aria-modal="true" aria-label="컨텍스트 규칙 삭제" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteConfirmId(null)} onKeyDown={(e) => { if (e.key === "Escape") setDeleteConfirmId(null); }}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 280, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>규칙 삭제</h2>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>이 AI 컨텍스트 규칙을 삭제할까요?</div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button autoFocus variant="ghost" size="sm" onClick={() => setDeleteConfirmId(null)}>취소</Button>
+              <Button variant="danger" size="sm" onClick={() => { deleteMutation.mutate(deleteConfirmId); setDeleteConfirmId(null); }}>삭제</Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

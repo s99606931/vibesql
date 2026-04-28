@@ -22,10 +22,15 @@ import {
   AlertCircle,
   TrendingUp,
   Clock,
+  Copy,
+  Check,
 } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 
 // ─── 워크플로 스텝 ─────────────────────────────────────────────────────────────
 
@@ -174,11 +179,14 @@ type CheckStatus = "loading" | "ok" | "empty" | "error";
 
 function GuideItem({
   item,
+  defaultOpen = false,
 }: {
   item: (typeof MENU_GUIDES)[number];
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const Icon = item.icon;
+  const panelId = `guide-panel-${item.label.replace(/\s+/g, "-").replace(/·/g, "")}`;
   return (
     <div
       style={{
@@ -188,7 +196,12 @@ function GuideItem({
       }}
     >
       <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        aria-label={`${item.label} ${open ? "접기" : "펼치기"}`}
         onClick={() => setOpen((v) => !v)}
+        className={open ? undefined : "hover:bg-fill transition-colors"}
         style={{
           display: "flex",
           alignItems: "center",
@@ -214,7 +227,7 @@ function GuideItem({
             flexShrink: 0,
           }}
         >
-          <Icon size={15} style={{ color: "var(--ds-accent)" }} />
+          <Icon aria-hidden="true" size={15} style={{ color: "var(--ds-accent)" }} />
         </span>
         <span style={{ flex: 1, minWidth: 0 }}>
           <span
@@ -254,11 +267,12 @@ function GuideItem({
           이동
         </Link>
         <span style={{ color: "var(--ds-text-faint)", flexShrink: 0 }}>
-          {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {open ? <ChevronUp aria-hidden="true" size={14} /> : <ChevronDown aria-hidden="true" size={14} />}
         </span>
       </button>
-      {open && (
-        <div
+      <div
+          id={panelId}
+          hidden={!open}
           style={{
             padding: "var(--ds-sp-3) var(--ds-sp-4)",
             borderTop: "1px solid var(--ds-border)",
@@ -303,7 +317,6 @@ function GuideItem({
             ))}
           </ul>
         </div>
-      )}
     </div>
   );
 }
@@ -363,12 +376,12 @@ export default function HomePage() {
         breadcrumbs={[{ label: "vibeSQL" }, { label: "홈" }]}
       />
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={connLoading || aiLoading} aria-live="polite" style={{ flex: 1, overflowY: "auto", padding: "var(--ds-sp-6)" }}>
         <div style={{ maxWidth: 800, margin: "0 auto", display: "flex", flexDirection: "column", gap: "var(--ds-sp-6)" }}>
 
           {/* ── 헤더 ─────────────────────────────────────────────────────── */}
           <div>
-            <h1
+            <h2
               style={{
                 fontSize: "var(--ds-fs-22)",
                 fontWeight: "var(--ds-fw-bold)",
@@ -379,7 +392,7 @@ export default function HomePage() {
               }}
             >
               vibeSQL 시작 가이드
-            </h1>
+            </h2>
             <p
               style={{
                 fontSize: "var(--ds-fs-13)",
@@ -432,19 +445,19 @@ export default function HomePage() {
 
           {/* ── 워크플로 3단계 ────────────────────────────────────────────── */}
           <div>
-            <div
+            <h3
               style={{
                 fontSize: "var(--ds-fs-12)",
                 fontWeight: "var(--ds-fw-semibold)",
                 color: "var(--ds-text-mute)",
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
-                marginBottom: "var(--ds-sp-3)",
+                margin: "0 0 var(--ds-sp-3)",
                 fontFamily: "var(--ds-font-sans)",
               }}
             >
               시작 단계
-            </div>
+            </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}>
               {WORKFLOW_STEPS.map((s) => {
                 const Icon = s.icon;
@@ -489,9 +502,9 @@ export default function HomePage() {
                         }}
                       >
                         {loading ? (
-                          <Circle size={16} style={{ color: "var(--ds-text-faint)" }} />
+                          <Circle role="img" aria-label="로딩 중" size={16} style={{ color: "var(--ds-text-faint)" }} />
                         ) : done ? (
-                          <CheckCircle2 size={18} style={{ color: "var(--ds-accent)" }} />
+                          <CheckCircle2 role="img" aria-label="완료" size={18} style={{ color: "var(--ds-accent)" }} />
                         ) : (
                           s.step
                         )}
@@ -501,7 +514,7 @@ export default function HomePage() {
                     {/* Content */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: 2 }}>
-                        <Icon size={14} style={{ color: "var(--ds-text-mute)", flexShrink: 0 }} />
+                        <Icon aria-hidden="true" size={14} style={{ color: "var(--ds-text-mute)", flexShrink: 0 }} />
                         <span
                           style={{
                             fontSize: "var(--ds-fs-13)",
@@ -593,22 +606,22 @@ export default function HomePage() {
 
           {/* ── 메뉴별 사용 가이드 ────────────────────────────────────────── */}
           <div>
-            <div
+            <h3
               style={{
                 fontSize: "var(--ds-fs-12)",
                 fontWeight: "var(--ds-fw-semibold)",
                 color: "var(--ds-text-mute)",
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
-                marginBottom: "var(--ds-sp-3)",
+                margin: "0 0 var(--ds-sp-3)",
                 fontFamily: "var(--ds-font-sans)",
               }}
             >
               메뉴별 사용 가이드
-            </div>
+            </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}>
-              {MENU_GUIDES.map((item) => (
-                <GuideItem key={item.href} item={item} />
+              {MENU_GUIDES.map((item, idx) => (
+                <GuideItem key={item.href} item={item} defaultOpen={idx === 0} />
               ))}
             </div>
           </div>
@@ -625,7 +638,7 @@ export default function HomePage() {
               border: "1px solid var(--ds-border)",
             }}
           >
-            <AlertCircle size={14} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+            <AlertCircle aria-hidden="true" size={14} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <span style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)" }}>
               명령 팔레트(⌘K)로 어디서든 빠르게 이동하고 검색할 수 있습니다.
             </span>
@@ -653,6 +666,17 @@ type HistoryItem = {
   status: string;
   createdAt: string;
 };
+
+function formatRelativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 60_000) return "방금 전";
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMs / 3_600_000);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffMs / 86_400_000);
+  return `${diffDay}일 전`;
+}
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; color: string; bg: string }> = {
@@ -696,7 +720,10 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function StatsSection() {
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const router = useRouter();
+  const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
+  const [copiedHistId, setCopiedHistId] = useState<string | null>(null);
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
     queryKey: ["stats"],
     queryFn: async () => {
       const r = await fetch("/api/stats");
@@ -723,21 +750,25 @@ function StatsSection() {
       label: "전체 쿼리",
       value: stats ? `${stats.totalQueries}개` : "—",
       icon: <BarChart2 size={14} />,
+      href: "/history",
     },
     {
       label: "성공률",
       value: stats ? `${stats.successRate}%` : "—",
       icon: <TrendingUp size={14} />,
+      href: "/history",
     },
     {
       label: "저장된 쿼리",
       value: stats ? `${stats.totalSaved}개` : "—",
       icon: <Star size={14} />,
+      href: "/saved",
     },
     {
       label: "평균 실행 시간",
       value: stats ? `${stats.avgDurationMs}ms` : "—",
       icon: <Clock size={14} />,
+      href: "/history",
     },
   ];
 
@@ -755,7 +786,7 @@ function StatsSection() {
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }}>
       {/* 통계 카드 2×2 */}
       <div>
-        <div style={sectionHeaderStyle}>사용 통계</div>
+        <h3 style={{ ...sectionHeaderStyle, margin: "0 0 var(--ds-sp-3)" }}>사용 통계</h3>
         <div
           style={{
             display: "grid",
@@ -764,13 +795,18 @@ function StatsSection() {
           }}
         >
           {statCards.map((card) => (
-            <div
+            <Link
               key={card.label}
+              href={card.href}
+              className="hover:border-border-strong"
               style={{
                 padding: "var(--ds-sp-4)",
                 border: "1px solid var(--ds-border)",
                 borderRadius: "var(--ds-r-8)",
                 background: "var(--ds-surface)",
+                display: "block",
+                textDecoration: "none",
+                transition: "border-color var(--ds-dur-fast) var(--ds-ease)",
               }}
             >
               <div
@@ -781,7 +817,7 @@ function StatsSection() {
                   marginBottom: "var(--ds-sp-2)",
                 }}
               >
-                <span style={{ color: "var(--ds-text-mute)" }}>{card.icon}</span>
+                <span aria-hidden="true" style={{ color: "var(--ds-text-mute)" }}>{card.icon}</span>
                 <span
                   style={{
                     fontSize: "var(--ds-fs-11)",
@@ -792,18 +828,24 @@ function StatsSection() {
                   {card.label}
                 </span>
               </div>
-              <div
-                style={{
-                  fontSize: "var(--ds-fs-22)",
-                  fontWeight: "var(--ds-fw-bold)",
-                  color: statsLoading ? "var(--ds-text-faint)" : "var(--ds-text)",
-                  fontFamily: "var(--ds-font-mono)",
-                  lineHeight: 1,
-                }}
-              >
-                {card.value}
-              </div>
-            </div>
+              {statsLoading ? (
+                <Skeleton className="h-7 w-16 mt-1" />
+              ) : statsError ? (
+                <div role="alert" style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-danger)", marginTop: 4 }}>오류</div>
+              ) : (
+                <div
+                  style={{
+                    fontSize: "var(--ds-fs-22)",
+                    fontWeight: "var(--ds-fw-bold)",
+                    color: "var(--ds-text)",
+                    fontFamily: "var(--ds-font-mono)",
+                    lineHeight: 1,
+                  }}
+                >
+                  {card.value}
+                </div>
+              )}
+            </Link>
           ))}
         </div>
       </div>
@@ -818,7 +860,7 @@ function StatsSection() {
             marginBottom: "var(--ds-sp-3)",
           }}
         >
-          <div style={sectionHeaderStyle as React.CSSProperties}>최근 쿼리</div>
+          <h3 style={{ ...(sectionHeaderStyle as React.CSSProperties), margin: "0 0 var(--ds-sp-3)" }}>최근 쿼리</h3>
           <Link
             href="/history"
             style={{
@@ -832,18 +874,8 @@ function StatsSection() {
         </div>
 
         {historyLoading ? (
-          <div
-            style={{
-              padding: "var(--ds-sp-4)",
-              border: "1px solid var(--ds-border)",
-              borderRadius: "var(--ds-r-8)",
-              background: "var(--ds-surface)",
-              color: "var(--ds-text-faint)",
-              fontSize: "var(--ds-fs-12)",
-              textAlign: "center",
-            }}
-          >
-            불러오는 중...
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}>
+            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full rounded-lg" />)}
           </div>
         ) : !recentHistory || recentHistory.length === 0 ? (
           <div
@@ -857,7 +889,10 @@ function StatsSection() {
               textAlign: "center",
             }}
           >
-            아직 실행된 쿼리가 없습니다.
+            <div>아직 실행된 쿼리가 없습니다.</div>
+            <Link href="/workspace" style={{ display: "inline-block", marginTop: "var(--ds-sp-2)", fontSize: "var(--ds-fs-12)", color: "var(--ds-accent)" }}>
+              워크스페이스로 이동 →
+            </Link>
           </div>
         ) : (
           <div
@@ -873,6 +908,25 @@ function StatsSection() {
               return (
                 <div
                   key={item.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`워크스페이스에서 열기: ${item.nlQuery || item.sql}`}
+                  onClick={() => {
+                    if (item.nlQuery) setNlQuery(item.nlQuery);
+                    setSql(item.sql);
+                    setStatus("ready");
+                    router.push("/workspace");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      if (item.nlQuery) setNlQuery(item.nlQuery);
+                      setSql(item.sql);
+                      setStatus("ready");
+                      router.push("/workspace");
+                    }
+                  }}
+                  className="group hover:bg-fill transition-colors"
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -880,9 +934,11 @@ function StatsSection() {
                     padding: "var(--ds-sp-3) var(--ds-sp-4)",
                     background: "var(--ds-surface)",
                     borderTop: idx > 0 ? "1px solid var(--ds-border)" : "none",
+                    cursor: "pointer",
                   }}
                 >
                   <span
+                    title={item.nlQuery || item.sql}
                     style={{
                       flex: 1,
                       minWidth: 0,
@@ -896,7 +952,27 @@ function StatsSection() {
                   >
                     {preview}{isTruncated ? "..." : ""}
                   </span>
+                  <span
+                    title={new Date(item.createdAt).toLocaleString("ko-KR")}
+                    style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", flexShrink: 0, fontFamily: "var(--ds-font-mono)" }}
+                  >
+                    {formatRelativeTime(item.createdAt)}
+                  </span>
                   <StatusBadge status={item.status} />
+                  <button
+                    type="button"
+                    aria-label={copiedHistId === item.id ? "복사됨" : "SQL 복사"}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void navigator.clipboard.writeText(item.sql);
+                      setCopiedHistId(item.id);
+                      setTimeout(() => setCopiedHistId(null), 1500);
+                    }}
+                    className="opacity-0 group-hover:opacity-100"
+                    style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: copiedHistId === item.id ? "var(--ds-success)" : "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)", flexShrink: 0, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+                  >
+                    {copiedHistId === item.id ? <Check aria-hidden="true" size={11} /> : <Copy aria-hidden="true" size={11} />}
+                  </button>
                 </div>
               );
             })}

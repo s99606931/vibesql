@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireUserId } from "@/lib/auth/require-user";
+import { requireAdmin } from "@/lib/auth/require-user";
 import { memProviders } from "../../route";
 import { persistAiProviders } from "@/lib/db/mem-ai-providers";
 import type { AiProvider } from "../../route";
@@ -87,9 +87,9 @@ async function testProvider(provider: AiProvider): Promise<{ ok: boolean; latenc
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const authResult = await requireUserId();
+  const authResult = await requireAdmin();
   if (authResult instanceof NextResponse) return authResult;
-  const userId = authResult;
+  const userId = authResult.userId;
 
   let provider: AiProvider | null = null;
 

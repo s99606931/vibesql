@@ -5,6 +5,7 @@ import { useSettingsStore } from "@/store/useSettingsStore";
 import { useConnections } from "@/hooks/useConnections";
 import { TopBar } from "@/components/shell/TopBar";
 import { AICallout } from "@/components/ui-vs/AICallout";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import {
@@ -32,6 +33,10 @@ import { SqlEditor } from "@/components/workspace/SqlEditor";
 import { ShareDialog } from "@/components/share/ShareDialog";
 
 type ResultTab = "table" | "chart" | "explain";
+
+function confidenceToPercent(c: "high" | "medium" | "low"): number {
+  return c === "high" ? 95 : c === "medium" ? 70 : 40;
+}
 
 function exportToCsv(rows: Record<string, unknown>[], columns: string[]): void {
   if (rows.length === 0 || columns.length === 0) return;
@@ -118,6 +123,7 @@ function TemplatePicker({
       aria-modal="true"
       aria-label="템플릿 불러오기"
       onClick={onClose}
+      onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
       style={{
         position: "fixed",
         inset: 0,
@@ -154,19 +160,21 @@ function TemplatePicker({
             borderBottom: "1px solid var(--ds-border)",
           }}
         >
-          <FileText size={16} style={{ color: "var(--ds-accent)", flexShrink: 0 }} />
-          <span
+          <FileText aria-hidden="true" size={16} style={{ color: "var(--ds-accent)", flexShrink: 0 }} />
+          <h2
             style={{
               fontSize: "var(--ds-fs-16)",
               fontWeight: "var(--ds-fw-bold)",
               color: "var(--ds-text)",
               fontFamily: "var(--ds-font-sans)",
               flex: 1,
+              margin: 0,
             }}
           >
             템플릿 불러오기
-          </span>
+          </h2>
           <button
+            type="button"
             onClick={onClose}
             aria-label="닫기"
             style={{
@@ -180,9 +188,10 @@ function TemplatePicker({
               background: "transparent",
               color: "var(--ds-text-faint)",
               cursor: "pointer",
+              transition: "color var(--ds-dur-fast) var(--ds-ease)",
             }}
           >
-            <X size={16} />
+            <X aria-hidden="true" size={16} />
           </button>
         </div>
 
@@ -194,6 +203,8 @@ function TemplatePicker({
           }}
         >
           <div
+            role="search"
+            aria-label="템플릿 검색"
             style={{
               display: "flex",
               alignItems: "center",
@@ -204,12 +215,14 @@ function TemplatePicker({
               padding: "var(--ds-sp-1) var(--ds-sp-2)",
             }}
           >
-            <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+            <Search aria-hidden="true" size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <input
               autoFocus
+              type="search"
+              aria-label="템플릿 검색"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="템플릿 검색..."
+              placeholder="템플릿 검색... (⌘F)"
               style={{
                 border: "none",
                 background: "transparent",
@@ -224,17 +237,10 @@ function TemplatePicker({
         </div>
 
         {/* Template list */}
-        <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-2)" }}>
+        <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-2)" }}>
           {isLoading && (
-            <div
-              style={{
-                padding: "var(--ds-sp-5)",
-                textAlign: "center",
-                color: "var(--ds-text-faint)",
-                fontSize: "var(--ds-fs-12)",
-              }}
-            >
-              템플릿 불러오는 중...
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-2)" }}>
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full rounded-lg" />)}
             </div>
           )}
 
@@ -247,7 +253,12 @@ function TemplatePicker({
                 fontSize: "var(--ds-fs-12)",
               }}
             >
-              검색 결과가 없습니다.
+              <div>검색 결과가 없습니다.</div>
+              {search && (
+                <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setSearch("")}>
+                  검색 지우기
+                </Button>
+              )}
             </div>
           )}
 
@@ -255,7 +266,9 @@ function TemplatePicker({
             filtered.map((t) => (
               <button
                 key={t.id}
+                type="button"
                 onClick={() => onSelect(t)}
+                className="hover:bg-fill hover:border-border transition-colors"
                 style={{
                   width: "100%",
                   textAlign: "left",
@@ -267,16 +280,7 @@ function TemplatePicker({
                   display: "flex",
                   flexDirection: "column",
                   gap: "var(--ds-sp-1)",
-                  transition: "background var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                   fontFamily: "var(--ds-font-sans)",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = "var(--ds-fill)";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--ds-border)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "transparent";
                 }}
               >
                 <div
@@ -333,6 +337,7 @@ function TemplatePicker({
                     whiteSpace: "nowrap",
                     margin: 0,
                   }}
+                  title={t.sql}
                 >
                   {t.sql.slice(0, 100)}{t.sql.length > 100 ? "..." : ""}
                 </pre>
@@ -377,7 +382,7 @@ export default function WorkspacePage() {
     setActiveConnection,
   } = useWorkspaceStore();
 
-  const { dialect } = useSettingsStore();
+  const { dialect, setDialect } = useSettingsStore();
   const { data: connections } = useConnections();
   const queryClient = useQueryClient();
 
@@ -390,12 +395,38 @@ export default function WorkspacePage() {
   const savedOkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [addToDashModal, setAddToDashModal] = useState<{ dashboards: Array<{ id: string; name: string; widgets: unknown[] }> } | null>(null);
+  const [selectedDashId, setSelectedDashId] = useState<string>("");
+  const [widgetLabel, setWidgetLabel] = useState<string>("");
+  const [noDashMsg, setNoDashMsg] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
+  const [noConnWarn, setNoConnWarn] = useState(false);
+  const [saveModal, setSaveModal] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const [saveFolder, setSaveFolder] = useState("기본");
 
   useEffect(() => {
     return () => {
       if (savedOkTimer.current) clearTimeout(savedOkTimer.current);
     };
   }, []);
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.altKey && e.key === "Enter" && sql.trim() && status !== "running") {
+        e.preventDefault();
+        void handleRun();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "s" && sql.trim() && status === "ready") {
+        e.preventDefault();
+        setSaveName(nlQuery || "쿼리");
+        setSaveFolder("기본");
+        setSaveModal(true);
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [sql, status, nlQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeConnection = (connections ?? []).find((c) => c.id === activeConnectionId);
 
@@ -460,19 +491,21 @@ export default function WorkspacePage() {
       },
     });
     if (!fresh || fresh.length === 0) {
-      alert("대시보드가 없습니다. 먼저 대시보드를 생성하세요.");
+      setNoDashMsg(true);
+      setTimeout(() => setNoDashMsg(false), 2500);
       return;
     }
-    const opts = fresh.map((d, i) => `${i + 1}. ${d.name}`).join("\n");
-    const input = prompt(`어느 대시보드에 추가할까요?\n\n${opts}\n\n번호를 입력하세요:`);
-    const idx = parseInt(input ?? "", 10) - 1;
-    if (isNaN(idx) || idx < 0 || idx >= fresh.length) return;
-    const label = prompt("위젯 이름:", nlQuery || "쿼리 결과") ?? "쿼리 결과";
-    addToDashboardMutation.mutate({ dashId: fresh[idx].id, label });
+    setSelectedDashId(fresh[0].id);
+    setWidgetLabel(nlQuery || "쿼리 결과");
+    setAddToDashModal({ dashboards: fresh });
   }
 
   async function handleGenerate() {
     if (!nlQuery.trim()) return;
+    if (!activeConnectionId) {
+      setNoConnWarn(true);
+      setTimeout(() => setNoConnWarn(false), 3000);
+    }
     setStatus("generating");
     setIsEdited(false);
     try {
@@ -612,6 +645,7 @@ export default function WorkspacePage() {
           <>
             {/* Connection selector */}
             <select
+              aria-label="데이터베이스 연결 선택"
               value={activeConnectionId ?? ""}
               onChange={(e) => {
                 const id = e.target.value || null;
@@ -634,7 +668,7 @@ export default function WorkspacePage() {
                 cursor: "pointer",
               }}
             >
-              <option value="" disabled>연결 선택...</option>
+              <option value="">연결 없음</option>
               {(connections ?? []).map((conn) => (
                 <option key={conn.id} value={conn.id}>
                   {conn.name}
@@ -642,12 +676,34 @@ export default function WorkspacePage() {
               ))}
             </select>
 
+            {/* Dialect selector */}
+            <select
+              aria-label="SQL 방언 선택"
+              value={dialect}
+              onChange={(e) => setDialect(e.target.value as typeof dialect)}
+              style={{
+                border: "1px solid var(--ds-border)",
+                borderRadius: "var(--ds-r-6)",
+                background: "var(--ds-surface)",
+                color: "var(--ds-text-mute)",
+                fontSize: "var(--ds-fs-12)",
+                padding: "var(--ds-sp-1) var(--ds-sp-2)",
+                fontFamily: "var(--ds-font-mono)",
+                outline: "none",
+                cursor: "pointer",
+              }}
+            >
+              {(["postgresql", "mysql", "sqlite", "mssql", "oracle"] as const).map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+
             <Button
               variant="ghost"
               size="sm"
               icon={<FileText size={13} />}
+              aria-label="템플릿 불러오기"
               onClick={() => setTemplatePickerOpen(true)}
-              title="템플릿 불러오기"
             >
               템플릿
             </Button>
@@ -657,15 +713,15 @@ export default function WorkspacePage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  icon={savedOk ? <Check size={13} /> : <Star size={13} />}
+                  aria-keyshortcuts="Meta+s"
+                  aria-label={savedOk ? "저장됨" : "저장"}
+                  icon={savedOk ? <Check aria-hidden="true" size={13} /> : <Star aria-hidden="true" size={13} />}
                   loading={saveQueryMutation.isPending}
-                  onClick={() =>
-                    saveQueryMutation.mutate({
-                      name: nlQuery || "쿼리",
-                      query: sql,
-                      folder: "기본",
-                    })
-                  }
+                  onClick={() => {
+                    setSaveName(nlQuery || "쿼리");
+                    setSaveFolder("기본");
+                    setSaveModal(true);
+                  }}
                 >
                   저장
                 </Button>
@@ -742,6 +798,8 @@ export default function WorkspacePage() {
             {["오늘 활성 사용자", "주간 매출 추이", "국가별 가입자 수", "결제 실패율"].map((chip) => (
               <button
                 key={chip}
+                type="button"
+                aria-label={`예시 질문: ${chip}`}
                 onClick={() => setNlQuery(chip)}
                 style={{
                   padding: "2px 10px",
@@ -752,22 +810,46 @@ export default function WorkspacePage() {
                   fontSize: "var(--ds-fs-11)",
                   cursor: "pointer",
                   fontFamily: "var(--ds-font-sans)",
+                  transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
                 {chip}
               </button>
             ))}
+            {nlQuery.length > 0 && (
+              <>
+                <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", fontFamily: "var(--ds-font-mono)" }}>
+                  {nlQuery.length}자
+                </span>
+                <button
+                  type="button"
+                  aria-label="입력 지우기"
+                  onClick={() => setNlQuery("")}
+                  style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", padding: 2, borderRadius: "var(--ds-r-6)", transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
+                >
+                  <X aria-hidden="true" size={12} />
+                </button>
+              </>
+            )}
             <div style={{ flex: 1 }} />
             <Button
               variant="accent"
               size="sm"
               loading={status === "generating"}
+              aria-keyshortcuts="Meta+Enter"
               onClick={handleGenerate}
             >
               {status === "generating" ? "생성 중..." : "SQL 생성"}
             </Button>
           </div>
         </div>
+
+        {/* No connection warning */}
+        {noConnWarn && (
+          <AICallout tone="default" label="◆ 연결 없음">
+            연결된 DB가 없습니다. 상단에서 연결을 선택하면 스키마 기반 SQL이 생성됩니다.
+          </AICallout>
+        )}
 
         {/* AI generating */}
         {status === "generating" && (
@@ -780,7 +862,7 @@ export default function WorkspacePage() {
         {status === "error" && errorMessage && (
           <AICallout tone="danger" label="◆ 오류">
             <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
-              <TriangleAlert size={13} />
+              <TriangleAlert aria-hidden="true" size={13} />
               {errorMessage}
             </div>
           </AICallout>
@@ -847,18 +929,22 @@ export default function WorkspacePage() {
                     opacity: 0.8,
                   }}
                 >
-                  {confidence === "high" ? "신뢰도 높음" : confidence === "medium" ? "신뢰도 중간" : "신뢰도 낮음"}
+                  {confidence === "high" ? "신뢰도 높음" : confidence === "medium" ? "신뢰도 중간" : "신뢰도 낮음"} {confidenceToPercent(confidence)}%
                 </span>
               )}
               <div style={{ flex: 1 }} />
+              {copyFailed && (
+                <span role="alert" aria-live="assertive" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-danger, #e53e3e)" }}>복사 실패</span>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
                 icon={<Copy size={12} />}
                 onClick={() =>
-                  navigator.clipboard.writeText(sql).catch(() =>
-                    alert("클립보드 복사에 실패했습니다.")
-                  )
+                  navigator.clipboard.writeText(sql).catch(() => {
+                    setCopyFailed(true);
+                    setTimeout(() => setCopyFailed(false), 2000);
+                  })
                 }
               >
                 복사
@@ -868,9 +954,10 @@ export default function WorkspacePage() {
                 size="sm"
                 loading={status === "running"}
                 icon={<Play size={12} />}
+                aria-keyshortcuts="Alt+Enter"
                 onClick={handleRun}
               >
-                실행 ⌘⏎
+                실행 ⌥⏎
               </Button>
             </div>
 
@@ -883,6 +970,20 @@ export default function WorkspacePage() {
               minHeight={120}
               maxHeight={280}
             />
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                padding: "2px var(--ds-sp-3)",
+                borderTop: "1px solid var(--ds-border)",
+                fontSize: "var(--ds-fs-10)",
+                color: "var(--ds-text-faint)",
+                fontFamily: "var(--ds-font-mono)",
+                background: "var(--ds-fill)",
+              }}
+            >
+              {sql.split("\n").length}줄 · {sql.length}자
+            </div>
           </div>
         )}
 
@@ -897,6 +998,8 @@ export default function WorkspacePage() {
             }}
           >
             <div
+              role="tablist"
+              aria-label="결과 보기 탭"
               style={{
                 display: "flex",
                 borderBottom: "1px solid var(--ds-border)",
@@ -912,6 +1015,11 @@ export default function WorkspacePage() {
               ].map((tab) => (
                 <button
                   key={tab.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === tab.key}
+                  aria-controls={`result-panel-${tab.key}`}
+                  id={`result-tab-${tab.key}`}
                   onClick={async () => {
                     setActiveTab(tab.key);
                     if (tab.key === "explain" && sql.trim() && (isEdited || !explanation) && !explanationFetching) {
@@ -943,9 +1051,10 @@ export default function WorkspacePage() {
                     fontFamily: "var(--ds-font-sans)",
                     fontWeight: "var(--ds-fw-medium)",
                     marginBottom: -1,
+                    transition: "color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                   }}
                 >
-                  <tab.icon size={13} />
+                  <tab.icon aria-hidden="true" size={13} />
                   {tab.label}
                 </button>
               ))}
@@ -953,6 +1062,11 @@ export default function WorkspacePage() {
               <span className="ds-num" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
                 {rowCount}행 · {duration ? `${duration}ms` : "—"}
               </span>
+              {results && results.length >= 1000 && (
+                <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-warn, #d97706)", background: "var(--ds-warn-soft, #fef3c7)", padding: "1px 6px", borderRadius: "var(--ds-r-4)", fontFamily: "var(--ds-font-sans)" }}>
+                  최대 1,000행
+                </span>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -970,18 +1084,25 @@ export default function WorkspacePage() {
               >
                 대시보드 추가
               </Button>
+              {noDashMsg && (
+                <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)" }}>대시보드를 먼저 생성하세요</span>
+              )}
             </div>
 
             {activeTab === "table" && results && (
-              <ResultTable rows={results} columns={columns} />
+              <div id="result-panel-table" role="tabpanel" aria-labelledby="result-tab-table">
+                <ResultTable rows={results} columns={columns} />
+              </div>
             )}
 
             {activeTab === "chart" && results && (
-              <ResultChart rows={results} columns={columns} />
+              <div id="result-panel-chart" role="tabpanel" aria-labelledby="result-tab-chart">
+                <ResultChart rows={results} columns={columns} />
+              </div>
             )}
 
             {activeTab === "explain" && (
-              <div style={{ padding: "var(--ds-sp-4)" }}>
+              <div id="result-panel-explain" role="tabpanel" aria-labelledby="result-tab-explain" style={{ padding: "var(--ds-sp-4)" }}>
                 <AICallout label="◆ AI · SQL 설명">
                   {explanationFetching
                     ? "SQL 설명을 불러오는 중..."
@@ -1008,7 +1129,7 @@ export default function WorkspacePage() {
             <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-medium)" }}>
               위에서 질문을 입력하세요
             </div>
-            <div style={{ fontSize: "var(--ds-fs-12)" }}>⌘⏎ 로 SQL 생성 · 실행</div>
+            <div style={{ fontSize: "var(--ds-fs-12)" }}>⌘⏎ SQL 생성 · ⌥⏎ 실행</div>
           </div>
         )}
       </div>
@@ -1031,6 +1152,151 @@ export default function WorkspacePage() {
           }}
           onClose={() => setTemplatePickerOpen(false)}
         />
+      )}
+
+      {saveModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="쿼리 저장"
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
+          onClick={() => setSaveModal(false)}
+          onKeyDown={(e) => { if (e.key === "Escape") setSaveModal(false); }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%", display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}
+          >
+            <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>쿼리 저장</h2>
+            <div>
+              <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-1)" }}>이름</div>
+              <input
+                autoFocus
+                aria-label="쿼리 이름"
+                value={saveName}
+                onChange={(e) => setSaveName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Escape") setSaveModal(false); }}
+                placeholder="쿼리 이름"
+                style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", boxSizing: "border-box" }}
+              />
+            </div>
+            <div>
+              <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-1)" }}>폴더</div>
+              <input
+                aria-label="저장 폴더"
+                value={saveFolder}
+                onChange={(e) => setSaveFolder(e.target.value)}
+                list="save-folder-list"
+                placeholder="폴더 이름 (예: 기본, 분석, 보고서)"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setSaveModal(false);
+                  if (e.key === "Enter" && saveName.trim()) {
+                    saveQueryMutation.mutate({ name: saveName.trim(), query: sql, folder: saveFolder.trim() || "기본" });
+                    setSaveModal(false);
+                  }
+                }}
+                style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", boxSizing: "border-box" }}
+              />
+              <datalist id="save-folder-list">
+                <option value="기본" />
+                <option value="분석" />
+                <option value="보고서" />
+                <option value="임시" />
+              </datalist>
+            </div>
+            <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button type="button" onClick={() => setSaveModal(false)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
+              <button
+                type="button"
+                disabled={!saveName.trim() || saveQueryMutation.isPending}
+                onClick={() => { saveQueryMutation.mutate({ name: saveName.trim(), query: sql, folder: saveFolder.trim() || "기본" }); setSaveModal(false); }}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {addToDashModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="대시보드에 추가"
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
+          onClick={() => setAddToDashModal(null)}
+          onKeyDown={(e) => { if (e.key === "Escape") setAddToDashModal(null); }}
+        >
+          <div
+            style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 320, maxWidth: 400, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>대시보드에 추가</h2>
+
+            <div>
+              <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>대시보드 선택</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)", maxHeight: 160, overflowY: "auto" }}>
+                {addToDashModal.dashboards.map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    aria-pressed={selectedDashId === d.id}
+                    onClick={() => setSelectedDashId(d.id)}
+                    style={{
+                      padding: "var(--ds-sp-2) var(--ds-sp-3)",
+                      borderRadius: "var(--ds-r-6)",
+                      border: `1px solid ${selectedDashId === d.id ? "var(--ds-accent)" : "var(--ds-border)"}`,
+                      background: selectedDashId === d.id ? "var(--ds-accent-soft)" : "transparent",
+                      color: selectedDashId === d.id ? "var(--ds-accent)" : "var(--ds-text)",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      fontSize: "var(--ds-fs-13)",
+                      fontFamily: "var(--ds-font-sans)",
+                      transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
+                    }}
+                  >
+                    {d.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>위젯 이름</div>
+              <input
+                autoFocus
+                aria-label="위젯 이름"
+                value={widgetLabel}
+                onChange={(e) => setWidgetLabel(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setAddToDashModal(null);
+                  if (e.key === "Enter" && widgetLabel.trim() && selectedDashId) {
+                    addToDashboardMutation.mutate({ dashId: selectedDashId, label: widgetLabel.trim() });
+                    setAddToDashModal(null);
+                  }
+                }}
+                style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", fontFamily: "var(--ds-font-sans)", outline: "none", boxSizing: "border-box" }}
+                placeholder="위젯 이름을 입력하세요"
+              />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button variant="ghost" size="sm" onClick={() => setAddToDashModal(null)}>취소</Button>
+              <Button
+                variant="accent"
+                size="sm"
+                disabled={!widgetLabel.trim() || !selectedDashId || addToDashboardMutation.isPending}
+                onClick={() => {
+                  addToDashboardMutation.mutate({ dashId: selectedDashId, label: widgetLabel.trim() });
+                  setAddToDashModal(null);
+                }}
+              >
+                {addToDashboardMutation.isPending ? "추가 중..." : "추가"}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

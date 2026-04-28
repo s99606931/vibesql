@@ -32,10 +32,27 @@ export function verifyPassword(password: string, stored: string): boolean {
   return crypto.timingSafeEqual(actual, expected);
 }
 
-// Default accounts — only loaded in non-production or when DATABASE_URL is absent.
-// Passwords use scrypt so the hashes below are generated at module init.
+// Seed accounts are loaded ONLY when:
+//   1. NODE_ENV === 'development'  (not test, not production)
+//   2. DATABASE_URL is absent      (no real DB — purely in-memory auth)
+//
+// Both conditions must be true simultaneously. This prevents seed accounts
+// from appearing in staging/CI environments that set NODE_ENV=development
+// but have a real DATABASE_URL, and from appearing in production ever.
+const isSeedAllowed =
+  process.env.NODE_ENV === "development" && !process.env.DATABASE_URL;
+
+if (isSeedAllowed) {
+  console.warn(
+    "[vibeSQL] WARNING: In-memory seed accounts are active " +
+      "(admin@vibesql.dev / admin123, user@vibesql.dev / user123). " +
+      "These accounts exist because DATABASE_URL is not set. " +
+      "Set DATABASE_URL in .env.local to disable seed accounts and use real auth."
+  );
+}
+
 const seedAccounts: Array<Omit<MemUser, "passwordHash"> & { plainPassword: string }> =
-  process.env.NODE_ENV !== "production"
+  isSeedAllowed
     ? [
         { id: "admin-1", email: "admin@vibesql.dev", name: "관리자", role: "ADMIN", plainPassword: "admin123", createdAt: new Date() },
         { id: "dev-user", email: "user@vibesql.dev", name: "일반사용자", role: "USER", plainPassword: "user123", createdAt: new Date() },

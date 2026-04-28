@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
@@ -23,6 +23,9 @@ import {
   History,
   RotateCcw,
   X,
+  FolderInput,
+  Copy,
+  Download,
 } from "lucide-react";
 import type { SavedQuery, QueryVersion } from "@/types";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
@@ -50,6 +53,18 @@ function formatDate(iso: string): string {
   if (d.toDateString() === today) return `오늘 ${d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })}`;
   if (d.toDateString() === yesterday) return `어제 ${d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })}`;
   return d.toLocaleDateString("ko-KR");
+}
+
+function formatRelativeAgo(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 60_000) return "방금 전";
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMs / 3_600_000);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffMs / 86_400_000);
+  if (diffDay < 30) return `${diffDay}일 전`;
+  return new Date(iso).toLocaleDateString("ko-KR");
 }
 
 // ─── Version history panel ────────────────────────────────────────────────────
@@ -124,7 +139,7 @@ function VersionPanel({
             gap: "var(--ds-sp-2)",
           }}
         >
-          <History size={16} style={{ color: "var(--ds-accent)" }} />
+          <History aria-hidden="true" size={16} style={{ color: "var(--ds-accent)" }} />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>
               버전 히스토리
@@ -132,6 +147,7 @@ function VersionPanel({
             <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>{queryName}</div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             aria-label="닫기"
             style={{
@@ -143,14 +159,16 @@ function VersionPanel({
               alignItems: "center",
             }}
           >
-            <X size={16} />
+            <X aria-hidden="true" size={16} />
           </button>
         </div>
 
-        <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-2)" }}>
+        <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-2)" }}>
           {isLoading && (
-            <div style={{ padding: "var(--ds-sp-4)", textAlign: "center", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-12)" }}>
-              불러오는 중...
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-2)" }}>
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 w-full rounded-lg" />
+              ))}
             </div>
           )}
 
@@ -176,8 +194,11 @@ function VersionPanel({
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-1)" }}>
                     <Pill variant="info">v{v.versionNo}</Pill>
-                    <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", flex: 1 }}>
-                      {new Date(v.createdAt).toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    <span
+                      title={new Date(v.createdAt).toLocaleString("ko-KR")}
+                      style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", flex: 1, cursor: "default" }}
+                    >
+                      {formatRelativeAgo(v.createdAt)}
                     </span>
                     <Button
                       variant="ghost"
@@ -195,6 +216,7 @@ function VersionPanel({
                     </div>
                   )}
                   <pre
+                    title={v.sql}
                     style={{
                       fontSize: "var(--ds-fs-10)",
                       fontFamily: "var(--ds-font-mono)",
@@ -226,7 +248,19 @@ function VersionPanel({
 
 export default function SavedPage() {
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"date" | "name" | "dialect">("date");
   const [versionPanel, setVersionPanel] = useState<{ queryId: string; queryName: string } | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmDeleteName, setConfirmDeleteName] = useState<string>("");
+  const [newFolderModal, setNewFolderModal] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [extraFolders, setExtraFolders] = useState<string[]>([]);
+  const [renameModal, setRenameModal] = useState<{ id: string; name: string } | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [moveModal, setMoveModal] = useState<{ id: string; currentFolder: string } | null>(null);
+  const [moveFolder, setMoveFolder] = useState("");
+  const [renameFolderModal, setRenameFolderModal] = useState<string | null>(null);
+  const [renameFolderValue, setRenameFolderValue] = useState("");
   const queryClient = useQueryClient();
   const router = useRouter();
   const { setSql, setStatus } = useWorkspaceStore();
@@ -254,42 +288,127 @@ export default function SavedPage() {
     },
   });
 
-  async function handleNewFolder() {
-    const folder = prompt("새 폴더 이름을 입력하세요:");
-    if (!folder?.trim()) return;
-    const name = folder.trim();
-    const unclassified = (queryClient.getQueryData<SavedQuery[]>(["saved"]) ?? []).filter(
-      (q) => (q.folder ?? "미분류") === "미분류"
-    );
-    if (unclassified.length === 0) {
-      queryClient.setQueryData<SavedQuery[]>(["saved"], (old) => old ?? []);
-      return;
+  const renameMutation = useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const res = await fetch(`/api/saved/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "편집 실패");
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved"] }),
+  });
+
+  const moveMutation = useMutation({
+    mutationFn: async ({ id, folder }: { id: string; folder: string }) => {
+      const res = await fetch(`/api/saved/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folder: folder === "미분류" ? null : folder }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "이동 실패");
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved"] }),
+  });
+
+  const renameFolderMutation = useMutation({
+    mutationFn: async ({ oldFolder, newFolder }: { oldFolder: string; newFolder: string }) => {
+      const targets = savedList.filter((q) => (q.folder ?? "미분류") === oldFolder);
+      await Promise.all(
+        targets.map((q) =>
+          fetch(`/api/saved/${q.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ folder: newFolder === "미분류" ? null : newFolder }),
+          })
+        )
+      );
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved"] }),
+  });
+
+  const duplicateMutation = useMutation({
+    mutationFn: async (query: SavedQuery) => {
+      const res = await fetch("/api/saved", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: `${query.name} (복사)`,
+          description: query.description,
+          folder: query.folder,
+          tags: query.tags,
+          nlQuery: query.nlQuery,
+          sql: query.sql,
+          dialect: query.dialect,
+          connectionId: query.connectionId,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "복제 실패");
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved"] }),
+  });
+
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
     }
-    const results = await Promise.allSettled(
-      unclassified.map((q) =>
-        fetch(`/api/saved/${q.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ folder: name }),
-        }).then(async (r) => {
-          if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error ?? "PATCH 실패");
-        })
-      )
-    );
-    const failures = results.filter((r) => r.status === "rejected");
-    if (failures.length > 0) console.error("[saved] folder move partial failure:", failures);
-    queryClient.invalidateQueries({ queryKey: ["saved"] });
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  function exportSavedCsv() {
+    if (filtered.length === 0) return;
+    const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const rows = [["이름", "폴더", "방언", "NL쿼리", "태그", "저장일"].map(escape).join(",")];
+    for (const q of filtered) {
+      rows.push([q.name, q.folder ?? "", q.dialect, q.nlQuery, q.tags.join("|"), q.createdAt].map(escape).join(","));
+    }
+    const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "saved-queries.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleNewFolder() {
+    setNewFolderName("");
+    setNewFolderModal(true);
+  }
+
+  function handleNewFolderSubmit(folderName: string) {
+    const name = folderName.trim();
+    if (!name) return;
+    setExtraFolders((prev) => (prev.includes(name) ? prev : [...prev, name]));
+    setNewFolderName("");
+    setNewFolderModal(false);
   }
 
   const savedList = Array.isArray(data) ? data : [];
-  const filtered = savedList.filter(
-    (q) =>
-      !search ||
-      q.name.toLowerCase().includes(search.toLowerCase()) ||
-      q.nlQuery.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = savedList
+    .filter((q) => {
+      if (!search) return true;
+      const lc = search.toLowerCase();
+      return (
+        q.name.toLowerCase().includes(lc) ||
+        q.nlQuery.toLowerCase().includes(lc) ||
+        q.tags.some((t) => t.toLowerCase().includes(lc))
+      );
+    })
+    .sort((a, b) => {
+      if (sortBy === "name") return a.name.localeCompare(b.name, "ko");
+      if (sortBy === "dialect") return a.dialect.localeCompare(b.dialect);
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
-  const folders = groupByFolder(filtered);
+  const baseFolders = groupByFolder(filtered);
+  const existingNames = new Set(baseFolders.map((f) => f.name));
+  const folders: FolderGroup[] = [
+    ...baseFolders,
+    ...extraFolders
+      .filter((n) => !existingNames.has(n))
+      .map((n) => ({ name: n, queries: [] as SavedQuery[] })),
+  ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
@@ -297,9 +416,23 @@ export default function SavedPage() {
         title="저장된 쿼리"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "저장된 쿼리" }]}
         actions={
-          <Button variant="ghost" size="sm" icon={<Plus size={13} />} onClick={() => { void handleNewFolder(); }}>
-            새 폴더
-          </Button>
+          <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+            {filtered.length > 0 && (
+              <button
+                type="button"
+                onClick={exportSavedCsv}
+                aria-label="CSV 내보내기"
+                title="CSV 내보내기"
+                style={{ display: "flex", alignItems: "center", gap: 4, padding: "var(--ds-sp-1) var(--ds-sp-3)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-12)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)" }}
+              >
+                <Download aria-hidden="true" size={12} />
+                CSV
+              </button>
+            )}
+            <Button variant="ghost" size="sm" icon={<Plus size={13} />} onClick={() => { void handleNewFolder(); }}>
+              새 폴더
+            </Button>
+          </div>
         }
       />
 
@@ -314,6 +447,8 @@ export default function SavedPage() {
           }}
         >
           <div
+            role="search"
+            aria-label="저장된 쿼리 검색"
             style={{
               display: "flex",
               alignItems: "center",
@@ -326,11 +461,14 @@ export default function SavedPage() {
               maxWidth: 320,
             }}
           >
-            <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+            <Search aria-hidden="true" size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <input
+              ref={searchRef}
+              type="search"
+              aria-label="저장된 쿼리 검색"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="저장된 쿼리 검색..."
+              placeholder="저장된 쿼리 검색... (⌘F)"
               style={{
                 border: "none",
                 background: "transparent",
@@ -341,7 +479,37 @@ export default function SavedPage() {
                 flex: 1,
               }}
             />
+            {search && (
+              <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
+                <X aria-hidden="true" size={12} />
+              </button>
+            )}
           </div>
+          <select
+            aria-label="정렬 기준"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as "date" | "name" | "dialect")}
+            style={{
+              border: "1px solid var(--ds-border)",
+              borderRadius: "var(--ds-r-6)",
+              background: "var(--ds-surface)",
+              color: "var(--ds-text-mute)",
+              fontSize: "var(--ds-fs-12)",
+              padding: "var(--ds-sp-1) var(--ds-sp-2)",
+              fontFamily: "var(--ds-font-sans)",
+              outline: "none",
+              cursor: "pointer",
+            }}
+          >
+            <option value="date">최신순</option>
+            <option value="name">이름순</option>
+            <option value="dialect">방언순</option>
+          </select>
+          {filtered.length > 0 && (
+            <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
+              {filtered.length}/{savedList.length}개
+            </span>
+          )}
           <div style={{ flex: 1 }} />
           <Button
             variant="ghost"
@@ -376,6 +544,16 @@ export default function SavedPage() {
           />
         )}
 
+        {/* No-results */}
+        {!isLoading && filtered.length === 0 && search && (
+          <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
+            <div>검색 결과가 없습니다.</div>
+            <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setSearch("")}>
+              검색 지우기
+            </Button>
+          </div>
+        )}
+
         {/* Folder groups */}
         {!isLoading &&
           folders.map((folder) => (
@@ -390,7 +568,7 @@ export default function SavedPage() {
                   paddingLeft: "var(--ds-sp-1)",
                 }}
               >
-                <FolderOpen size={13} style={{ color: "var(--ds-text-faint)" }} />
+                <FolderOpen aria-hidden="true" size={13} style={{ color: "var(--ds-text-faint)" }} />
                 <span
                   style={{
                     fontSize: "var(--ds-fs-11)",
@@ -411,6 +589,17 @@ export default function SavedPage() {
                 >
                   ({folder.queries.length})
                 </span>
+                {folder.name !== "미분류" && folder.queries.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => { setRenameFolderValue(folder.name); setRenameFolderModal(folder.name); }}
+                    aria-label="폴더 이름 변경"
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, opacity: 0.6, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+                    className="hover:!opacity-100"
+                  >
+                    <Pencil aria-hidden="true" size={10} />
+                  </button>
+                )}
               </div>
 
               {folder.queries.length === 0 ? (
@@ -432,7 +621,7 @@ export default function SavedPage() {
                   {folder.queries.map((query, i) => (
                     <div
                       key={query.id}
-                      className="group"
+                      className="group hover:bg-fill transition-colors"
                       style={{
                         display: "flex",
                         alignItems: "center",
@@ -448,6 +637,7 @@ export default function SavedPage() {
                     >
                       {/* Star */}
                       <Star
+                        aria-hidden="true"
                         size={14}
                         style={{
                           color: "var(--ds-warn)",
@@ -468,11 +658,13 @@ export default function SavedPage() {
                             whiteSpace: "nowrap",
                             marginBottom: 2,
                           }}
+                          title={query.name}
                         >
                           {query.name}
                         </div>
                         {query.description && (
                           <div
+                            title={query.description}
                             style={{
                               fontSize: "var(--ds-fs-11)",
                               color: "var(--ds-text-mute)",
@@ -496,9 +688,19 @@ export default function SavedPage() {
                           }}
                         >
                           {query.tags.map((tag) => (
-                            <Pill key={tag} variant="dashed">
-                              {tag}
-                            </Pill>
+                            <button
+                              key={tag}
+                              type="button"
+                              aria-pressed={search === tag}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSearch((prev) => prev === tag ? "" : tag);
+                              }}
+                              title={`"${tag}" 태그로 필터`}
+                              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                            >
+                              <Pill variant="dashed">{tag}</Pill>
+                            </button>
                           ))}
                           {query.connectionId && (
                             <span
@@ -512,15 +714,17 @@ export default function SavedPage() {
                             </span>
                           )}
                           <span
+                            title={new Date(query.createdAt).toLocaleString("ko-KR")}
                             style={{
                               display: "flex",
                               alignItems: "center",
                               gap: 3,
                               fontSize: "var(--ds-fs-11)",
                               color: "var(--ds-text-faint)",
+                              cursor: "default",
                             }}
                           >
-                            <Clock size={10} />
+                            <Clock aria-hidden="true" size={10} />
                             {formatDate(query.createdAt)}
                           </span>
                           <span
@@ -533,7 +737,7 @@ export default function SavedPage() {
                               fontFamily: "var(--ds-font-mono)",
                             }}
                           >
-                            <Hash size={10} />
+                            <Hash aria-hidden="true" size={10} />
                             {query.dialect}
                           </span>
                         </div>
@@ -591,20 +795,23 @@ export default function SavedPage() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          icon={<FolderInput size={12} />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMoveFolder(query.folder ?? "미분류");
+                            setMoveModal({ id: query.id, currentFolder: query.folder ?? "미분류" });
+                          }}
+                        >
+                          이동
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           icon={<Pencil size={12} />}
                           onClick={(e) => {
                             e.stopPropagation();
-                            const newName = prompt("쿼리 이름을 변경하세요:", query.name);
-                            if (newName && newName !== query.name) {
-                              fetch(`/api/saved/${query.id}`, {
-                                method: "PATCH",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ name: newName }),
-                              }).then(async (r) => {
-                                if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error ?? "편집 실패");
-                                queryClient.invalidateQueries({ queryKey: ["saved"] });
-                              }).catch((e) => console.warn("[saved] rename failed:", e));
-                            }
+                            setRenameValue(query.name);
+                            setRenameModal({ id: query.id, name: query.name });
                           }}
                         >
                           편집
@@ -621,15 +828,26 @@ export default function SavedPage() {
                           버전
                         </Button>
                         <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={<Copy size={12} />}
+                          loading={duplicateMutation.isPending && duplicateMutation.variables?.id === query.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            duplicateMutation.mutate(query);
+                          }}
+                        >
+                          복제
+                        </Button>
+                        <Button
                           variant="danger"
                           size="sm"
                           icon={<Trash2 size={12} />}
                           loading={deleteMutation.isPending && deleteMutation.variables === query.id}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (confirm(`"${query.name}" 쿼리를 삭제할까요?`)) {
-                              deleteMutation.mutate(query.id);
-                            }
+                            setConfirmDeleteId(query.id);
+                            setConfirmDeleteName(query.name);
                           }}
                         >
                           삭제
@@ -642,6 +860,257 @@ export default function SavedPage() {
             </div>
           ))}
       </div>
+
+      {/* Delete confirm modal */}
+      {confirmDeleteId && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="쿼리 삭제"
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
+          onClick={() => setConfirmDeleteId(null)}
+          onKeyDown={(e) => { if (e.key === "Escape") setConfirmDeleteId(null); }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
+            <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-2)" }}>쿼리 삭제</h2>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-4)" }}>
+              <strong style={{ color: "var(--ds-text)" }}>&ldquo;{confirmDeleteName}&rdquo;</strong> 쿼리를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            </div>
+            <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button autoFocus type="button" onClick={() => setConfirmDeleteId(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
+              <button
+                type="button"
+                onClick={() => { deleteMutation.mutate(confirmDeleteId); setConfirmDeleteId(null); }}
+                disabled={deleteMutation.isPending}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-danger)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-bg)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* New folder modal */}
+      {newFolderModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="새 폴더"
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
+          onClick={() => setNewFolderModal(false)}
+          onKeyDown={(e) => { if (e.key === "Escape") setNewFolderModal(false); }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
+            <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-3)" }}>새 폴더</h2>
+            <input
+              aria-label="폴더 이름"
+              autoFocus
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void handleNewFolderSubmit(newFolderName);
+                if (e.key === "Escape") setNewFolderModal(false);
+              }}
+              placeholder="폴더 이름 입력..."
+              style={{
+                width: "100%",
+                padding: "var(--ds-sp-2) var(--ds-sp-3)",
+                border: "1px solid var(--ds-border)",
+                borderRadius: "var(--ds-r-6)",
+                background: "var(--ds-fill)",
+                color: "var(--ds-text)",
+                fontSize: "var(--ds-fs-13)",
+                outline: "none",
+                fontFamily: "var(--ds-font-sans)",
+                marginBottom: "var(--ds-sp-4)",
+                boxSizing: "border-box",
+              }}
+            />
+            <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button type="button" onClick={() => setNewFolderModal(false)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
+              <button
+                type="button"
+                onClick={() => void handleNewFolderSubmit(newFolderName)}
+                disabled={!newFolderName.trim()}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+              >
+                만들기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename folder modal */}
+      {renameFolderModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="폴더 이름 변경"
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
+          onClick={() => setRenameFolderModal(null)}
+          onKeyDown={(e) => { if (e.key === "Escape") setRenameFolderModal(null); }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
+            <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-3)" }}>폴더 이름 변경</h2>
+            <input
+              aria-label="새 폴더 이름"
+              autoFocus
+              value={renameFolderValue}
+              onChange={(e) => setRenameFolderValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && renameFolderValue.trim() && renameFolderValue !== renameFolderModal) {
+                  renameFolderMutation.mutate({ oldFolder: renameFolderModal, newFolder: renameFolderValue.trim() });
+                  setRenameFolderModal(null);
+                }
+                if (e.key === "Escape") setRenameFolderModal(null);
+              }}
+              placeholder="새 폴더 이름..."
+              style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-4)", boxSizing: "border-box" }}
+            />
+            <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button type="button" onClick={() => setRenameFolderModal(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (renameFolderValue.trim() && renameFolderValue !== renameFolderModal) {
+                    renameFolderMutation.mutate({ oldFolder: renameFolderModal, newFolder: renameFolderValue.trim() });
+                    setRenameFolderModal(null);
+                  }
+                }}
+                disabled={!renameFolderValue.trim() || renameFolderValue === renameFolderModal || renameFolderMutation.isPending}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+              >
+                {renameFolderMutation.isPending ? "변경 중..." : "변경"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Move folder modal */}
+      {moveModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="폴더 이동"
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
+          onClick={() => setMoveModal(null)}
+          onKeyDown={(e) => { if (e.key === "Escape") setMoveModal(null); }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
+            <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-3)" }}>폴더 이동</h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)", marginBottom: "var(--ds-sp-4)" }}>
+              {[...new Set(["미분류", ...folders.map((f) => f.name)])].map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  aria-pressed={moveFolder === name}
+                  onClick={() => setMoveFolder(name)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--ds-sp-2)",
+                    padding: "var(--ds-sp-2) var(--ds-sp-3)",
+                    border: moveFolder === name ? "1px solid var(--ds-accent)" : "1px solid var(--ds-border)",
+                    borderRadius: "var(--ds-r-6)",
+                    background: moveFolder === name ? "var(--ds-accent-soft)" : "var(--ds-fill)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    width: "100%",
+                    fontFamily: "var(--ds-font-sans)",
+                    fontSize: "var(--ds-fs-13)",
+                    color: moveFolder === name ? "var(--ds-accent)" : "var(--ds-text)",
+                    transition: "all var(--ds-dur-fast) var(--ds-ease)",
+                  }}
+                >
+                  <FolderOpen aria-hidden="true" size={13} style={{ flexShrink: 0 }} />
+                  {name}
+                  {name === moveModal.currentFolder && (
+                    <span style={{ marginLeft: "auto", fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>현재</span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button autoFocus type="button" onClick={() => setMoveModal(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (moveFolder !== moveModal.currentFolder) {
+                    moveMutation.mutate({ id: moveModal.id, folder: moveFolder });
+                  }
+                  setMoveModal(null);
+                }}
+                disabled={moveFolder === moveModal.currentFolder || moveMutation.isPending}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: moveFolder === moveModal.currentFolder ? "not-allowed" : "pointer", opacity: moveFolder === moveModal.currentFolder ? 0.5 : 1, fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+              >
+                {moveMutation.isPending ? "이동 중..." : "이동"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename modal */}
+      {renameModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="쿼리 이름 변경"
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
+          onClick={() => setRenameModal(null)}
+          onKeyDown={(e) => { if (e.key === "Escape") setRenameModal(null); }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
+            <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-3)" }}>쿼리 이름 변경</h2>
+            <input
+              aria-label="새 쿼리 이름"
+              autoFocus
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && renameValue.trim() && renameValue !== renameModal.name) {
+                  renameMutation.mutate({ id: renameModal.id, name: renameValue.trim() });
+                  setRenameModal(null);
+                }
+                if (e.key === "Escape") setRenameModal(null);
+              }}
+              placeholder="새 쿼리 이름..."
+              style={{
+                width: "100%",
+                padding: "var(--ds-sp-2) var(--ds-sp-3)",
+                border: "1px solid var(--ds-border)",
+                borderRadius: "var(--ds-r-6)",
+                background: "var(--ds-fill)",
+                color: "var(--ds-text)",
+                fontSize: "var(--ds-fs-13)",
+                outline: "none",
+                fontFamily: "var(--ds-font-sans)",
+                marginBottom: "var(--ds-sp-4)",
+                boxSizing: "border-box",
+              }}
+            />
+            <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button type="button" onClick={() => setRenameModal(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (renameValue.trim() && renameValue !== renameModal.name) {
+                    renameMutation.mutate({ id: renameModal.id, name: renameValue.trim() });
+                    setRenameModal(null);
+                  }
+                }}
+                disabled={!renameValue.trim() || renameValue === renameModal.name || renameMutation.isPending}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+              >
+                {renameMutation.isPending ? "저장 중..." : "저장"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

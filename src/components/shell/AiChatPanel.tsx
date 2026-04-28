@@ -30,7 +30,7 @@ interface AiChatPanelProps {
 function makeMdComponents(onApplySql?: (sql: string) => void): Components {
   return {
     a: ({ href, children }) => (
-      <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
+      <a href={href} target="_blank" rel="noopener noreferrer" title="새 탭에서 열기">{children}</a>
     ),
     code({ className, children, ...props }) {
       const isBlock = "node" in props;
@@ -82,6 +82,8 @@ function SqlBlock({ code, lang, isSql, onApply }: { code: string; lang: string; 
         display: "flex", gap: 4,
       }}>
         <button
+          type="button"
+          aria-label={copied ? "복사됨" : "코드 복사"}
           onClick={handleCopy}
           title="복사"
           style={{
@@ -91,11 +93,13 @@ function SqlBlock({ code, lang, isSql, onApply }: { code: string; lang: string; 
             cursor: "pointer", fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)",
           }}
         >
-          {copied ? <Check size={10} /> : <Copy size={10} />}
+          {copied ? <Check aria-hidden="true" size={10} /> : <Copy aria-hidden="true" size={10} />}
           <span>{copied ? "복사됨" : "복사"}</span>
         </button>
         {isSql && onApply && (
           <button
+            type="button"
+            aria-label="워크스페이스에 적용"
             onClick={() => onApply(code)}
             title="워크스페이스에 적용"
             style={{
@@ -106,7 +110,7 @@ function SqlBlock({ code, lang, isSql, onApply }: { code: string; lang: string; 
               fontWeight: "var(--ds-fw-medium)",
             }}
           >
-            <Zap size={10} />
+            <Zap aria-hidden="true" size={10} />
             <span>적용</span>
           </button>
         )}
@@ -309,6 +313,8 @@ export function AiChatPanel({
 
       {/* Panel */}
       <aside
+        aria-label="AI 채팅 패널"
+        aria-hidden={!open}
         style={{
           position: "fixed",
           top: 0,
@@ -326,8 +332,6 @@ export function AiChatPanel({
           willChange: "transform",
           userSelect: isResizing ? "none" : "auto",
         }}
-        aria-label="AI 챗봇"
-        aria-hidden={!open}
       >
         {/* Resize handle */}
         <div
@@ -357,7 +361,7 @@ export function AiChatPanel({
             flexShrink: 0,
           }}
         >
-          <Bot size={15} style={{ color: "var(--ds-accent)", flexShrink: 0 }} />
+          <Bot aria-hidden="true" size={15} style={{ color: "var(--ds-accent)", flexShrink: 0 }} />
           <span
             style={{
               flex: 1,
@@ -385,12 +389,13 @@ export function AiChatPanel({
                 cursor: "default", flexShrink: 0,
               }}
             >
-              <Zap size={9} />
+              <Zap aria-hidden="true" size={9} />
               <span>컨텍스트</span>
             </div>
           )}
           {messages.length > 0 && (
             <button
+              type="button"
               onClick={handleClear}
               title="대화 초기화"
               aria-label="대화 초기화"
@@ -408,10 +413,11 @@ export function AiChatPanel({
               }}
               className="hover:bg-fill hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
             >
-              <Trash2 size={13} />
+              <Trash2 aria-hidden="true" size={13} />
             </button>
           )}
           <button
+            type="button"
             onClick={onClose}
             title="닫기 (Esc)"
             aria-label="닫기"
@@ -429,13 +435,16 @@ export function AiChatPanel({
             }}
             className="hover:bg-fill hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
           >
-            <X size={14} />
+            <X aria-hidden="true" size={14} />
           </button>
         </div>
 
         {/* Messages */}
         <div
           ref={scrollRef}
+          role="log"
+          aria-live="polite"
+          aria-label="AI 채팅 메시지"
           style={{
             flex: 1,
             overflowY: "auto",
@@ -458,7 +467,7 @@ export function AiChatPanel({
                 padding: "var(--ds-sp-6)",
               }}
             >
-              <Bot size={32} style={{ color: "var(--ds-text-faint)" }} />
+              <Bot aria-hidden="true" size={32} style={{ color: "var(--ds-text-faint)" }} />
               <div>
                 <div
                   style={{
@@ -505,6 +514,7 @@ export function AiChatPanel({
                 ].slice(0, 4).map((hint) => (
                   <button
                     key={hint}
+                    type="button"
                     onClick={() => setInput(hint)}
                     style={{
                       padding: "var(--ds-sp-2) var(--ds-sp-3)",
@@ -549,9 +559,9 @@ export function AiChatPanel({
                 }}
               >
                 {msg.role === "user" ? (
-                  <User size={12} style={{ color: "var(--ds-accent)" }} />
+                  <User aria-hidden="true" size={12} style={{ color: "var(--ds-accent)" }} />
                 ) : (
-                  <Bot size={12} style={{ color: "var(--ds-text-mute)" }} />
+                  <Bot aria-hidden="true" size={12} style={{ color: "var(--ds-text-mute)" }} />
                 )}
               </div>
 
@@ -571,7 +581,7 @@ export function AiChatPanel({
                 className={msg.role === "assistant" ? "ai-bubble" : undefined}
               >
                 {!msg.content && msg.streaming ? (
-                  <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />
+                  <Loader2 aria-hidden="true" size={13} style={{ animation: "spin 1s linear infinite" }} />
                 ) : msg.role === "assistant" ? (
                   <>
                     <ReactMarkdown
@@ -625,6 +635,7 @@ export function AiChatPanel({
           >
             <textarea
               ref={inputRef}
+              aria-label="AI 채팅 메시지 입력"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -651,6 +662,7 @@ export function AiChatPanel({
               }}
             />
             <button
+              type="button"
               onClick={() => void send()}
               disabled={!input.trim() || loading}
               title="전송 (Enter)"
@@ -671,9 +683,9 @@ export function AiChatPanel({
               }}
             >
               {loading ? (
-                <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />
+                <Loader2 aria-hidden="true" size={13} style={{ animation: "spin 1s linear infinite" }} />
               ) : (
-                <Send size={13} />
+                <Send aria-hidden="true" size={13} />
               )}
             </button>
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Card, CardHead } from "@/components/ui-vs/Card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LayoutDashboard, Plus, Search, Clock, BarChart2, TrendingUp, Table2, ExternalLink } from "lucide-react";
+import { LayoutDashboard, Plus, Search, Clock, BarChart2, TrendingUp, Table2, ExternalLink, Link2, Check, Pencil, Globe, Lock, Download, X } from "lucide-react";
 
 interface StatsData {
   totalQueries: number;
@@ -74,17 +74,46 @@ interface Dashboard {
   updatedAt: string;
 }
 
+function formatRelativeElapsed(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 60_000) return "방금 전";
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMs / 3_600_000);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffMs / 86_400_000);
+  if (diffDay < 30) return `${diffDay}일 전`;
+  return new Date(iso).toLocaleDateString("ko-KR");
+}
+
 const FILTERS = ["전체", "내 대시보드", "공유됨"];
 
 function WidgetTypeIcon({ type }: { type: string }) {
-  if (type === "line") return <TrendingUp size={11} />;
-  if (type === "bar") return <BarChart2 size={11} />;
-  return <Table2 size={11} />;
+  if (type === "line") return <TrendingUp aria-hidden="true" size={11} />;
+  if (type === "bar") return <BarChart2 aria-hidden="true" size={11} />;
+  return <Table2 aria-hidden="true" size={11} />;
 }
 
 export default function DashboardsPage() {
   const [activeFilter, setActiveFilter] = useState("전체");
   const [search, setSearch] = useState("");
+  const [newDashModal, setNewDashModal] = useState(false);
+  const [newDashName, setNewDashName] = useState("");
+  const [newDashDesc, setNewDashDesc] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [copiedDashId, setCopiedDashId] = useState<string | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+  const [editModal, setEditModal] = useState<Dashboard | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [editPublic, setEditPublic] = useState(false);
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -111,11 +140,11 @@ export default function DashboardsPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (name: string) => {
+    mutationFn: async ({ name, description }: { name: string; description?: string }) => {
       const r = await fetch("/api/dashboards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, widgets: [] }),
+        body: JSON.stringify({ name, description: description || undefined, widgets: [] }),
       });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "생성 실패");
@@ -128,6 +157,18 @@ export default function DashboardsPage() {
     mutationFn: async (id: string) => {
       const r = await fetch(`/api/dashboards/${id}`, { method: "DELETE" });
       if (!r.ok) throw new Error("삭제 실패");
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboards"] }),
+  });
+
+  const editMutation = useMutation({
+    mutationFn: async ({ id, name, description, isPublic }: { id: string; name: string; description?: string; isPublic: boolean }) => {
+      const r = await fetch(`/api/dashboards/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, description: description || undefined, isPublic }),
+      });
+      if (!r.ok) throw new Error("편집 실패");
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboards"] }),
   });
@@ -145,22 +186,40 @@ export default function DashboardsPage() {
         title="대시보드"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "대시보드" }]}
         actions={
-          <Button
-            variant="accent"
-            size="sm"
-            icon={<Plus size={13} />}
-            loading={createMutation.isPending}
-            onClick={() => {
-              const name = prompt("대시보드 이름을 입력하세요:");
-              if (name?.trim()) createMutation.mutate(name.trim());
-            }}
-          >
-            새 대시보드
-          </Button>
+          <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+            {visible.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Download size={13} />}
+                onClick={() => {
+                  const headers = ["이름", "설명", "위젯수", "공개", "수정일"];
+                  const esc = (v: string) => (v.includes(",") || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v);
+                  const rows = visible.map((d) => [d.name, d.description ?? "", String(d.widgets.length), d.isPublic ? "Y" : "N", new Date(d.updatedAt).toLocaleString("ko-KR")].map(esc).join(","));
+                  const csv = [headers.join(","), ...rows].join("\n");
+                  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a"); a.href = url; a.download = `dashboards-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                CSV
+              </Button>
+            )}
+            <Button
+              variant="accent"
+              size="sm"
+              icon={<Plus size={13} />}
+              loading={createMutation.isPending}
+              onClick={() => { setNewDashName(""); setNewDashModal(true); }}
+            >
+              새 대시보드
+            </Button>
+          </div>
         }
       />
 
-      <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={dashLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
 
         {/* KPI summary bar */}
         <div
@@ -194,6 +253,8 @@ export default function DashboardsPage() {
 
         {/* Filter / search bar */}
         <div
+          role="group"
+          aria-label="대시보드 필터"
           style={{
             display: "flex",
             gap: "var(--ds-sp-2)",
@@ -205,6 +266,8 @@ export default function DashboardsPage() {
           {FILTERS.map((f) => (
             <button
               key={f}
+              type="button"
+              aria-pressed={activeFilter === f}
               onClick={() => setActiveFilter(f)}
               style={{
                 padding: "4px 12px",
@@ -222,6 +285,8 @@ export default function DashboardsPage() {
           ))}
           <div style={{ flex: 1 }} />
           <div
+            role="search"
+            aria-label="대시보드 검색"
             style={{
               display: "flex",
               alignItems: "center",
@@ -233,11 +298,14 @@ export default function DashboardsPage() {
               width: 220,
             }}
           >
-            <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+            <Search aria-hidden="true" size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <input
+              ref={searchRef}
+              type="search"
+              aria-label="대시보드 검색"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="대시보드 검색..."
+              placeholder="대시보드 검색... (⌘F)"
               style={{
                 border: "none",
                 background: "transparent",
@@ -248,7 +316,17 @@ export default function DashboardsPage() {
                 flex: 1,
               }}
             />
+            {search && (
+              <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0 }}>
+                <X aria-hidden="true" size={12} />
+              </button>
+            )}
           </div>
+          {search && (
+            <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", whiteSpace: "nowrap" }}>
+              {visible.length}/{dashboards.length}개
+            </span>
+          )}
         </div>
 
         {/* Empty state */}
@@ -265,7 +343,7 @@ export default function DashboardsPage() {
               background: "var(--ds-surface)",
             }}
           >
-            <LayoutDashboard size={32} style={{ color: "var(--ds-text-faint)" }} />
+            <LayoutDashboard aria-hidden="true" size={32} style={{ color: "var(--ds-text-faint)" }} />
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: 4 }}>
                 {search ? "검색 결과 없음" : "새 대시보드를 만들어 보세요"}
@@ -274,19 +352,18 @@ export default function DashboardsPage() {
                 쿼리 결과를 위젯으로 고정하고 한눈에 모니터링하세요.
               </div>
             </div>
-            {!search && (
+            {!search ? (
               <Button
                 variant="accent"
                 size="sm"
                 icon={<Plus size={13} />}
                 loading={createMutation.isPending}
-                onClick={() => {
-                  const name = prompt("대시보드 이름을 입력하세요:");
-                  if (name?.trim()) createMutation.mutate(name.trim());
-                }}
+                onClick={() => { setNewDashName(""); setNewDashModal(true); }}
               >
                 새 대시보드
               </Button>
+            ) : (
+              <Button variant="ghost" size="sm" onClick={() => setSearch("")}>검색 지우기</Button>
             )}
           </div>
         )}
@@ -316,17 +393,36 @@ export default function DashboardsPage() {
                   meta={dash.description}
                   actions={
                     <div style={{ display: "flex", gap: "var(--ds-sp-1)" }}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={copiedDashId === dash.id ? <Check size={12} /> : <Link2 size={12} />}
+                        onClick={() => {
+                          const url = `${window.location.origin}/dashboards/${dash.id}`;
+                          navigator.clipboard.writeText(url).then(() => {
+                            setCopiedDashId(dash.id);
+                            setTimeout(() => setCopiedDashId(null), 1500);
+                          }).catch(() => undefined);
+                        }}
+                        aria-label={copiedDashId === dash.id ? "복사됨" : "링크 복사"}
+                      >
+                        {copiedDashId === dash.id ? "복사됨" : "링크"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={<Pencil size={12} />}
+                        onClick={() => { setEditName(dash.name); setEditDesc(dash.description ?? ""); setEditPublic(dash.isPublic); setEditModal(dash); }}
+                      >
+                        편집
+                      </Button>
                       <Button variant="ghost" size="sm" icon={<ExternalLink size={12} />} onClick={() => router.push(`/dashboards/${dash.id}`)}>
                         열기
                       </Button>
                       <Button
                         variant="danger"
                         size="sm"
-                        onClick={() => {
-                          if (confirm(`"${dash.name}" 대시보드를 삭제할까요?`)) {
-                            deleteMutation.mutate(dash.id);
-                          }
-                        }}
+                        onClick={() => setDeleteConfirmId(dash.id)}
                       >
                         삭제
                       </Button>
@@ -342,6 +438,7 @@ export default function DashboardsPage() {
                     dash.widgets.map((w, i) => (
                       <div
                         key={i}
+                        title={w.label}
                         style={{
                           display: "flex",
                           alignItems: "center",
@@ -372,9 +469,12 @@ export default function DashboardsPage() {
                   }}
                 >
                   <Pill variant={dash.isPublic ? "success" : "default"}>{dash.isPublic ? "공유됨" : "내 대시보드"}</Pill>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>
-                    <Clock size={11} />
-                    {new Date(dash.updatedAt).toLocaleDateString("ko-KR")}
+                  <div
+                    title={new Date(dash.updatedAt).toLocaleString("ko-KR")}
+                    style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", cursor: "default" }}
+                  >
+                    <Clock aria-hidden="true" size={11} />
+                    {formatRelativeElapsed(dash.updatedAt)}
                   </div>
                 </div>
               </Card>
@@ -382,6 +482,119 @@ export default function DashboardsPage() {
           </div>
         )}
       </div>
+
+      {/* New dashboard modal */}
+      {newDashModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="새 대시보드"
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
+          onClick={() => setNewDashModal(false)}
+          onKeyDown={(e) => { if (e.key === "Escape") setNewDashModal(false); }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 360, width: "100%" }}>
+            <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-3)" }}>새 대시보드</h2>
+            <input
+              autoFocus
+              aria-label="대시보드 이름"
+              value={newDashName}
+              onChange={(e) => setNewDashName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setNewDashModal(false);
+              }}
+              placeholder="대시보드 이름 입력..."
+              style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-2)", boxSizing: "border-box" }}
+            />
+            <input
+              aria-label="설명 (선택)"
+              value={newDashDesc}
+              onChange={(e) => setNewDashDesc(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && newDashName.trim()) { createMutation.mutate({ name: newDashName.trim(), description: newDashDesc.trim() }); setNewDashModal(false); setNewDashName(""); setNewDashDesc(""); }
+                if (e.key === "Escape") setNewDashModal(false);
+              }}
+              placeholder="설명 (선택)"
+              style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-4)", boxSizing: "border-box" }}
+            />
+            <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button type="button" onClick={() => { setNewDashModal(false); setNewDashName(""); setNewDashDesc(""); }} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
+              <button
+                type="button"
+                onClick={() => { if (newDashName.trim()) { createMutation.mutate({ name: newDashName.trim(), description: newDashDesc.trim() }); setNewDashModal(false); setNewDashName(""); setNewDashDesc(""); } }}
+                disabled={!newDashName.trim() || createMutation.isPending}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+              >
+                만들기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="대시보드 편집"
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--ds-sp-4)" }}
+          onClick={() => setEditModal(null)}
+          onKeyDown={(e) => { if (e.key === "Escape") setEditModal(null); }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-10)", padding: "var(--ds-sp-5)", maxWidth: 380, width: "100%" }}>
+            <h2 style={{ fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-3)" }}>대시보드 편집</h2>
+            <input
+              autoFocus
+              aria-label="대시보드 이름"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder="대시보드 이름..."
+              style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-2)", boxSizing: "border-box" }}
+            />
+            <input
+              aria-label="설명 (선택)"
+              value={editDesc}
+              onChange={(e) => setEditDesc(e.target.value)}
+              placeholder="설명 (선택)"
+              style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", outline: "none", fontFamily: "var(--ds-font-sans)", marginBottom: "var(--ds-sp-3)", boxSizing: "border-box" }}
+            />
+            <button
+              type="button"
+              aria-pressed={editPublic}
+              aria-label={editPublic ? "공개: 링크가 있는 누구나 볼 수 있음" : "비공개: 나만 볼 수 있음"}
+              onClick={() => setEditPublic((v) => !v)}
+              style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-2) var(--ds-sp-3)", width: "100%", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: editPublic ? "var(--ds-accent-soft)" : "var(--ds-fill)", cursor: "pointer", fontFamily: "var(--ds-font-sans)", fontSize: "var(--ds-fs-13)", color: editPublic ? "var(--ds-accent)" : "var(--ds-text-mute)", marginBottom: "var(--ds-sp-4)", textAlign: "left" }}
+            >
+              {editPublic ? <Globe aria-hidden="true" size={14} /> : <Lock aria-hidden="true" size={14} />}
+              {editPublic ? "공개 — 링크가 있는 누구나 볼 수 있음" : "비공개 — 나만 볼 수 있음"}
+            </button>
+            <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+              <button type="button" onClick={() => setEditModal(null)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:bg-surface hover:text-text">취소</button>
+              <button
+                type="button"
+                onClick={() => { if (editName.trim()) { editMutation.mutate({ id: editModal.id, name: editName.trim(), description: editDesc.trim(), isPublic: editPublic }); setEditModal(null); } }}
+                disabled={!editName.trim() || editMutation.isPending}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", cursor: "pointer", fontSize: "var(--ds-fs-13)", color: "var(--ds-accent-on)", fontWeight: "var(--ds-fw-medium)", fontFamily: "var(--ds-font-sans)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+              >
+                {editMutation.isPending ? "저장 중..." : "저장"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmId && (
+        <div role="dialog" aria-modal="true" aria-label="대시보드 삭제" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteConfirmId(null)} onKeyDown={(e) => { if (e.key === "Escape") setDeleteConfirmId(null); }}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 280, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>대시보드 삭제</h2>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>이 대시보드를 삭제할까요? 위젯 데이터도 함께 삭제됩니다.</div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button autoFocus variant="ghost" size="sm" onClick={() => setDeleteConfirmId(null)}>취소</Button>
+              <Button variant="danger" size="sm" onClick={() => { deleteMutation.mutate(deleteConfirmId); setDeleteConfirmId(null); }}>삭제</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

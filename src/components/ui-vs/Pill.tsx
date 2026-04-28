@@ -66,6 +66,7 @@ export function Pill({ variant = "default", dot, children, className }: PillProp
         padding: "2px 8px",
         borderRadius: "var(--ds-r-full)",
         fontWeight: "var(--ds-fw-medium)",
+        transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
         ...variantStyles[variant],
       }}
     >

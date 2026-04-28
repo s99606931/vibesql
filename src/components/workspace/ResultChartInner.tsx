@@ -157,6 +157,8 @@ export default function ResultChartInner({ rows, columns }: ResultChartInnerProp
         {CHART_TYPES.map((ct) => (
           <button
             key={ct.key}
+            type="button"
+            aria-pressed={kind === ct.key}
             onClick={() => setKindOverride(ct.key)}
             style={{
               padding: "2px 10px",

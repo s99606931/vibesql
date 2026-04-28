@@ -73,7 +73,7 @@ export async function GET(req: Request) {
         }) as Promise<Array<Record<string, unknown> & { connection?: { name: string } | null }>>,
         prisma.queryHistory.count({ where }),
       ]);
-      const mapped = rows.map(({ connection, ...r }) => ({
+      const mapped = rows.map(({ connection, ...r }: Record<string, unknown> & { connection?: { name: string } | null }) => ({
         ...r,
         connectionName: (connection as { name?: string } | null | undefined)?.name ?? undefined,
       }));
@@ -101,12 +101,36 @@ export async function GET(req: Request) {
   });
 }
 
+export async function DELETE(req: Request) {
+  const authResult = await requireUserId();
+  if (authResult instanceof NextResponse) return authResult;
+  const userId = authResult;
+
+  if (process.env.DATABASE_URL) {
+    try {
+      const { prisma } = await import("@/lib/db/prisma");
+      const { count } = await prisma.queryHistory.deleteMany({ where: { userId } });
+      return NextResponse.json({ data: { deleted: count } });
+    } catch (err) {
+      console.error("[history] DELETE prisma error:", err instanceof Error ? err.message : err);
+      /* fall through to in-memory */
+    }
+  }
+
+  const before = items.length;
+  items.splice(0, items.length, ...items.filter((i) => i.userId !== userId));
+  return NextResponse.json({ data: { deleted: before - items.length } });
+}
+
 export async function POST(req: Request) {
   const authResult = await requireUserId();
   if (authResult instanceof NextResponse) return authResult;
   const userId = authResult;
 
-  const body = await req.json();
+  const body = await req.json().catch(() => null);
+  if (body === null) {
+    return NextResponse.json({ error: "올바른 JSON이 아닙니다." }, { status: 400 });
+  }
   const parsed = SaveSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "잘못된 요청입니다." }, { status: 400 });
@@ -125,8 +149,9 @@ export async function POST(req: Request) {
         },
       });
       return NextResponse.json({ data: row }, { status: 201 });
-    } catch {
-      /* fall through */
+    } catch (err) {
+      console.error("[history] POST prisma error:", err instanceof Error ? err.message : err);
+      /* fall through to in-memory */
     }
   }
 

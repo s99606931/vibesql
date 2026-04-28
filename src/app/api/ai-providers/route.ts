@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireUserId } from "@/lib/auth/require-user";
+import { requireAdmin } from "@/lib/auth/require-user";
 import { memAiProviders, persistAiProviders } from "@/lib/db/mem-ai-providers";
 import { validateExternalUrl } from "@/lib/ssrf-guard";
 
@@ -41,9 +41,9 @@ export const memProviders = memAiProviders as AiProvider[];
 // ─── GET /api/ai-providers ────────────────────────────────────────────────────
 
 export async function GET() {
-  const authResult = await requireUserId();
+  const authResult = await requireAdmin();
   if (authResult instanceof NextResponse) return authResult;
-  const userId = authResult;
+  const userId = authResult.userId;
 
   if (process.env.DATABASE_URL) {
     try {
@@ -62,9 +62,9 @@ export async function GET() {
 // ─── POST /api/ai-providers ───────────────────────────────────────────────────
 
 export async function POST(req: Request) {
-  const authResult = await requireUserId();
+  const authResult = await requireAdmin();
   if (authResult instanceof NextResponse) return authResult;
-  const userId = authResult;
+  const userId = authResult.userId;
 
   let body: unknown;
   try { body = await req.json(); } catch {

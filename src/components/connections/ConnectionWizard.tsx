@@ -131,6 +131,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
     <div
       role="dialog"
       aria-modal="true"
+      aria-label="데이터베이스 연결"
       style={{
         position: "fixed",
         inset: 0,
@@ -211,8 +212,10 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
             <h2 className="ds-h4">새 연결 추가</h2>
 
             <div>
-              <label className="ds-label">연결 이름</label>
+              <label htmlFor="conn-wiz-name" className="ds-label">연결 이름</label>
               <input
+                id="conn-wiz-name"
+                autoFocus
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 placeholder="prod_analytics"
@@ -221,8 +224,9 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
             </div>
 
             <div>
-              <label className="ds-label">DB 종류</label>
+              <label htmlFor="conn-wiz-dialect" className="ds-label">DB 종류</label>
               <select
+                id="conn-wiz-dialect"
                 value={form.dialect}
                 onChange={(e) => updateDialect(e.target.value as DbDialect)}
                 style={inputStyle}
@@ -246,8 +250,9 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                 }}
               >
                 <div>
-                  <label className="ds-label">호스트</label>
+                  <label htmlFor="conn-wiz-host" className="ds-label">호스트</label>
                   <input
+                    id="conn-wiz-host"
                     value={form.host}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, host: e.target.value }))
@@ -257,8 +262,9 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                   />
                 </div>
                 <div>
-                  <label className="ds-label">포트</label>
+                  <label htmlFor="conn-wiz-port" className="ds-label">포트</label>
                   <input
+                    id="conn-wiz-port"
                     value={form.port}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, port: e.target.value }))
@@ -271,8 +277,9 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
             )}
 
             <div>
-              <label className="ds-label">데이터베이스</label>
+              <label htmlFor="conn-wiz-db" className="ds-label">데이터베이스</label>
               <input
+                id="conn-wiz-db"
                 value={form.database}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, database: e.target.value }))
@@ -291,8 +298,9 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                 }}
               >
                 <div>
-                  <label className="ds-label">사용자</label>
+                  <label htmlFor="conn-wiz-user" className="ds-label">사용자</label>
                   <input
+                    id="conn-wiz-user"
                     value={form.username}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, username: e.target.value }))
@@ -302,9 +310,11 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                   />
                 </div>
                 <div>
-                  <label className="ds-label">비밀번호</label>
+                  <label htmlFor="conn-wiz-pass" className="ds-label">비밀번호</label>
                   <input
+                    id="conn-wiz-pass"
                     type="password"
+                    autoComplete="new-password"
                     value={form.password}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, password: e.target.value }))
@@ -341,6 +351,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                 }}
               >
                 <Loader2
+                  aria-hidden="true"
                   size={14}
                   style={{ animation: "spin 1s linear infinite" }}
                 />
@@ -353,7 +364,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                 style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}
               >
                 {[
-                  `연결 성공 — ${testData.serverVersion}`,
+                  testData.serverVersion ? `연결 성공 — ${testData.serverVersion}` : "연결 성공",
                   `응답 속도: ${testData.latencyMs}ms`,
                   "읽기 권한 확인 완료",
                 ].map((item) => (
@@ -367,7 +378,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                       color: "var(--ds-success)",
                     }}
                   >
-                    <Check size={14} />
+                    <Check aria-hidden="true" size={14} />
                     {item}
                   </div>
                 ))}
@@ -376,6 +387,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
 
             {testMutation.isError && (
               <div
+                role="alert"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -384,7 +396,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                   color: "var(--ds-danger)",
                 }}
               >
-                <X size={14} />
+                <X aria-hidden="true" size={14} />
                 {testMutation.error.message}
               </div>
             )}
@@ -426,6 +438,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                     스키마 분석 중...
                   </span>
                   <Loader2
+                    aria-hidden="true"
                     size={12}
                     style={{ animation: "spin 1s linear infinite", color: "var(--ds-text-faint)" }}
                   />
@@ -455,7 +468,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                 <div
                   style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}
                 >
-                  <Check size={14} style={{ color: "var(--ds-success)" }} />
+                  <Check aria-hidden="true" size={14} style={{ color: "var(--ds-success)" }} />
                   <span
                     style={{
                       fontSize: "var(--ds-fs-13)",
@@ -473,6 +486,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
 
             {scanMutation.isError && (
               <div
+                role="alert"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -481,7 +495,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
                   color: "var(--ds-danger)",
                 }}
               >
-                <X size={14} />
+                <X aria-hidden="true" size={14} />
                 {scanMutation.error.message}
               </div>
             )}
@@ -491,6 +505,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
         {/* Global error (create failure on step 1→2 transition) */}
         {stepError && step !== "test" && step !== "scan" && (
           <div
+            role="alert"
             style={{
               marginTop: "var(--ds-sp-3)",
               display: "flex",
@@ -500,7 +515,7 @@ export function ConnectionWizard({ onClose, onDone }: ConnectionWizardProps) {
               color: "var(--ds-danger)",
             }}
           >
-            <X size={12} />
+            <X aria-hidden="true" size={12} />
             {stepError}
           </div>
         )}

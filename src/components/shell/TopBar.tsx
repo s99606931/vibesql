@@ -34,18 +34,20 @@ export function TopBar({ title, breadcrumbs, actions }: TopBarProps) {
     >
       {/* Title + breadcrumb */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div
+        <h1
           style={{
             fontSize: "var(--ds-fs-14)",
             fontWeight: "var(--ds-fw-semibold)",
             color: "var(--ds-text)",
             lineHeight: 1.3,
+            margin: 0,
           }}
         >
           {title}
-        </div>
+        </h1>
         {breadcrumbs && breadcrumbs.length > 0 && (
-          <div
+          <nav
+            aria-label="탐색경로"
             style={{
               display: "flex",
               alignItems: "center",
@@ -64,6 +66,7 @@ export function TopBar({ title, breadcrumbs, actions }: TopBarProps) {
               >
                 {i > 0 && (
                   <ChevronRight
+                    aria-hidden="true"
                     size={10}
                     style={{ color: "var(--ds-text-faint)" }}
                   />
@@ -82,6 +85,7 @@ export function TopBar({ title, breadcrumbs, actions }: TopBarProps) {
                   </Link>
                 ) : (
                   <span
+                    aria-current={i === breadcrumbs.length - 1 ? "page" : undefined}
                     style={{
                       fontSize: "var(--ds-fs-11)",
                       color: "var(--ds-text-mute)",
@@ -92,7 +96,7 @@ export function TopBar({ title, breadcrumbs, actions }: TopBarProps) {
                 )}
               </span>
             ))}
-          </div>
+          </nav>
         )}
       </div>
 

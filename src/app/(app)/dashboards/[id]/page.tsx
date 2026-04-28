@@ -18,6 +18,8 @@ import {
   Clock,
   Globe,
   Lock,
+  Copy,
+  Check,
   X,
   RefreshCw,
   AlertCircle,
@@ -26,6 +28,18 @@ import {
 } from "lucide-react";
 import ResultChart from "@/components/workspace/ResultChart";
 import { ResultTable } from "@/components/workspace/ResultTable";
+
+function formatRelativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 60_000) return "방금 전";
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 60) return `${diffMin}분 전`;
+  const diffHr = Math.floor(diffMs / 3_600_000);
+  if (diffHr < 24) return `${diffHr}시간 전`;
+  const diffDay = Math.floor(diffMs / 86_400_000);
+  if (diffDay < 30) return `${diffDay}일 전`;
+  return new Date(iso).toLocaleDateString("ko-KR");
+}
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -65,9 +79,9 @@ interface QueryResult {
 // ── Helper ───────────────────────────────────────────────────────────────────
 
 function WidgetTypeIcon({ type }: { type: string }) {
-  if (type === "line") return <TrendingUp size={14} />;
-  if (type === "bar") return <BarChart2 size={14} />;
-  return <Table2 size={14} />;
+  if (type === "line") return <TrendingUp aria-hidden="true" size={14} />;
+  if (type === "bar") return <BarChart2 aria-hidden="true" size={14} />;
+  return <Table2 aria-hidden="true" size={14} />;
 }
 
 // ── Connection Selector ───────────────────────────────────────────────────────
@@ -83,9 +97,10 @@ function ConnectionSelector({ connections, selectedId, onChange }: ConnectionSel
 
   return (
     <div style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
-      <Database size={13} style={{ color: "var(--ds-text-mute)", flexShrink: 0 }} />
+      <Database aria-hidden="true" size={13} style={{ color: "var(--ds-text-mute)", flexShrink: 0 }} />
       <div style={{ position: "relative" }}>
         <select
+          aria-label="데이터베이스 연결 선택"
           value={selectedId ?? ""}
           onChange={(e) => onChange(e.target.value || null)}
           style={{
@@ -111,6 +126,7 @@ function ConnectionSelector({ connections, selectedId, onChange }: ConnectionSel
           ))}
         </select>
         <ChevronDown
+          aria-hidden="true"
           size={12}
           style={{
             position: "absolute",
@@ -195,6 +211,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
             <WidgetTypeIcon type={widget.type} />
           </span>
           <span
+            title={widget.label}
             style={{
               fontSize: "var(--ds-fs-13)",
               fontWeight: "var(--ds-fw-medium)",
@@ -215,9 +232,10 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
         <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
           {canFetch && (
             <button
+              type="button"
               onClick={() => void refetch()}
               disabled={isLoading}
-              title="새로고침"
+              aria-label="새로고침"
               style={{
                 background: "none",
                 border: "none",
@@ -227,15 +245,17 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
                 display: "flex",
                 alignItems: "center",
                 opacity: isLoading ? 0.5 : 1,
+                transition: "opacity var(--ds-dur-fast) var(--ds-ease)",
               }}
             >
-              <RefreshCw size={11} style={{ animation: isLoading ? "spin 1s linear infinite" : undefined }} />
+              <RefreshCw aria-hidden="true" size={11} style={{ animation: isLoading ? "spin 1s linear infinite" : undefined }} />
             </button>
           )}
           <button
+            type="button"
             onClick={() => onRemove(index)}
             disabled={isRemoving}
-            title="위젯 삭제"
+            aria-label="위젯 삭제"
             style={{
               background: "none",
               border: "none",
@@ -246,7 +266,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
               alignItems: "center",
             }}
           >
-            <X size={12} />
+            <X aria-hidden="true" size={12} />
           </button>
         </div>
       </div>
@@ -281,7 +301,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
               gap: "var(--ds-sp-2)",
             }}
           >
-            <Database size={18} style={{ color: "var(--ds-text-faint)", opacity: 0.5 }} />
+            <Database aria-hidden="true" size={18} style={{ color: "var(--ds-text-faint)", opacity: 0.5 }} />
             <span>연결을 선택하면 SQL을 실행합니다.</span>
           </div>
         )}
@@ -306,6 +326,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
             }}
           >
             <div
+              role="alert"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -314,7 +335,7 @@ function WidgetCard({ widget, index, selectedConnectionId, onRemove, isRemoving 
                 color: "var(--ds-danger)",
               }}
             >
-              <AlertCircle size={13} />
+              <AlertCircle aria-hidden="true" size={13} />
               <span>{error instanceof Error ? error.message : "쿼리 실행에 실패했습니다."}</span>
             </div>
             {widget.sql && (
@@ -377,6 +398,11 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
   const queryClient = useQueryClient();
 
   const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
+  const [renameModal, setRenameModal] = useState(false);
+  const [renameName, setRenameName] = useState("");
+  const [renameDesc, setRenameDesc] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
 
   // Dashboard data
   const { data: dashboard, isLoading, isError } = useQuery<Dashboard>({
@@ -462,11 +488,9 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
   });
 
   function handleRename() {
-    const name = prompt("새 이름을 입력하세요:", dashboard?.name);
-    if (name?.trim() && name.trim() !== dashboard?.name) {
-      const description = prompt("설명 (선택):", dashboard?.description ?? "");
-      renameMutation.mutate({ name: name.trim(), description: description ?? undefined });
-    }
+    setRenameName(dashboard?.name ?? "");
+    setRenameDesc(dashboard?.description ?? "");
+    setRenameModal(true);
   }
 
   // ── Loading / Error states ───────────────────────────────────────────────────
@@ -494,7 +518,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
           breadcrumbs={[{ label: "vibeSQL" }, { label: "대시보드", href: "/dashboards" }, { label: "오류" }]}
         />
         <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
-          <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-danger)" }}>
+          <div role="alert" style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-danger)" }}>
             대시보드를 불러오지 못했습니다.
           </div>
           <Button
@@ -542,11 +566,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
               size="sm"
               icon={<Trash2 size={12} />}
               loading={deleteMutation.isPending}
-              onClick={() => {
-                if (confirm(`"${dashboard.name}" 대시보드를 삭제할까요?`)) {
-                  deleteMutation.mutate();
-                }
-              }}
+              onClick={() => setDeleteConfirm(true)}
             >
               삭제
             </Button>
@@ -554,7 +574,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
         }
       />
 
-      <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
         <div
           style={{
             maxWidth: 1100,
@@ -600,17 +620,46 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                 )}
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", flexWrap: "wrap" }}>
                   <button
+                    type="button"
                     onClick={() => togglePublicMutation.mutate()}
                     disabled={togglePublicMutation.isPending}
-                    style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-                    title={dashboard.isPublic ? "비공개로 전환" : "공유로 전환"}
+                    aria-label={dashboard.isPublic ? "비공개로 전환" : "공유로 전환"}
+                    style={{ background: "none", border: "none", padding: 0, cursor: "pointer", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+                    className="hover:opacity-70"
                   >
                     <Pill variant={dashboard.isPublic ? "success" : "default"}>
                       {dashboard.isPublic
-                        ? <><Globe size={10} style={{ marginRight: 3 }} />공유됨</>
-                        : <><Lock size={10} style={{ marginRight: 3 }} />비공개</>}
+                        ? <><Globe aria-hidden="true" size={10} style={{ marginRight: 3 }} />공유됨</>
+                        : <><Lock aria-hidden="true" size={10} style={{ marginRight: 3 }} />비공개</>}
                     </Pill>
                   </button>
+                  {dashboard.isPublic && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(window.location.href);
+                        setCopiedUrl(true);
+                        setTimeout(() => setCopiedUrl(false), 2000);
+                      }}
+                      className="hover:bg-fill transition-colors"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        background: "none",
+                        border: `1px solid var(--ds-border)`,
+                        borderRadius: "var(--ds-r-6)",
+                        padding: "2px 8px",
+                        cursor: "pointer",
+                        fontSize: "var(--ds-fs-11)",
+                        color: copiedUrl ? "var(--ds-success)" : "var(--ds-text-mute)",
+                      }}
+                      aria-label={copiedUrl ? "복사됨" : "공유 URL 복사"}
+                    >
+                      {copiedUrl ? <Check aria-hidden="true" size={11} /> : <Copy aria-hidden="true" size={11} />}
+                      {copiedUrl ? "복사됨!" : "URL 복사"}
+                    </button>
+                  )}
                   <span
                     style={{
                       display: "flex",
@@ -620,8 +669,8 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                       color: "var(--ds-text-faint)",
                     }}
                   >
-                    <Clock size={11} />
-                    {new Date(dashboard.updatedAt).toLocaleString("ko-KR")}
+                    <Clock aria-hidden="true" size={11} />
+                    <span title={new Date(dashboard.updatedAt).toLocaleString("ko-KR")}>{formatRelativeTime(dashboard.updatedAt)}</span>
                   </span>
                 </div>
               </div>
@@ -683,6 +732,11 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                 }}
               >
                 위젯이 없습니다. 워크스페이스에서 쿼리 결과를 이 대시보드에 추가하세요.
+                <div style={{ marginTop: "var(--ds-sp-3)" }}>
+                  <Button variant="ghost" size="sm" onClick={() => router.push("/workspace")}>
+                    워크스페이스로 이동
+                  </Button>
+                </div>
               </div>
             ) : connList.length === 0 && widgets.some((w) => w.sql?.trim()) ? (
               /* No connections at all: show banner + widget labels */
@@ -700,7 +754,7 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                     color: "var(--ds-accent)",
                   }}
                 >
-                  <Database size={14} />
+                  <Database aria-hidden="true" size={14} />
                   <span>
                     SQL 위젯을 실행하려면{" "}
                     <a
@@ -742,8 +796,11 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                         </span>
                       </div>
                       <button
+                        type="button"
                         onClick={() => removeWidgetMutation.mutate(i)}
                         disabled={removeWidgetMutation.isPending}
+                        aria-label="위젯 삭제"
+                        className="hover:text-danger"
                         style={{
                           background: "none",
                           border: "none",
@@ -752,10 +809,10 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
                           padding: 2,
                           display: "flex",
                           alignItems: "center",
+                          transition: "color var(--ds-dur-fast) var(--ds-ease)",
                         }}
-                        title="위젯 삭제"
                       >
-                        <X size={12} />
+                        <X aria-hidden="true" size={12} />
                       </button>
                     </div>
                   ))}
@@ -785,6 +842,83 @@ export default function DashboardDetailPage({ params }: { params: Promise<{ id: 
           </Card>
         </div>
       </div>
+
+      {/* Delete confirm modal */}
+      {deleteConfirm && (
+        <div role="dialog" aria-modal="true" aria-label="대시보드 삭제" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteConfirm(false)} onKeyDown={(e) => { if (e.key === "Escape") setDeleteConfirm(false); }}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 280, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>대시보드 삭제</h2>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>"{dashboard?.name}" 대시보드를 삭제할까요? 위젯 데이터도 함께 삭제됩니다.</div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button autoFocus variant="ghost" size="sm" onClick={() => setDeleteConfirm(false)}>취소</Button>
+              <Button variant="danger" size="sm" onClick={() => { deleteMutation.mutate(); setDeleteConfirm(false); }}>삭제</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename modal */}
+      {renameModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="대시보드 이름 편집"
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
+          onClick={() => setRenameModal(false)}
+          onKeyDown={(e) => { if (e.key === "Escape") setRenameModal(false); }}
+        >
+          <div
+            style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 320, maxWidth: 400, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>대시보드 이름 편집</h2>
+
+            <div>
+              <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>이름</div>
+              <input
+                autoFocus
+                value={renameName}
+                onChange={(e) => setRenameName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setRenameModal(false);
+                  if (e.key === "Enter" && renameName.trim() && renameName.trim() !== dashboard?.name) {
+                    renameMutation.mutate({ name: renameName.trim(), description: renameDesc || undefined });
+                    setRenameModal(false);
+                  }
+                }}
+                style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", fontFamily: "var(--ds-font-sans)", outline: "none", boxSizing: "border-box" }}
+                placeholder="대시보드 이름"
+              />
+            </div>
+
+            <div>
+              <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-2)" }}>설명 (선택)</div>
+              <input
+                value={renameDesc}
+                onChange={(e) => setRenameDesc(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Escape") setRenameModal(false); }}
+                style={{ width: "100%", padding: "var(--ds-sp-2) var(--ds-sp-3)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", fontFamily: "var(--ds-font-sans)", outline: "none", boxSizing: "border-box" }}
+                placeholder="대시보드 설명"
+              />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button variant="ghost" size="sm" onClick={() => setRenameModal(false)}>취소</Button>
+              <Button
+                variant="accent"
+                size="sm"
+                disabled={!renameName.trim() || renameName.trim() === dashboard?.name || renameMutation.isPending}
+                onClick={() => {
+                  renameMutation.mutate({ name: renameName.trim(), description: renameDesc || undefined });
+                  setRenameModal(false);
+                }}
+              >
+                {renameMutation.isPending ? "저장 중..." : "저장"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Spinner keyframe (inline) */}
       <style>{`

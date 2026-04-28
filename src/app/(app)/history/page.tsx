@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
@@ -9,7 +9,7 @@ import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Button } from "@/components/ui-vs/Button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RotateCcw, Star, MoreHorizontal } from "lucide-react";
+import { RotateCcw, Star, MoreHorizontal, Trash2, Download, ChevronDown, ChevronRight, Copy, Check, X } from "lucide-react";
 
 type HistoryFilter = "전체" | "성공" | "실패" | "즐겨찾기";
 const HISTORY_FILTERS: HistoryFilter[] = ["전체", "성공", "실패", "즐겨찾기"];
@@ -61,6 +61,10 @@ function formatDuration(ms?: number | null): string {
 export default function HistoryPage() {
   const [activeFilter, setActiveFilter] = useState<HistoryFilter>("전체");
   const [search, setSearch] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [expandedErrorId, setExpandedErrorId] = useState<string | null>(null);
+  const [clearAllModal, setClearAllModal] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const router = useRouter();
   const { setSql, setNlQuery, setStatus } = useWorkspaceStore();
@@ -82,11 +86,31 @@ export default function HistoryPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["history"] }),
   });
 
+  const clearAllMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/history", { method: "DELETE" });
+      if (!res.ok) throw new Error("전체 삭제 실패");
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["history"] }),
+  });
+
   const [limit, setLimit] = useState(50);
+  const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const statusParam =
     activeFilter === "성공" ? "SUCCESS" :
-    activeFilter === "실패" ? "FAILURE" :
+    activeFilter === "실패" ? "ERROR" :
     undefined;
   const starredParam = activeFilter === "즐겨찾기";
 
@@ -111,16 +135,59 @@ export default function HistoryPage() {
 
   const historyGroups = groupByDate(filtered);
 
+  function exportHistoryCsv() {
+    if (data.length === 0) return;
+    const headers = ["createdAt", "status", "dialect", "rowCount", "durationMs", "nlQuery", "sql", "errorMsg"];
+    const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const csv = [
+      headers.join(","),
+      ...data.map((item) =>
+        headers.map((h) => escape(item[h as keyof HistoryItem])).join(",")
+      ),
+    ].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `history_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <TopBar
         title="히스토리"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "히스토리" }]}
+        actions={
+          data.length > 0 ? (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Download size={13} />}
+                onClick={exportHistoryCsv}
+              >
+                CSV
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Trash2 size={13} />}
+                onClick={() => setClearAllModal(true)}
+              >
+                전체 삭제
+              </Button>
+            </>
+          ) : undefined
+        }
       />
 
-      <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
         {/* Filter bar */}
         <div
+          role="group"
+          aria-label="결과 필터"
           style={{
             display: "flex",
             gap: "var(--ds-sp-2)",
@@ -132,6 +199,8 @@ export default function HistoryPage() {
           {HISTORY_FILTERS.map((f) => (
             <button
               key={f}
+              type="button"
+              aria-pressed={activeFilter === f}
               onClick={() => setActiveFilter(f)}
               style={{
                 padding: "4px 12px",
@@ -142,28 +211,42 @@ export default function HistoryPage() {
                 fontSize: "var(--ds-fs-12)",
                 cursor: "pointer",
                 fontFamily: "var(--ds-font-sans)",
+                transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
               }}
             >
               {f}
             </button>
           ))}
           <div style={{ flex: 1 }} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="히스토리 검색..."
-            style={{
-              padding: "var(--ds-sp-1) var(--ds-sp-3)",
-              border: "1px solid var(--ds-border)",
-              borderRadius: "var(--ds-r-6)",
-              background: "var(--ds-surface)",
-              color: "var(--ds-text)",
-              fontSize: "var(--ds-fs-12)",
-              outline: "none",
-              fontFamily: "var(--ds-font-sans)",
-              width: 200,
-            }}
-          />
+          <div role="search" aria-label="히스토리 검색" style={{ position: "relative" }}>
+            <input
+              ref={searchRef}
+              type="search"
+              aria-label="히스토리 검색"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="히스토리 검색... (⌘F)"
+              style={{
+                paddingTop: "var(--ds-sp-1)",
+                paddingBottom: "var(--ds-sp-1)",
+                paddingLeft: "var(--ds-sp-3)",
+                paddingRight: search ? 28 : "var(--ds-sp-3)",
+                border: "1px solid var(--ds-border)",
+                borderRadius: "var(--ds-r-6)",
+                background: "var(--ds-surface)",
+                color: "var(--ds-text)",
+                fontSize: "var(--ds-fs-12)",
+                outline: "none",
+                fontFamily: "var(--ds-font-sans)",
+                width: 200,
+              }}
+            />
+            {search && (
+              <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
+                <X aria-hidden="true" size={13} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Loading skeleton */}
@@ -175,12 +258,32 @@ export default function HistoryPage() {
           </div>
         )}
 
+        {/* Total count */}
+        {!isLoading && filtered.length > 0 && (
+          <div role="status" aria-live="polite" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginBottom: "var(--ds-sp-3)" }}>
+            {filtered.length.toLocaleString()}개 쿼리{totalCount > filtered.length ? ` (전체 ${totalCount.toLocaleString()}개 중)` : ""}
+          </div>
+        )}
+
         {/* History list */}
         {!isLoading &&
-          Object.entries(historyGroups).map(([date, items]) => (
+          Object.entries(historyGroups).map(([date, items]) => {
+            const collapsed = collapsedDates.has(date);
+            return (
             <div key={date} style={{ marginBottom: "var(--ds-sp-5)" }}>
-              <div
+              <button
+                type="button"
+                aria-label={`${date} 그룹 ${collapsed ? "펼치기" : "접기"}`}
+                aria-expanded={!collapsed}
+                aria-controls={`history-group-${date}`}
+                onClick={() => setCollapsedDates((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(date)) next.delete(date); else next.add(date);
+                  return next;
+                })}
                 style={{
+                  display: "flex", alignItems: "center", gap: 4,
+                  background: "none", border: "none", cursor: "pointer",
                   fontSize: "var(--ds-fs-11)",
                   fontWeight: "var(--ds-fw-semibold)",
                   color: "var(--ds-text-mute)",
@@ -188,34 +291,61 @@ export default function HistoryPage() {
                   letterSpacing: "0.06em",
                   marginBottom: "var(--ds-sp-2)",
                   paddingLeft: "var(--ds-sp-1)",
+                  padding: 0,
+                  transition: "color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
+                {collapsed ? <ChevronRight aria-hidden="true" size={12} /> : <ChevronDown aria-hidden="true" size={12} />}
                 {date}
-              </div>
+                <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", fontWeight: "normal", textTransform: "none", letterSpacing: 0 }}>
+                  ({items.length})
+                </span>
+              </button>
 
-              <Card padding={0}>
+              {!collapsed && <Card id={`history-group-${date}`} padding={0}>
                 {items.map((item, i) => (
+                  <div key={item.id}>
                   <div
-                    key={item.id}
-                    className="group"
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={expandedErrorId === item.id}
+                    aria-controls={`history-detail-${item.id}`}
+                    aria-label={`${expandedErrorId === item.id ? "접기" : "상세 보기"}: ${(item.nlQuery ?? item.sql).slice(0, 60)}`}
+                    className="group hover:bg-fill transition-colors"
                     style={{
                       display: "flex",
                       alignItems: "center",
                       gap: "var(--ds-sp-3)",
                       padding: "var(--ds-sp-3) var(--ds-sp-4)",
-                      borderBottom: i < items.length - 1 ? "1px solid var(--ds-border)" : undefined,
+                      borderBottom: (i < items.length - 1 && expandedErrorId !== item.id) ? "1px solid var(--ds-border)" : undefined,
                       cursor: "pointer",
                       transition: "background var(--ds-dur-fast) var(--ds-ease)",
                     }}
+                    onClick={() => {
+                      setExpandedErrorId((prev) => prev === item.id ? null : item.id);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setExpandedErrorId((prev) => prev === item.id ? null : item.id);
+                      }
+                    }}
                   >
+                    {/* Expand chevron */}
+                    <span style={{ color: "var(--ds-text-faint)", flexShrink: 0, display: "flex" }}>
+                      {expandedErrorId === item.id ? <ChevronDown aria-hidden="true" size={13} /> : <ChevronRight aria-hidden="true" size={13} />}
+                    </span>
+
                     {/* Time */}
                     <span
                       className="ds-mono"
+                      title={new Date(item.createdAt).toLocaleString("ko-KR")}
                       style={{
                         fontSize: "var(--ds-fs-11)",
                         color: "var(--ds-text-faint)",
                         width: 36,
                         flexShrink: 0,
+                        cursor: "default",
                       }}
                     >
                       {formatTime(item.createdAt)}
@@ -224,6 +354,7 @@ export default function HistoryPage() {
                     {/* Query */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div
+                        title={item.nlQuery ?? item.sql}
                         style={{
                           fontSize: "var(--ds-fs-13)",
                           color: "var(--ds-text)",
@@ -269,7 +400,7 @@ export default function HistoryPage() {
 
                     {/* Starred */}
                     {item.starred && (
-                      <Star size={13} style={{ color: "var(--ds-warn)", fill: "var(--ds-warn)", flexShrink: 0 }} />
+                      <Star role="img" aria-label="저장됨" size={13} style={{ color: "var(--ds-warn)", fill: "var(--ds-warn)", flexShrink: 0 }} />
                     )}
 
                     {/* Actions (hover) */}
@@ -308,20 +439,79 @@ export default function HistoryPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        icon={<MoreHorizontal size={12} />}
+                        icon={copiedId === item.id ? <Check size={12} style={{ color: "var(--ds-success)" }} /> : <Copy size={12} />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void navigator.clipboard.writeText(item.sql);
+                          setCopiedId(item.id);
+                          setTimeout(() => setCopiedId(null), 1500);
+                        }}
+                      >{copiedId === item.id ? "복사됨" : "복사"}</Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={<Trash2 size={12} />}
                         aria-label="삭제"
                         loading={deleteMutation.isPending && deleteMutation.variables === item.id}
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (confirm("이 히스토리 항목을 삭제할까요?")) deleteMutation.mutate(item.id);
+                          setDeleteConfirmId(item.id);
                         }}
                       >삭제</Button>
                     </div>
                   </div>
+                  {expandedErrorId === item.id && (
+                    <div
+                      id={`history-detail-${item.id}`}
+                      style={{
+                        padding: "var(--ds-sp-2) var(--ds-sp-4)",
+                        background: item.errorMsg ? "var(--ds-danger-soft, #fff1f0)" : "var(--ds-fill)",
+                        borderTop: `1px solid ${item.errorMsg ? "var(--ds-danger-border, #fca5a5)" : "var(--ds-border)"}`,
+                        borderBottom: i < items.length - 1 ? "1px solid var(--ds-border)" : undefined,
+                        fontSize: "var(--ds-fs-12)",
+                        fontFamily: "var(--ds-font-mono)",
+                        color: item.errorMsg ? "var(--ds-danger, #e53e3e)" : "var(--ds-text-mute)",
+                        wordBreak: "break-all",
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {item.errorMsg ?? item.sql}
+                    </div>
+                  )}
+                  </div>
                 ))}
-              </Card>
+              </Card>}
             </div>
-          ))}
+          );})}
+
+
+
+        {/* True empty state (no history at all) */}
+        {!isLoading && data.length === 0 && !search && activeFilter === "전체" && (
+          <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
+            <div>아직 실행된 쿼리가 없습니다.</div>
+            <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => router.push("/workspace")}>
+              워크스페이스로 이동
+            </Button>
+          </div>
+        )}
+
+        {/* No-results */}
+        {!isLoading && filtered.length === 0 && (search || activeFilter !== "전체") && (
+          <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)" }}>
+            <div>{search ? "검색 결과가 없습니다." : "해당 필터에 결과가 없습니다."}</div>
+            {search && (
+              <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setSearch("")}>
+                검색 지우기
+              </Button>
+            )}
+            {activeFilter !== "전체" && !search && (
+              <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setActiveFilter("전체")}>
+                필터 초기화
+              </Button>
+            )}
+          </div>
+        )}
 
         {/* Load more */}
         {data.length > 0 && data.length < totalCount && (
@@ -336,6 +526,43 @@ export default function HistoryPage() {
           </div>
         )}
       </div>
+
+      {clearAllModal && (
+        <div role="dialog" aria-modal="true" aria-label="전체 히스토리 삭제" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setClearAllModal(false)} onKeyDown={(e) => { if (e.key === "Escape") setClearAllModal(false); }}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 320, maxWidth: 400, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>전체 히스토리 삭제</h2>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", lineHeight: 1.6 }}>
+              모든 쿼리 히스토리 ({totalCount.toLocaleString()}개)가 영구적으로 삭제됩니다.<br />
+              이 작업은 되돌릴 수 없습니다.
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button autoFocus variant="ghost" size="sm" onClick={() => setClearAllModal(false)}>취소</Button>
+              <Button
+                variant="danger"
+                size="sm"
+                icon={<Trash2 size={12} />}
+                loading={clearAllMutation.isPending}
+                onClick={() => { clearAllMutation.mutate(); setClearAllModal(false); }}
+              >
+                전체 삭제
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmId && (
+        <div role="dialog" aria-modal="true" aria-label="히스토리 삭제" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteConfirmId(null)} onKeyDown={(e) => { if (e.key === "Escape") setDeleteConfirmId(null); }}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 280, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>히스토리 삭제</h2>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>이 히스토리 항목을 삭제할까요?</div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button autoFocus variant="ghost" size="sm" onClick={() => setDeleteConfirmId(null)}>취소</Button>
+              <Button variant="danger" size="sm" onClick={() => { deleteMutation.mutate(deleteConfirmId); setDeleteConfirmId(null); }}>삭제</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

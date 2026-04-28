@@ -91,7 +91,7 @@ export default function SignInPage() {
               justifyContent: "center",
             }}
           >
-            <Zap size={16} color="white" />
+            <Zap aria-hidden="true" size={16} color="white" />
           </div>
           <span
             style={{
@@ -106,6 +106,8 @@ export default function SignInPage() {
 
         {/* Tab switcher */}
         <div
+          role="tablist"
+          aria-label="로그인 / 회원가입"
           style={{
             display: "flex",
             background: "var(--ds-fill)",
@@ -117,6 +119,11 @@ export default function SignInPage() {
           {(["login", "register"] as Tab[]).map((t) => (
             <button
               key={t}
+              type="button"
+              role="tab"
+              id={`signin-tab-${t}`}
+              aria-selected={tab === t}
+              aria-controls="signin-form"
               onClick={() => { setTab(t); setError(null); }}
               style={{
                 flex: 1,
@@ -152,6 +159,9 @@ export default function SignInPage() {
         {/* Error */}
         {error && (
           <div
+            id="signin-error"
+            role="alert"
+            aria-live="assertive"
             style={{
               display: "flex",
               alignItems: "center",
@@ -163,19 +173,21 @@ export default function SignInPage() {
               marginBottom: "var(--ds-sp-3)",
             }}
           >
-            <AlertCircle size={14} style={{ color: "var(--ds-danger)", flexShrink: 0 }} />
+            <AlertCircle aria-hidden="true" size={14} style={{ color: "var(--ds-danger)", flexShrink: 0 }} />
             <span style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-danger)" }}>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
+        <form id="signin-form" role="tabpanel" aria-labelledby={`signin-tab-${tab}`} onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
           {tab === "register" && (
             <div>
-              <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
+              <label htmlFor="signin-name" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
                 이름
               </label>
               <input
                 type="text"
+                id="signin-name"
+                aria-label="이름"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="홍길동"
@@ -197,11 +209,15 @@ export default function SignInPage() {
           )}
 
           <div>
-            <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
+            <label htmlFor="signin-email" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
               이메일
             </label>
             <input
               type="email"
+              id="signin-email"
+              aria-label="이메일"
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? "signin-error" : undefined}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
@@ -222,12 +238,16 @@ export default function SignInPage() {
           </div>
 
           <div>
-            <label style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
+            <label htmlFor="signin-password" style={{ fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)", display: "block", marginBottom: "var(--ds-sp-1)" }}>
               비밀번호
             </label>
             <div style={{ position: "relative" }}>
               <input
                 type={showPassword ? "text" : "password"}
+                id="signin-password"
+                aria-label="비밀번호"
+                aria-describedby={[tab === "register" ? "signin-pw-hint" : undefined, error ? "signin-error" : undefined].filter(Boolean).join(" ") || undefined}
+                aria-invalid={error ? true : undefined}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -248,18 +268,21 @@ export default function SignInPage() {
               />
               <button
                 type="button"
+                aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+                aria-pressed={showPassword}
                 onClick={() => setShowPassword((v) => !v)}
                 style={{
                   position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
                   background: "none", border: "none", cursor: "pointer",
                   color: "var(--ds-text-faint)", padding: 2,
+                  transition: "color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
-                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                {showPassword ? <EyeOff aria-hidden="true" size={14} /> : <Eye aria-hidden="true" size={14} />}
               </button>
             </div>
             {tab === "register" && (
-              <p style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: "var(--ds-sp-1)" }}>
+              <p id="signin-pw-hint" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: "var(--ds-sp-1)" }}>
                 8자 이상
               </p>
             )}

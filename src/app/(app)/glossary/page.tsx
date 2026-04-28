@@ -1,14 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Card } from "@/components/ui-vs/Card";
 import { AICallout } from "@/components/ui-vs/AICallout";
-import { Plus, Search, BookOpen, Trash2, X } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Plus, Search, BookOpen, Trash2, X, Pencil, Download, Copy, Check, ExternalLink } from "lucide-react";
 import type { GlossaryTerm } from "@/types";
+import { useWorkspaceStore } from "@/store/useWorkspaceStore";
+import { useRouter } from "next/navigation";
 
 const categoryColors: Record<string, "default" | "accent" | "success" | "warn" | "info"> = {
   매출: "accent",
@@ -37,12 +40,22 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
+interface EditForm {
+  term: string;
+  category: string;
+  definition: string;
+  sql: string;
+}
+
 export default function GlossaryPage() {
   const qc = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [catFilter, setCatFilter] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [newTerm, setNewTerm] = useState({ term: "", category: "매출", definition: "", sql: "" });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<EditForm>({ term: "", category: "", definition: "", sql: "" });
 
   const { data: terms = [], isLoading } = useQuery({
     queryKey: ["glossary"],
@@ -80,14 +93,78 @@ export default function GlossaryPage() {
     },
   });
 
-  const filtered = terms.filter(
-    (t) =>
-      t.term.includes(search) ||
-      t.definition.includes(search) ||
-      t.category.includes(search)
-  );
+  const editMutation = useMutation({
+    mutationFn: async ({ id, body }: { id: string; body: Partial<EditForm> }) => {
+      const res = await fetch(`/api/glossary/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "수정 실패");
+      return json.data as GlossaryTerm;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["glossary"] });
+      setIsEditing(false);
+    },
+    onError: (err) => {
+      console.warn("[glossary] edit failed:", err instanceof Error ? err.message : err);
+    },
+  });
+
+  function startEditing(term: GlossaryTerm) {
+    setEditForm({ term: term.term, category: term.category, definition: term.definition, sql: term.sql ?? "" });
+    setIsEditing(true);
+  }
+
+  function cancelEditing() {
+    setIsEditing(false);
+  }
+
+  const { setSql, setStatus } = useWorkspaceStore();
+  const router = useRouter();
+  const [copiedSqlId, setCopiedSqlId] = useState<string | null>(null);
+  const [copiedTermId, setCopiedTermId] = useState<string | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+      if (e.key === "Escape") {
+        if (showAdd) { setShowAdd(false); return; }
+        if (isEditing) setIsEditing(false);
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [showAdd, isEditing]);
+
+  const allCategories = [...new Set(terms.map((t) => t.category))].sort();
+
+  const filtered = terms.filter((t) => {
+    if (catFilter && t.category !== catFilter) return false;
+    if (!search) return true;
+    return t.term.includes(search) || t.definition.includes(search) || t.category.includes(search);
+  });
 
   const selected = terms.find((t) => t.id === selectedId) ?? terms[0] ?? null;
+
+  function exportGlossaryCsv() {
+    if (terms.length === 0) return;
+    const headers = ["term", "category", "definition", "sql", "createdAt"];
+    const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const csv = [
+      headers.join(","),
+      ...terms.map((t) => headers.map((h) => escape(t[h as keyof GlossaryTerm])).join(",")),
+    ].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `glossary_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
@@ -95,9 +172,16 @@ export default function GlossaryPage() {
         title="비즈니스 용어집"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "비즈니스 용어집" }]}
         actions={
-          <Button variant="accent" size="sm" icon={<Plus size={13} />} onClick={() => setShowAdd(true)}>
-            새 용어
-          </Button>
+          <>
+            {terms.length > 0 && (
+              <Button variant="ghost" size="sm" icon={<Download size={13} />} onClick={exportGlossaryCsv}>
+                CSV
+              </Button>
+            )}
+            <Button variant="accent" size="sm" icon={<Plus size={13} />} onClick={() => setShowAdd(true)}>
+              새 용어
+            </Button>
+          </>
         }
       />
 
@@ -120,7 +204,15 @@ export default function GlossaryPage() {
               borderBottom: "1px solid var(--ds-border)",
             }}
           >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--ds-sp-2)" }}>
+              <span style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)" }}>용어 사전</span>
+              {!isLoading && (
+                <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)" }}>{terms.length}개</span>
+              )}
+            </div>
             <div
+              role="search"
+              aria-label="용어 검색"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -131,11 +223,14 @@ export default function GlossaryPage() {
                 padding: "var(--ds-sp-1) var(--ds-sp-2)",
               }}
             >
-              <Search size={12} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+              <Search aria-hidden="true" size={12} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
               <input
+                ref={searchRef}
+                type="search"
+                aria-label="용어 검색"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="용어 검색..."
+                placeholder="용어 검색... (⌘F)"
                 style={{
                   border: "none",
                   background: "transparent",
@@ -146,24 +241,94 @@ export default function GlossaryPage() {
                   flex: 1,
                 }}
               />
+              {search && (
+                <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
+                  <X aria-hidden="true" size={12} />
+                </button>
+              )}
             </div>
+            {allCategories.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--ds-sp-1)", marginTop: "var(--ds-sp-2)", alignItems: "center" }}>
+                <button
+                  type="button"
+                  aria-pressed={catFilter === null}
+                  onClick={() => setCatFilter(null)}
+                  style={{
+                    padding: "2px 8px",
+                    borderRadius: "var(--ds-r-full)",
+                    border: "1px solid var(--ds-border)",
+                    background: catFilter === null ? "var(--ds-accent-soft)" : "transparent",
+                    color: catFilter === null ? "var(--ds-accent)" : "var(--ds-text-faint)",
+                    fontSize: "var(--ds-fs-10)",
+                    cursor: "pointer",
+                    fontFamily: "var(--ds-font-sans)",
+                    transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
+                  }}
+                >
+                  전체
+                </button>
+                {allCategories.map((cat) => {
+                  const catCount = terms.filter((t) => t.category === cat).length;
+                  return (
+                  <button
+                    key={cat}
+                    type="button"
+                    aria-pressed={catFilter === cat}
+                    onClick={() => setCatFilter((prev) => prev === cat ? null : cat)}
+                    style={{
+                      padding: "2px 8px",
+                      borderRadius: "var(--ds-r-full)",
+                      border: "1px solid var(--ds-border)",
+                      background: catFilter === cat ? "var(--ds-accent-soft)" : "transparent",
+                      color: catFilter === cat ? "var(--ds-accent)" : "var(--ds-text-faint)",
+                      fontSize: "var(--ds-fs-10)",
+                      cursor: "pointer",
+                      fontFamily: "var(--ds-font-sans)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                      transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
+                    }}
+                  >
+                    {cat}
+                    <span style={{ fontSize: "var(--ds-fs-9)", opacity: 0.7 }}>{catCount}</span>
+                  </button>
+                  );
+                })}
+                {(search || catFilter) && (
+                  <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", marginLeft: "var(--ds-sp-1)" }}>
+                    {filtered.length}/{terms.length}개
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
-          <div style={{ flex: 1, overflow: "auto" }}>
+          <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto" }}>
             {isLoading && (
-              <div style={{ padding: "var(--ds-sp-4)", fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)" }}>
-                로딩 중...
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-2)" }}>
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-12 w-full rounded-lg" />
+                ))}
               </div>
             )}
             {!isLoading && filtered.length === 0 && (
               <div style={{ padding: "var(--ds-sp-4)", fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)", textAlign: "center" }}>
-                {search ? "검색 결과 없음" : "용어가 없습니다"}
+                <div>{search ? "검색 결과 없음" : "용어가 없습니다"}</div>
+                {search && (
+                  <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setSearch("")}>
+                    검색 지우기
+                  </Button>
+                )}
               </div>
             )}
             {filtered.map((term) => (
               <button
                 key={term.id}
-                onClick={() => setSelectedId(term.id)}
+                type="button"
+                aria-selected={(selectedId ?? terms[0]?.id) === term.id}
+                onClick={() => { setSelectedId(term.id); setIsEditing(false); }}
+                className={(selectedId ?? terms[0]?.id) !== term.id ? "hover:bg-fill" : undefined}
                 style={{
                   width: "100%",
                   display: "flex",
@@ -182,6 +347,7 @@ export default function GlossaryPage() {
                 }}
               >
                 <BookOpen
+                  aria-hidden="true"
                   size={13}
                   style={{
                     color: (selectedId ?? terms[0]?.id) === term.id ? "var(--ds-accent)" : "var(--ds-text-faint)",
@@ -190,6 +356,7 @@ export default function GlossaryPage() {
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div
+                    title={term.term}
                     style={{
                       fontSize: "var(--ds-fs-13)",
                       fontWeight: (selectedId ?? terms[0]?.id) === term.id ? "var(--ds-fw-semibold)" : "var(--ds-fw-normal)",
@@ -206,6 +373,29 @@ export default function GlossaryPage() {
                   </div>
                 </div>
                 <Pill variant={categoryColors[term.category] ?? "default"}>{term.category}</Pill>
+                <span
+                  role="button"
+                  tabIndex={0}
+                  aria-label={copiedTermId === term.id ? "복사됨" : "용어명 복사"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void navigator.clipboard.writeText(term.term);
+                    setCopiedTermId(term.id);
+                    setTimeout(() => setCopiedTermId(null), 1500);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      void navigator.clipboard.writeText(term.term);
+                      setCopiedTermId(term.id);
+                      setTimeout(() => setCopiedTermId(null), 1500);
+                    }
+                  }}
+                  style={{ color: copiedTermId === term.id ? "var(--ds-success)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", flexShrink: 0, cursor: "pointer", transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
+                >
+                  {copiedTermId === term.id ? <Check aria-hidden="true" size={11} /> : <Copy aria-hidden="true" size={11} />}
+                </span>
               </button>
             ))}
           </div>
@@ -231,31 +421,36 @@ export default function GlossaryPage() {
           {showAdd && (
             <Card padding="var(--ds-sp-4)">
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--ds-sp-4)" }}>
-                <div style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>
+                <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>
                   새 용어 추가
-                </div>
+                </h2>
                 <Button variant="ghost" size="sm" icon={<X size={13} />} onClick={() => setShowAdd(false)}>닫기</Button>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
                 <div>
-                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>용어</label>
-                  <input style={inputStyle} value={newTerm.term} onChange={(e) => setNewTerm((p) => ({ ...p, term: e.target.value }))} placeholder="예: 결제율" />
+                  <label htmlFor="new-term-name" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>용어</label>
+                  <input id="new-term-name" style={inputStyle} value={newTerm.term} onChange={(e) => setNewTerm((p) => ({ ...p, term: e.target.value }))} placeholder="예: 결제율" />
                 </div>
                 <div>
-                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>카테고리</label>
-                  <select
+                  <label htmlFor="new-term-category" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>카테고리</label>
+                  <input
+                    id="new-term-category"
                     style={inputStyle}
+                    list="glossary-categories"
                     value={newTerm.category}
                     onChange={(e) => setNewTerm((p) => ({ ...p, category: e.target.value }))}
-                  >
-                    {["매출", "사용자", "지표", "기타"].map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                    placeholder="카테고리 선택 또는 직접 입력..."
+                  />
+                  <datalist id="glossary-categories">
+                    {[...new Set(["매출", "사용자", "지표", "기타", ...(terms?.map((t) => t.category) ?? [])])].map((c) => (
+                      <option key={c} value={c} />
                     ))}
-                  </select>
+                  </datalist>
                 </div>
                 <div>
-                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>정의</label>
+                  <label htmlFor="new-term-definition" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>정의</label>
                   <textarea
+                    id="new-term-definition"
                     style={{ ...inputStyle, minHeight: 72, resize: "vertical" }}
                     value={newTerm.definition}
                     onChange={(e) => setNewTerm((p) => ({ ...p, definition: e.target.value }))}
@@ -263,8 +458,9 @@ export default function GlossaryPage() {
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>SQL 힌트 (선택)</label>
+                  <label htmlFor="new-term-sql" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>SQL 힌트 (선택)</label>
                   <input
+                    id="new-term-sql"
                     style={{ ...inputStyle, fontFamily: "var(--ds-font-mono)" }}
                     value={newTerm.sql}
                     onChange={(e) => setNewTerm((p) => ({ ...p, sql: e.target.value }))}
@@ -288,30 +484,40 @@ export default function GlossaryPage() {
           )}
 
           {/* Term detail */}
-          {selected && !showAdd && (
+          {selected && !showAdd && !isEditing && (
             <>
               <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--ds-sp-3)" }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "var(--ds-fs-22)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: "var(--ds-sp-1)" }}>
+                  <h2 style={{ fontSize: "var(--ds-fs-22)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: "0 0 var(--ds-sp-1)" }}>
                     {selected.term}
-                  </div>
+                  </h2>
                   <Pill variant={categoryColors[selected.category] ?? "default"}>{selected.category}</Pill>
                 </div>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  icon={<Trash2 size={12} />}
-                  loading={deleteMutation.isPending}
-                  onClick={() => deleteMutation.mutate(selected.id)}
-                >
-                  삭제
-                </Button>
+                <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={<Pencil size={12} />}
+                    onClick={() => startEditing(selected)}
+                  >
+                    수정
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    icon={<Trash2 size={12} />}
+                    loading={deleteMutation.isPending}
+                    onClick={() => deleteMutation.mutate(selected.id)}
+                  >
+                    삭제
+                  </Button>
+                </div>
               </div>
 
               <Card padding="var(--ds-sp-4)">
-                <div style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "var(--ds-sp-2)" }}>
+                <h3 style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 var(--ds-sp-2)" }}>
                   정의
-                </div>
+                </h3>
                 <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", lineHeight: 1.7 }}>
                   {selected.definition}
                 </div>
@@ -319,8 +525,35 @@ export default function GlossaryPage() {
 
               {selected.sql && (
                 <Card padding="var(--ds-sp-4)">
-                  <div style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "var(--ds-sp-2)" }}>
-                    SQL 힌트
+                  <div style={{ display: "flex", alignItems: "center", marginBottom: "var(--ds-sp-2)" }}>
+                    <h3 style={{ flex: 1, fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text-mute)", textTransform: "uppercase", letterSpacing: "0.06em", margin: 0 }}>
+                      SQL 힌트
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void navigator.clipboard.writeText(selected.sql ?? "");
+                        setCopiedSqlId(selected.id);
+                        setTimeout(() => setCopiedSqlId((p) => p === selected.id ? null : p), 1500);
+                      }}
+                      aria-label={copiedSqlId === selected.id ? "복사됨" : "SQL 복사"}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: copiedSqlId === selected.id ? "var(--ds-accent)" : "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, marginRight: 4, transition: "color var(--ds-dur-fast) var(--ds-ease)" }}
+                    >
+                      {copiedSqlId === selected.id ? <Check aria-hidden="true" size={12} /> : <Copy aria-hidden="true" size={12} />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSql(selected.sql ?? "");
+                        setStatus("ready");
+                        router.push("/workspace");
+                      }}
+                      aria-label="워크스페이스에서 열기"
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-accent)", display: "flex", alignItems: "center", padding: 2, transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+                      className="hover:opacity-70"
+                    >
+                      <ExternalLink aria-hidden="true" size={12} />
+                    </button>
                   </div>
                   <code style={{ fontFamily: "var(--ds-font-mono)", fontSize: "var(--ds-fs-12)", color: "var(--ds-accent)", background: "var(--ds-accent-soft)", borderRadius: "var(--ds-r-6)", padding: "var(--ds-sp-2) var(--ds-sp-3)", display: "block" }}>
                     {selected.sql}
@@ -330,10 +563,84 @@ export default function GlossaryPage() {
             </>
           )}
 
+          {/* Edit mode */}
+          {selected && !showAdd && isEditing && (
+            <Card padding="var(--ds-sp-4)">
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--ds-sp-4)" }}>
+                <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>
+                  용어 수정
+                </h2>
+                <Button variant="ghost" size="sm" icon={<X size={13} />} onClick={cancelEditing}>닫기</Button>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
+                <div>
+                  <label htmlFor="edit-term-name" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>용어</label>
+                  <input
+                    id="edit-term-name"
+                    style={inputStyle}
+                    value={editForm.term}
+                    onChange={(e) => setEditForm((p) => ({ ...p, term: e.target.value }))}
+                    placeholder="예: 결제율"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit-term-category" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>카테고리</label>
+                  <input
+                    id="edit-term-category"
+                    style={inputStyle}
+                    list="glossary-categories"
+                    value={editForm.category}
+                    onChange={(e) => setEditForm((p) => ({ ...p, category: e.target.value }))}
+                    placeholder="카테고리 선택 또는 직접 입력..."
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit-term-definition" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>정의</label>
+                  <textarea
+                    id="edit-term-definition"
+                    style={{ ...inputStyle, minHeight: 72, resize: "vertical" }}
+                    value={editForm.definition}
+                    onChange={(e) => setEditForm((p) => ({ ...p, definition: e.target.value }))}
+                    placeholder="용어에 대한 비즈니스 정의를 입력하세요..."
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit-term-sql" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)", display: "block", marginBottom: 4 }}>SQL 힌트 (선택)</label>
+                  <textarea
+                    id="edit-term-sql"
+                    style={{ ...inputStyle, minHeight: 56, resize: "vertical", fontFamily: "var(--ds-font-mono)" }}
+                    value={editForm.sql}
+                    onChange={(e) => setEditForm((p) => ({ ...p, sql: e.target.value }))}
+                    placeholder="예: COUNT(*) FILTER (WHERE status='paid')"
+                  />
+                </div>
+                <div style={{ display: "flex", gap: "var(--ds-sp-2)", justifyContent: "flex-end" }}>
+                  <Button variant="ghost" size="sm" onClick={cancelEditing}>취소</Button>
+                  <Button
+                    variant="accent"
+                    size="sm"
+                    loading={editMutation.isPending}
+                    disabled={!editForm.term.trim() || !editForm.definition.trim()}
+                    onClick={() => editMutation.mutate({ id: selected.id, body: editForm })}
+                  >
+                    저장
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+
           {!selected && !showAdd && !isLoading && (
-            <div style={{ textAlign: "center", padding: "var(--ds-sp-8)", color: "var(--ds-text-faint)" }}>
-              <BookOpen size={32} style={{ margin: "0 auto var(--ds-sp-3)", opacity: 0.4 }} />
+            <div style={{ textAlign: "center", padding: "var(--ds-sp-8)", color: "var(--ds-text-faint)", display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ds-sp-3)" }}>
+              <BookOpen aria-hidden="true" size={32} style={{ opacity: 0.4 }} />
               <div style={{ fontSize: "var(--ds-fs-14)" }}>용어를 선택하거나 새 용어를 추가하세요</div>
+              <button
+                type="button"
+                onClick={() => setShowAdd(true)}
+                style={{ padding: "var(--ds-sp-2) var(--ds-sp-4)", background: "var(--ds-accent)", border: "none", borderRadius: "var(--ds-r-6)", color: "var(--ds-accent-on)", fontSize: "var(--ds-fs-12)", cursor: "pointer", fontFamily: "var(--ds-font-sans)", fontWeight: "var(--ds-fw-medium)", transition: "opacity var(--ds-dur-fast) var(--ds-ease)" }}
+              >
+                + 첫 용어 추가하기
+              </button>
             </div>
           )}
         </div>

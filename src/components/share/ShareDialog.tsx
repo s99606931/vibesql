@@ -127,7 +127,7 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
-            <Link size={16} style={{ color: "var(--ds-accent)" }} />
+            <Link aria-hidden="true" size={16} style={{ color: "var(--ds-accent)" }} />
             <span
               style={{
                 fontSize: "var(--ds-fs-16)",
@@ -140,6 +140,8 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
             </span>
           </div>
           <button
+            type="button"
+            autoFocus
             onClick={handleClose}
             aria-label="닫기"
             style={{
@@ -155,12 +157,13 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
               cursor: "pointer",
             }}
           >
-            <X size={16} />
+            <X aria-hidden="true" size={16} />
           </button>
         </div>
 
         {/* SQL preview */}
         <div
+          title={sql}
           style={{
             background: "var(--ds-fill)",
             border: "1px solid var(--ds-border)",
@@ -260,6 +263,7 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
               }}
             >
               <span
+                title={shareUrl}
                 style={{
                   flex: 1,
                   minWidth: 0,
@@ -274,8 +278,9 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
                 {shareUrl}
               </span>
               <button
+                type="button"
                 onClick={handleCopy}
-                aria-label="클립보드에 복사"
+                aria-label={copied ? "복사됨" : "클립보드에 복사"}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -291,11 +296,13 @@ export function ShareDialog({ sql, nlQuery, dialect, open, onClose }: ShareDialo
                   transition: "color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
-                {copied ? <Check size={14} /> : <Copy size={14} />}
+                {copied ? <Check aria-hidden="true" size={14} /> : <Copy aria-hidden="true" size={14} />}
               </button>
             </div>
             {copied && (
               <span
+                role="status"
+                aria-live="polite"
                 style={{
                   fontSize: "var(--ds-fs-11)",
                   color: "var(--ds-success)",

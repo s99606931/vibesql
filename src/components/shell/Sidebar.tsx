@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { useConnections } from "@/hooks/useConnections";
@@ -42,8 +42,9 @@ type NavItem = {
   href: string;
   icon: React.ElementType;
   label: string;
-  countKey?: "saved";
+  countKey?: "saved" | "schedules";
   requiredRole?: UserRole;
+  badge?: "soon";
 };
 
 type NavGroup = {
@@ -63,7 +64,7 @@ const navGroups: NavGroup[] = [
       { href: "/templates", icon: FileText, label: "템플릿" },
       { href: "/history", icon: History, label: "히스토리" },
       { href: "/saved", icon: Star, label: "저장됨", countKey: "saved" },
-      { href: "/schedules", icon: CalendarClock, label: "스케줄러" },
+      { href: "/schedules", icon: CalendarClock, label: "스케줄러", countKey: "schedules" as const },
     ],
   },
   {
@@ -72,6 +73,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/dashboards", icon: LayoutDashboard, label: "대시보드" },
       { href: "/charts", icon: BarChart2, label: "차트" },
+      { href: "/reports", icon: FileText, label: "리포트", badge: "soon" as const },
     ],
   },
   {
@@ -80,6 +82,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/schema", icon: Table2, label: "스키마" },
       { href: "/glossary", icon: BookOpen, label: "용어 사전" },
+      { href: "/catalog", icon: Bot, label: "데이터 카탈로그", badge: "soon" as const },
     ],
   },
   {
@@ -114,6 +117,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/profile", icon: User, label: "프로필" },
       { href: "/settings", icon: Settings, label: "설정" },
+      { href: "/notifications", icon: Zap, label: "알림", badge: "soon" as const },
     ],
   },
 ];
@@ -136,9 +140,18 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
   const userRole = currentUser?.role ?? "USER";
 
   const allGroupIds = navGroups.map((g) => g.id);
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
-    Object.fromEntries(allGroupIds.map((id) => [id, true]))
-  );
+  const defaultOpen = Object.fromEntries(allGroupIds.map((id) => [id, true]));
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(defaultOpen);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("vibesql:sidebar:collapsed");
+      if (raw) {
+        const saved = JSON.parse(raw) as Record<string, boolean>;
+        setOpenGroups((prev) => ({ ...prev, ...saved }));
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   const { data: savedCount } = useQuery({
     queryKey: ["saved"],
@@ -151,12 +164,24 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
     select: (data) => (Array.isArray(data) ? data.length : 0),
   });
 
+  const { data: schedulesActiveCount } = useQuery({
+    queryKey: ["schedules-count"],
+    queryFn: async () => {
+      const res = await fetch("/api/schedules");
+      const json = await res.json() as { data?: Array<{ isActive: boolean }> };
+      return Array.isArray(json.data) ? json.data.filter((s) => s.isActive).length : 0;
+    },
+    staleTime: 60_000,
+  });
+
   const { data: connections } = useConnections();
   const activeConnection = (connections ?? []).find((c) => c.id === activeConnectionId);
 
   function canShow(requiredRole?: UserRole): boolean {
     if (!requiredRole) return true;
-    return userRole === requiredRole;
+    // Treat requiredRole as minimum threshold: ADMIN satisfies ADMIN and USER.
+    if (requiredRole === "ADMIN") return userRole === "ADMIN";
+    return true;
   }
 
   const visibleGroups = navGroups
@@ -177,7 +202,11 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
 
   function toggleGroup(groupId: string, hasActiveItem: boolean) {
     if (hasActiveItem) return;
-    setOpenGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
+    setOpenGroups((prev) => {
+      const next = { ...prev, [groupId]: !prev[groupId] };
+      try { localStorage.setItem("vibesql:sidebar:collapsed", JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
   }
 
   async function handleLogout() {
@@ -188,7 +217,9 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
 
   const iconOnlyBtn = (icon: React.ReactNode, onClick?: () => void, title?: string, active?: boolean) => (
     <button
+      type="button"
       onClick={onClick}
+      aria-label={title}
       title={title}
       style={{
         display: "flex",
@@ -213,6 +244,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
 
   return (
     <aside
+      aria-label="주 사이드바"
       style={{
         width: collapsed ? 48 : "var(--ds-sidebar-w)",
         background: "var(--ds-surface)",
@@ -241,7 +273,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
       >
         {collapsed ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ds-sp-1)" }}>
-            <Link href="/" style={{ textDecoration: "none" }} title="vibeSQL 홈">
+            <Link href="/" style={{ textDecoration: "none" }} title="vibeSQL 홈" aria-label="vibeSQL 홈">
               <div
                 style={{
                   width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
@@ -249,10 +281,13 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 }}
                 className="hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
               >
-                <Zap size={14} style={{ color: "var(--ds-accent)" }} />
+                <Zap aria-hidden="true" size={14} style={{ color: "var(--ds-accent)" }} />
               </div>
             </Link>
             <button
+              type="button"
+              aria-label="사이드바 펼치기"
+              aria-keyshortcuts="Meta+\"
               onClick={onToggleCollapse}
               title="사이드바 펼치기 (⌘\\)"
               style={{
@@ -262,7 +297,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
               }}
               className="hover:bg-fill hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
             >
-              <ChevronRight size={13} />
+              <ChevronRight aria-hidden="true" size={13} />
             </button>
             <span
               style={{
@@ -284,9 +319,12 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 }}
                 className="hover:bg-fill transition-colors duration-[var(--ds-dur-fast)]"
               >
-                <Zap size={14} style={{ color: "var(--ds-accent)" }} />
+                <Zap aria-hidden="true" size={14} style={{ color: "var(--ds-accent)" }} />
                 <span style={{ flex: 1 }}>vibeSQL</span>
                 <button
+                  type="button"
+                  aria-label="사이드바 접기"
+                  aria-keyshortcuts="Meta+\"
                   onClick={(e) => { e.preventDefault(); onToggleCollapse?.(); }}
                   title="사이드바 접기 (⌘\\)"
                   style={{
@@ -297,7 +335,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                   }}
                   className="hover:text-text-mute transition-colors duration-[var(--ds-dur-fast)]"
                 >
-                  <ChevronLeft size={12} />
+                  <ChevronLeft aria-hidden="true" size={12} />
                 </button>
               </div>
             </Link>
@@ -309,7 +347,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 background: activeConnection ? "var(--ds-success)" : "var(--ds-text-faint)",
                 display: "inline-block", flexShrink: 0,
               }} />
-              <span style={{
+              <span title={activeConnection ? activeConnection.name : "연결 없음"} style={{
                 fontSize: "var(--ds-fs-11)", color: "var(--ds-text-mute)",
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
@@ -321,7 +359,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, padding: "var(--ds-sp-2)", overflowY: "auto", overflowX: "hidden" }}>
+      <nav aria-label="사이드바 탐색" style={{ flex: 1, padding: "var(--ds-sp-2)", overflowY: "auto", overflowX: "hidden" }}>
         {collapsed ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
             {allVisibleItems.map((item) => {
@@ -330,7 +368,8 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 <Link
                   key={item.href}
                   href={item.href}
-                  title={item.label}
+                  aria-label={item.label}
+                  aria-current={isActive ? "page" : undefined}
                   style={{
                     display: "flex", alignItems: "center", justifyContent: "center",
                     width: 32, height: 32, borderRadius: "var(--ds-r-6)",
@@ -342,7 +381,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                   }}
                   className={cn(!isActive && "hover:bg-fill hover:text-text")}
                 >
-                  <item.icon size={14} />
+                  <item.icon aria-hidden="true" size={14} />
                 </Link>
               );
             })}
@@ -356,6 +395,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
             return (
               <div key={group.id} style={{ marginBottom: "var(--ds-sp-2)" }}>
                 <button
+                  type="button"
                   onClick={() => toggleGroup(group.id, hasActiveItem)}
                   aria-expanded={isOpen}
                   aria-label={group.label}
@@ -370,20 +410,21 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                   }}
                   className={cn(!hasActiveItem && "hover:text-mute transition-colors duration-[var(--ds-dur-fast)]")}
                 >
-                  {isAdminGroup && <ShieldCheck size={9} />}
+                  {isAdminGroup && <ShieldCheck aria-hidden="true" size={9} />}
                   <span style={{ flex: 1, textAlign: "left" }}>{group.label}</span>
-                  {isOpen ? <ChevronDown size={9} /> : <ChevronRight size={9} />}
+                  {isOpen ? <ChevronDown aria-hidden="true" size={9} /> : <ChevronRight aria-hidden="true" size={9} />}
                 </button>
 
                 {isOpen && (
                   <div>
                     {group.items.map((item) => {
                       const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
-                      const count = item.countKey === "saved" ? savedCount : undefined;
+                      const count = item.countKey === "saved" ? savedCount : item.countKey === "schedules" ? schedulesActiveCount : undefined;
                       return (
                         <Link
                           key={item.href}
                           href={item.href}
+                          aria-current={isActive ? "page" : undefined}
                           style={{
                             display: "flex", alignItems: "center", gap: "var(--ds-sp-2)",
                             padding: "var(--ds-sp-1) var(--ds-sp-3)", borderRadius: "var(--ds-r-6)",
@@ -396,8 +437,18 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                           }}
                           className={cn("group", !isActive && "hover:bg-fill hover:text-text")}
                         >
-                          <item.icon size={14} style={{ flexShrink: 0 }} />
+                          <item.icon aria-hidden="true" size={14} style={{ flexShrink: 0 }} />
                           <span style={{ flex: 1 }}>{item.label}</span>
+                          {item.badge === "soon" && (
+                            <span style={{
+                              fontSize: "var(--ds-fs-9)", fontFamily: "var(--ds-font-sans)",
+                              color: "var(--ds-text-faint)", background: "var(--ds-fill)",
+                              borderRadius: "var(--ds-r-4)", padding: "1px 4px",
+                              letterSpacing: "0.02em",
+                            }}>
+                              soon
+                            </span>
+                          )}
                           {count != null && count > 0 && (
                             <span style={{
                               fontSize: "var(--ds-fs-9)", fontFamily: "var(--ds-font-mono)",
@@ -431,8 +482,8 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
       >
         {collapsed ? (
           <>
-            {iconOnlyBtn(<User size={13} />, undefined, currentUser?.name ?? "사용자")}
-            {iconOnlyBtn(<Bot size={13} />, onOpenChat, "AI 어시스턴트 (⌘I)", chatOpen)}
+            {iconOnlyBtn(<User aria-hidden="true" size={13} />, undefined, currentUser?.name ?? "사용자")}
+            {iconOnlyBtn(<Bot aria-hidden="true" size={13} />, onOpenChat, "AI 어시스턴트 (⌘I)", chatOpen)}
           </>
         ) : (
           <>
@@ -445,10 +496,10 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 color: userRole === "ADMIN" ? "var(--ds-accent)" : "var(--ds-text-mute)",
                 flexShrink: 0,
               }}>
-                {userRole === "ADMIN" ? <Crown size={11} /> : userInitial}
+                {userRole === "ADMIN" ? <Crown aria-hidden="true" size={11} /> : userInitial}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
+                <div title={currentUser?.name ?? "사용자"} style={{
                   fontSize: "var(--ds-fs-12)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text)",
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                 }}>
@@ -459,6 +510,8 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 )}
               </div>
               <button
+                type="button"
+                aria-label="로그아웃"
                 onClick={handleLogout}
                 title="로그아웃"
                 style={{
@@ -469,10 +522,13 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
                 }}
                 className="hover:text-danger transition-colors duration-[var(--ds-dur-fast)]"
               >
-                <LogOut size={12} />
+                <LogOut aria-hidden="true" size={12} />
               </button>
             </div>
             <button
+              type="button"
+              aria-label="명령 팔레트 열기"
+              aria-keyshortcuts="Meta+k"
               onClick={onOpenCommandPalette}
               style={{
                 display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", width: "100%",
@@ -486,6 +542,8 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
               ⌘K 명령 팔레트
             </button>
             <button
+              type="button"
+              aria-label="AI 채팅 열기"
               onClick={onOpenChat}
               style={{
                 display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", width: "100%",
@@ -498,7 +556,7 @@ export function Sidebar({ onOpenCommandPalette, onOpenChat, chatOpen, collapsed 
               }}
               className={cn(!chatOpen && "hover:bg-fill hover:text-text-mute")}
             >
-              <Bot size={12} style={{ flexShrink: 0 }} />
+              <Bot aria-hidden="true" size={12} style={{ flexShrink: 0 }} />
               <span>AI 어시스턴트</span>
               <span style={{ marginLeft: "auto", fontSize: "var(--ds-fs-10)", fontFamily: "var(--ds-font-mono)", opacity: 0.6 }}>⌘I</span>
             </button>

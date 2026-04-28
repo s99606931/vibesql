@@ -161,8 +161,8 @@ function ProviderForm({
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }}>
       {/* Provider Type */}
       <div style={fieldStyle}>
-        <label style={labelStyle}>프로바이더 유형</label>
-        <select value={form.type} onChange={(e) => set("type", e.target.value)} style={inputStyle}>
+        <label htmlFor="prov-type" style={labelStyle}>프로바이더 유형</label>
+        <select id="prov-type" aria-label="프로바이더 유형" value={form.type} onChange={(e) => set("type", e.target.value)} style={inputStyle}>
           {(Object.entries(PROVIDER_META) as [AiProviderType, typeof PROVIDER_META[AiProviderType]][]).map(([k, v]) => (
             <option key={k} value={k}>{v.label}</option>
           ))}
@@ -171,15 +171,17 @@ function ProviderForm({
 
       {/* Display Name */}
       <div style={fieldStyle}>
-        <label style={labelStyle}>표시 이름</label>
-        <input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="예) 내 Ollama" style={inputStyle} />
+        <label htmlFor="prov-name" style={labelStyle}>표시 이름</label>
+        <input id="prov-name" aria-label="표시 이름" value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="예) 내 Ollama" style={inputStyle} />
       </div>
 
       {/* Base URL */}
       {meta.needsBaseUrl && (
         <div style={fieldStyle}>
-          <label style={labelStyle}>Base URL <span style={{ color: "var(--ds-danger)" }}>*</span></label>
+          <label htmlFor="prov-base-url" style={labelStyle}>Base URL <span aria-hidden="true" style={{ color: "var(--ds-danger)" }}>*</span></label>
           <input
+            id="prov-base-url"
+            aria-label="Base URL (필수)"
             value={form.baseUrl}
             onChange={(e) => set("baseUrl", e.target.value)}
             placeholder={meta.defaultBaseUrl ?? "http://localhost:8000"}
@@ -191,11 +193,14 @@ function ProviderForm({
       {/* API Key */}
       {meta.needsApiKey && (
         <div style={fieldStyle}>
-          <label style={labelStyle}>
+          <label htmlFor="prov-api-key" style={labelStyle}>
             API 키 {initial?.hasApiKey && <span style={{ color: "var(--ds-text-faint)" }}>(이미 저장됨 — 변경 시만 입력)</span>}
           </label>
           <input
+            id="prov-api-key"
             type="password"
+            autoComplete="off"
+            aria-label="API 키"
             value={form.apiKey}
             onChange={(e) => set("apiKey", e.target.value)}
             placeholder={initial?.hasApiKey ? "••••••••" : "sk-..."}
@@ -206,9 +211,11 @@ function ProviderForm({
 
       {/* Model */}
       <div style={fieldStyle}>
-        <label style={labelStyle}>모델</label>
+        <label htmlFor="prov-model" style={labelStyle}>모델</label>
         <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
           <input
+            id="prov-model"
+            aria-label="모델 이름"
             value={form.model}
             onChange={(e) => set("model", e.target.value)}
             placeholder={meta.defaultModel}
@@ -216,6 +223,7 @@ function ProviderForm({
           />
           {meta.models.length > 1 && (
             <select
+              aria-label="모델 빠른 선택"
               onChange={(e) => { if (e.target.value) set("model", e.target.value); }}
               style={{ ...inputStyle, width: "auto", cursor: "pointer" }}
             >
@@ -229,18 +237,22 @@ function ProviderForm({
       {/* Temperature + MaxTokens */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ds-sp-3)" }}>
         <div style={fieldStyle}>
-          <label style={labelStyle}>Temperature <span style={{ color: "var(--ds-accent)" }}>{form.temperature}</span></label>
+          <label htmlFor="prov-temperature" style={labelStyle}>Temperature <span style={{ color: "var(--ds-accent)" }}>{form.temperature}</span></label>
           <input
+            id="prov-temperature"
             type="range" min={0} max={2} step={0.05}
+            aria-label={`Temperature: ${form.temperature}`}
             value={form.temperature}
             onChange={(e) => set("temperature", parseFloat(e.target.value))}
             style={{ width: "100%" }}
           />
         </div>
         <div style={fieldStyle}>
-          <label style={labelStyle}>Max Tokens</label>
+          <label htmlFor="prov-max-tokens" style={labelStyle}>Max Tokens</label>
           <input
+            id="prov-max-tokens"
             type="number" min={256} max={32768}
+            aria-label="Max Tokens"
             value={form.maxTokens}
             onChange={(e) => set("maxTokens", parseInt(e.target.value, 10))}
             style={inputStyle}
@@ -298,8 +310,8 @@ function ProviderCard({
     >
       {/* Status icon */}
       <div style={{ flexShrink: 0, paddingTop: 2 }}>
-        {provider.lastTestedOk === true && <CheckCircle2 size={18} style={{ color: "var(--ds-success)" }} />}
-        {provider.lastTestedOk === false && <XCircle size={18} style={{ color: "var(--ds-danger)" }} />}
+        {provider.lastTestedOk === true && <CheckCircle2 aria-hidden="true" size={18} style={{ color: "var(--ds-success)" }} />}
+        {provider.lastTestedOk === false && <XCircle aria-hidden="true" size={18} style={{ color: "var(--ds-danger)" }} />}
         {provider.lastTestedOk == null && <div style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--ds-border)" }} />}
       </div>
 
@@ -521,11 +533,14 @@ export function AiProviderSection() {
       {/* Env var fallback info */}
       <Card>
         <button
+          type="button"
+          aria-expanded={showEnvFallback}
+          aria-label="환경변수 폴백 정보"
           onClick={() => setShowEnvFallback((v) => !v)}
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-mute)", fontSize: "var(--ds-fs-13)", padding: 0 }}
         >
           <span>환경변수 폴백 정보</span>
-          {showEnvFallback ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {showEnvFallback ? <ChevronUp aria-hidden="true" size={14} /> : <ChevronDown aria-hidden="true" size={14} />}
         </button>
         {showEnvFallback && (
           <div style={{ marginTop: "var(--ds-sp-3)", fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)", lineHeight: 1.7 }}>

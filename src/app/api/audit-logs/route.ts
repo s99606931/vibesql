@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireUserId } from "@/lib/auth/require-user";
+import { requireAdmin } from "@/lib/auth/require-user";
 
 export interface AuditLogItem {
   id: string;
@@ -10,21 +10,24 @@ export interface AuditLogItem {
   createdAt: string; // ISO string
 }
 
-export async function GET() {
-  const authResult = await requireUserId();
+export async function GET(req: Request) {
+  const authResult = await requireAdmin();
   if (authResult instanceof NextResponse) return authResult;
-  const userId = authResult;
 
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({ data: [] as AuditLogItem[] });
   }
 
+  const { searchParams } = new URL(req.url);
+  const filterUserId = searchParams.get("userId") || undefined;
+
   try {
     const { prisma } = await import("@/lib/db/prisma");
     const logs = await prisma.auditLog.findMany({
-      where: { userId },
+      // ADMIN sees all users; optional userId filter for drill-down
+      where: filterUserId ? { userId: filterUserId } : undefined,
       orderBy: { createdAt: "desc" },
-      take: 100,
+      take: 200,
       select: {
         id: true,
         action: true,
@@ -35,7 +38,14 @@ export async function GET() {
       },
     });
 
-    const data: AuditLogItem[] = logs.map((log) => ({
+    const data: AuditLogItem[] = logs.map((log: {
+      id: string;
+      action: string;
+      userId: string | null;
+      ipAddress: string | null;
+      metadata: unknown;
+      createdAt: Date;
+    }) => ({
       id: log.id,
       action: log.action,
       userId: log.userId,

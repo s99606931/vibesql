@@ -56,7 +56,7 @@ function formatValue(value: unknown, type: ColType): { text: string; isNull: boo
 }
 
 function ColIcon({ type }: { type: ColType }) {
-  const props = { size: 11, style: { flexShrink: 0 as const } };
+  const props = { "aria-hidden": true as const, size: 11, style: { flexShrink: 0 as const } };
   if (type === "number") return <Hash {...props} />;
   if (type === "date") return <Calendar {...props} />;
   return <Type {...props} />;
@@ -73,6 +73,7 @@ function BoolCell({ value }: { value: unknown }) {
         padding: "2px 7px",
         borderRadius: "var(--ds-r-full)",
         fontWeight: "var(--ds-fw-medium)",
+        transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
         background: bool ? "var(--ds-success-soft)" : "var(--ds-danger-soft)",
         color: bool ? "var(--ds-success)" : "var(--ds-danger)",
         border: `1px solid ${bool ? "var(--ds-success)" : "var(--ds-danger)"}`,
@@ -92,7 +93,7 @@ interface ResultRowProps {
 
 const ResultRow = memo(function ResultRow({ row, columns, colTypes, index }: ResultRowProps) {
   return (
-    <tr style={{ borderBottom: "1px solid var(--ds-border)" }}>
+    <tr className="hover:bg-fill" style={{ borderBottom: "1px solid var(--ds-border)", transition: "background var(--ds-dur-fast) var(--ds-ease)" }}>
       <td
         style={{
           width: 36,
@@ -194,11 +195,12 @@ export function ResultTable({ rows, columns }: ResultTableProps) {
 
   return (
     <div style={{ overflow: "auto" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <table aria-label="쿼리 결과" style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ background: "var(--ds-fill)" }}>
             {/* Row number column */}
             <th
+              scope="col"
               style={{
                 width: 36,
                 minWidth: 36,
@@ -218,7 +220,10 @@ export function ResultTable({ rows, columns }: ResultTableProps) {
             {columns.map((col) => (
               <th
                 key={col}
+                scope="col"
                 onClick={() => handleHeaderClick(col)}
+                aria-label={sortCol === col ? (sortDir === "asc" ? "내림차순 정렬" : "오름차순 정렬") : "오름차순 정렬"}
+                aria-sort={sortCol === col ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
                 style={{
                   padding: "var(--ds-sp-2) var(--ds-sp-3)",
                   textAlign: colTypes[col] === "number" ? "right" : "left",
@@ -232,7 +237,9 @@ export function ResultTable({ rows, columns }: ResultTableProps) {
                   whiteSpace: "nowrap" as const,
                   cursor: "pointer",
                   userSelect: "none" as const,
+                  transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
                 }}
+                className="hover:bg-fill hover:text-text"
               >
                 <div
                   style={{
@@ -247,9 +254,9 @@ export function ResultTable({ rows, columns }: ResultTableProps) {
                   {col}
                   {sortCol === col &&
                     (sortDir === "asc" ? (
-                      <ArrowUp size={10} />
+                      <ArrowUp aria-hidden="true" size={10} />
                     ) : (
-                      <ArrowDown size={10} />
+                      <ArrowDown aria-hidden="true" size={10} />
                     ))}
                 </div>
               </th>

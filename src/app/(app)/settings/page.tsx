@@ -17,17 +17,19 @@ import {
   Moon,
   Check,
   ArrowRight,
+  Keyboard,
 } from "lucide-react";
 
 // ─── Sidebar nav ─────────────────────────────────────────────────────────────
 
-type Section = "appearance" | "ai" | "security" | "notifications";
+type Section = "appearance" | "ai" | "security" | "notifications" | "shortcuts";
 
 const NAV_ITEMS: { id: Section; label: string; icon: React.ReactNode }[] = [
   { id: "appearance", label: "외관", icon: <Palette size={15} /> },
   { id: "ai", label: "AI 환경설정", icon: <Cpu size={15} /> },
   { id: "security", label: "보안", icon: <ShieldCheck size={15} /> },
   { id: "notifications", label: "알림", icon: <Bell size={15} /> },
+  { id: "shortcuts", label: "단축키", icon: <Keyboard size={15} /> },
 ];
 
 // ─── Reusable Toggle ─────────────────────────────────────────────────────────
@@ -36,15 +38,19 @@ function Toggle({
   checked,
   onChange,
   disabled,
+  label,
 }: {
   checked: boolean;
   onChange: () => void;
   disabled?: boolean;
+  label?: string;
 }) {
   return (
     <button
+      type="button"
       role="switch"
       aria-checked={checked}
+      aria-label={label}
       disabled={disabled}
       onClick={onChange}
       style={{
@@ -214,7 +220,7 @@ export default function SettingsPage() {
         breadcrumbs={[{ label: "vibeSQL" }, { label: "설정" }]}
         actions={
           saveStatus !== "idle" ? (
-            <span style={{ fontSize: "var(--ds-fs-12)", color: saveStatus === "saved" ? "var(--ds-success)" : "var(--ds-text-faint)" }}>
+            <span role="status" aria-live="polite" style={{ fontSize: "var(--ds-fs-12)", color: saveStatus === "saved" ? "var(--ds-success)" : "var(--ds-text-faint)" }}>
               {saveStatus === "saving" ? "저장 중..." : "저장됨"}
             </span>
           ) : undefined
@@ -224,6 +230,7 @@ export default function SettingsPage() {
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         {/* Sidebar */}
         <nav
+          aria-label="설정 탐색"
           style={{
             width: 200,
             flexShrink: 0,
@@ -240,6 +247,8 @@ export default function SettingsPage() {
             return (
               <button
                 key={item.id}
+                type="button"
+                aria-current={active ? "page" : undefined}
                 onClick={() => setActiveSection(item.id)}
                 style={{
                   display: "flex",
@@ -259,7 +268,7 @@ export default function SettingsPage() {
                   fontFamily: "var(--ds-font-sans)",
                 }}
               >
-                {item.icon}
+                <span aria-hidden="true">{item.icon}</span>
                 {item.label}
               </button>
             );
@@ -297,6 +306,9 @@ export default function SettingsPage() {
                     return (
                       <button
                         key={t.id}
+                        type="button"
+                        aria-pressed={selected}
+                        aria-label={t.label + " 테마"}
                         onClick={() => { setTheme(t.id); persistSettings(); }}
                         style={{
                           display: "flex",
@@ -326,7 +338,7 @@ export default function SettingsPage() {
                             justifyContent: "center",
                           }}
                         >
-                          {selected && <Check size={14} color="#fff" />}
+                          {selected && <Check aria-hidden="true" size={14} color="var(--ds-accent-on)" />}
                         </span>
                         <span
                           style={{
@@ -391,6 +403,9 @@ export default function SettingsPage() {
                   description="밝기 모드를 전환합니다"
                 >
                   <button
+                    type="button"
+                    aria-pressed={mode === "dark"}
+                    aria-label={mode === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}
                     onClick={() => { setMode(mode === "dark" ? "light" : "dark"); persistSettings(); }}
                     style={{
                       display: "flex",
@@ -406,7 +421,7 @@ export default function SettingsPage() {
                       fontFamily: "var(--ds-font-sans)",
                     }}
                   >
-                    {mode === "dark" ? <Moon size={13} /> : <Sun size={13} />}
+                    {mode === "dark" ? <Moon aria-hidden="true" size={13} /> : <Sun aria-hidden="true" size={13} />}
                     {mode === "dark" ? "다크" : "라이트"}
                   </button>
                 </SettingRow>
@@ -420,6 +435,9 @@ export default function SettingsPage() {
                     {(["compact", "regular", "comfy"] as const).map((d) => (
                       <button
                         key={d}
+                        type="button"
+                        aria-pressed={density === d}
+                        aria-label={d === "compact" ? "컴팩트 밀도" : d === "regular" ? "보통 밀도" : "넓은 밀도"}
                         onClick={() => { setDensity(d); persistSettings(); }}
                         style={{
                           padding: "4px 10px",
@@ -438,6 +456,19 @@ export default function SettingsPage() {
                     ))}
                   </div>
                 </SettingRow>
+                <div
+                  style={{
+                    marginTop: "var(--ds-sp-3)",
+                    border: "1px dashed var(--ds-border)",
+                    borderRadius: "var(--ds-r-8)",
+                    padding: density === "compact" ? "var(--ds-sp-2) var(--ds-sp-3)" : density === "comfy" ? "var(--ds-sp-5) var(--ds-sp-5)" : "var(--ds-sp-3) var(--ds-sp-4)",
+                    background: "var(--ds-fill)",
+                    transition: "padding var(--ds-dur-fast) var(--ds-ease)",
+                  }}
+                >
+                  <div style={{ fontSize: density === "compact" ? "var(--ds-fs-11)" : density === "comfy" ? "var(--ds-fs-14)" : "var(--ds-fs-13)", color: "var(--ds-text)", marginBottom: density === "compact" ? 2 : density === "comfy" ? 6 : 4, fontWeight: "var(--ds-fw-medium)" }}>미리보기 — 쿼리 결과 행</div>
+                  <div style={{ fontSize: density === "compact" ? "var(--ds-fs-11)" : density === "comfy" ? "var(--ds-fs-14)" : "var(--ds-fs-13)", color: "var(--ds-text-mute)", fontFamily: "var(--ds-font-mono)" }}>SELECT * FROM users WHERE active = true</div>
+                </div>
               </Card>
             </>
           )}
@@ -450,6 +481,7 @@ export default function SettingsPage() {
 
                 <SettingRow label="기본 SQL 방언" description="AI가 생성하는 SQL의 기본 방언">
                   <select
+                    aria-label="기본 SQL 방언"
                     value={dialect}
                     onChange={(e) => {
                       setDialect(e.target.value as "postgresql" | "mysql" | "sqlite" | "mssql" | "oracle");
@@ -465,49 +497,51 @@ export default function SettingsPage() {
                   </select>
                 </SettingRow>
 
-                <SettingRow label="SQL 생성 온도" description={`창의성 수준을 조정합니다 — 현재: ${temperature.toFixed(1)}`}>
+                <SettingRow label="SQL 생성 온도" description={`낮을수록 정확·보수적, 높을수록 창의적·다양한 SQL 생성 — 현재: ${temperature.toFixed(1)}`}>
                   <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
-                    <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>0.0</span>
-                    <input type="range" min={0} max={1} step={0.1} value={temperature} onChange={(e) => { setTemperature(Number(e.target.value)); persistSettings(); }} style={{ accentColor: "var(--ds-accent)", width: 120, cursor: "pointer" }} />
-                    <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }}>1.0</span>
+                    <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }} title="정확·보수적">정확</span>
+                    <input type="range" aria-label="SQL 생성 온도" min={0} max={1} step={0.1} value={temperature} onChange={(e) => { setTemperature(Number(e.target.value)); persistSettings(); }} style={{ accentColor: "var(--ds-accent)", width: 120, cursor: "pointer" }} />
+                    <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)" }} title="창의적·다양">창의</span>
                     <span className="ds-num" style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-accent)", fontWeight: "var(--ds-fw-semibold)", minWidth: 24, textAlign: "right" }}>{temperature.toFixed(1)}</span>
                   </div>
                 </SettingRow>
 
                 <SettingRow label="항상 결과 설명 포함" description="AI가 쿼리 결과를 자동으로 설명합니다" last>
-                  <Toggle checked={alwaysExplain} onChange={() => { toggle("alwaysExplain"); persistSettings(); }} />
+                  <Toggle checked={alwaysExplain} label="항상 결과 설명 포함" onChange={() => { toggle("alwaysExplain"); persistSettings(); }} />
                 </SettingRow>
               </Card>
 
-              {isAdmin && (
-                <Card>
-                  <CardHead title="AI 프로바이더 관리" />
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "var(--ds-sp-4)",
-                      padding: "var(--ds-sp-2) 0",
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>
-                        AI 프로바이더 설정
-                      </div>
-                      <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>
-                        Anthropic, OpenAI, Ollama 등 AI 모델 연결을 관리합니다
-                      </div>
+              <Card>
+                <CardHead title="AI 프로바이더" />
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "var(--ds-sp-4)",
+                    padding: "var(--ds-sp-2) 0",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>
+                      {isAdmin ? "AI 프로바이더 설정" : "사용 중인 AI"}
                     </div>
+                    <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>
+                      {isAdmin
+                        ? "Anthropic, OpenAI, Ollama 등 AI 모델 연결을 관리합니다"
+                        : "현재 Claude (Anthropic) AI로 SQL을 생성합니다. 관리자가 프로바이더를 변경할 수 있습니다."}
+                    </div>
+                  </div>
+                  {isAdmin && (
                     <Link href="/ai-providers" style={{ textDecoration: "none" }}>
                       <Button variant="ghost" size="sm">
                         관리 페이지로
-                        <ArrowRight size={13} style={{ marginLeft: 4 }} />
+                        <ArrowRight aria-hidden="true" size={13} style={{ marginLeft: 4 }} />
                       </Button>
                     </Link>
-                  </div>
-                </Card>
-              )}
+                  )}
+                </div>
+              </Card>
             </>
           )}
 
@@ -522,6 +556,7 @@ export default function SettingsPage() {
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
                   <select
+                    aria-label="자동 로그아웃 시간"
                     value={sessionTimeout}
                     onChange={(e) => { setSessionTimeout(Number(e.target.value)); persistSettings(); }}
                     style={{
@@ -552,6 +587,7 @@ export default function SettingsPage() {
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
                   <Toggle
                     checked={readOnly}
+                    label="읽기 전용 모드만 허용"
                     onChange={() => toggle("readOnly")}
                     disabled
                   />
@@ -576,6 +612,7 @@ export default function SettingsPage() {
               >
                 <Toggle
                   checked={notifySuccess}
+                  label="쿼리 성공 알림"
                   onChange={() => { toggle("notifySuccess"); persistSettings(); }}
                 />
               </SettingRow>
@@ -586,6 +623,7 @@ export default function SettingsPage() {
               >
                 <Toggle
                   checked={notifyError}
+                  label="쿼리 오류 알림"
                   onChange={() => { toggle("notifyError"); persistSettings(); }}
                 />
               </SettingRow>
@@ -597,12 +635,77 @@ export default function SettingsPage() {
               >
                 <Toggle
                   checked={notifyLong}
+                  label="장시간 실행 알림"
                   onChange={() => { toggle("notifyLong"); persistSettings(); }}
                 />
               </SettingRow>
             </Card>
           )}
+          {/* ── SHORTCUTS ──────────────────────────────────────────────────── */}
+          {activeSection === "shortcuts" && (
+            <Card>
+              <CardHead title="키보드 단축키" />
+              {[
+                { keys: ["⌘", "K"], desc: "명령 팔레트 열기", section: "전체" },
+                { keys: ["⌘", "F"], desc: "현재 페이지 검색 포커스", section: "전체" },
+                { keys: ["⌘", "Enter"], desc: "SQL 실행", section: "워크스페이스" },
+                { keys: ["⌘", "S"], desc: "쿼리 저장", section: "워크스페이스" },
+                { keys: ["Alt", "Enter"], desc: "자연어 쿼리 생성", section: "워크스페이스" },
+                { keys: ["Esc"], desc: "모달 / 드롭다운 닫기", section: "전체" },
+                { keys: ["Tab"], desc: "SQL 자동완성 수락", section: "SQL 에디터" },
+                { keys: ["⌘", "Z"], desc: "실행 취소", section: "SQL 에디터" },
+              ].map((row, i, arr) => (
+                <div
+                  key={row.desc}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "var(--ds-sp-4)",
+                    paddingBottom: i < arr.length - 1 ? "var(--ds-sp-3)" : 0,
+                    marginBottom: i < arr.length - 1 ? "var(--ds-sp-3)" : 0,
+                    borderBottom: i < arr.length - 1 ? "1px solid var(--ds-border)" : "none",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text)", fontWeight: "var(--ds-fw-medium)" }}>{row.desc}</div>
+                    <div style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginTop: 2 }}>{row.section}</div>
+                  </div>
+                  <div style={{ display: "flex", gap: "var(--ds-sp-1)", alignItems: "center", flexShrink: 0 }}>
+                    {row.keys.map((k, ki) => (
+                      <span key={ki} style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                        <kbd style={{ display: "inline-block", padding: "2px 7px", borderRadius: "var(--ds-r-6)", border: "1px solid var(--ds-border)", background: "var(--ds-fill)", fontSize: "var(--ds-fs-11)", color: "var(--ds-text)", fontFamily: "var(--ds-font-mono)", fontWeight: "var(--ds-fw-semibold)", lineHeight: 1.6 }}>{k}</kbd>
+                        {ki < row.keys.length - 1 && <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)" }}>+</span>}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </Card>
+          )}
         </div>
+      </div>
+      {/* Reset section */}
+      <div style={{ padding: "var(--ds-sp-4) var(--ds-sp-6)", borderTop: "1px solid var(--ds-border)", display: "flex", justifyContent: "flex-end" }}>
+        <button
+          type="button"
+          onClick={() => {
+            setTheme("indigo");
+            setMode("dark");
+            setDensity("regular");
+            setDialect("postgresql");
+            setTemperature(0.3);
+            setSessionTimeout(30);
+            if (!notifySuccess) toggle("notifySuccess");
+            if (!notifyError) toggle("notifyError");
+            if (notifyLong) toggle("notifyLong");
+            if (alwaysExplain) toggle("alwaysExplain");
+            persistSettings();
+          }}
+          style={{ padding: "var(--ds-sp-1) var(--ds-sp-4)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-fill)", color: "var(--ds-text-mute)", fontSize: "var(--ds-fs-12)", cursor: "pointer", fontFamily: "var(--ds-font-sans)" }}
+        >
+          설정 초기화 (기본값 복원)
+        </button>
       </div>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>

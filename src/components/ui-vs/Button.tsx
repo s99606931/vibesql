@@ -21,7 +21,7 @@ const variantStyles: Record<ButtonVariant, object> = {
   },
   primary: {
     background: "var(--ds-text)",
-    color: "#ffffff",
+    color: "var(--ds-bg)",
     border: "1px solid var(--ds-text)",
   },
   accent: {
@@ -83,11 +83,12 @@ export function Button({
     >
       {loading ? (
         <Loader2
+          aria-hidden="true"
           size={12}
           style={{ animation: "spin 1s linear infinite" }}
         />
       ) : (
-        icon && <span style={{ display: "inline-flex" }}>{icon}</span>
+        icon && <span aria-hidden="true" style={{ display: "inline-flex" }}>{icon}</span>
       )}
       {children}
     </button>

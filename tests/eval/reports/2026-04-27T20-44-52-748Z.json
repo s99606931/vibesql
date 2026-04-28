@@ -1,0 +1,871 @@
+{
+  "startedAt": "2026-04-27T20:44:52.748Z",
+  "durationMs": 957999,
+  "totalItems": 20,
+  "passed": 13,
+  "failed": 7,
+  "passRate": 0.65,
+  "hallucinationRate": 0.25,
+  "p50DurationMs": 41733,
+  "p95DurationMs": 83451,
+  "totalInputTokens": 21724,
+  "totalOutputTokens": 11177,
+  "byCategory": {
+    "simple": {
+      "total": 4,
+      "passed": 4,
+      "passRate": 1
+    },
+    "aggregation": {
+      "total": 4,
+      "passed": 3,
+      "passRate": 0.75
+    },
+    "join": {
+      "total": 4,
+      "passed": 2,
+      "passRate": 0.5
+    },
+    "complex": {
+      "total": 4,
+      "passed": 2,
+      "passRate": 0.5
+    },
+    "cte": {
+      "total": 2,
+      "passed": 0,
+      "passRate": 0
+    },
+    "ambiguous": {
+      "total": 2,
+      "passed": 2,
+      "passRate": 1
+    }
+  },
+  "byLanguage": {
+    "ko": {
+      "total": 14,
+      "passed": 8,
+      "passRate": 0.5714285714285714
+    },
+    "en": {
+      "total": 6,
+      "passed": 5,
+      "passRate": 0.8333333333333334
+    }
+  },
+  "results": [
+    {
+      "goldenId": "gs-001",
+      "language": "ko",
+      "category": "simple",
+      "question": "이번 달 신규 가입자 수는?",
+      "expected": {
+        "tables": [
+          "customers"
+        ],
+        "columnsMust": [
+          "customers.signup_at"
+        ],
+        "sql": "SELECT COUNT(*) FROM customers WHERE signup_at >= date_trunc('month', now())"
+      },
+      "actual": {
+        "sql": "SELECT COUNT(*) AS new_signups FROM customers WHERE signup_at >= '2026-04-01' AND signup_at < '2026-05-01' LIMIT 1000",
+        "tables": [
+          "customers"
+        ],
+        "columns": [
+          "customers.signup_at"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": true,
+      "hallucinationFound": false,
+      "pass": true,
+      "durationMs": 24349,
+      "inputTokens": 1072,
+      "outputTokens": 481,
+      "refinerAttempts": 0,
+      "errors": []
+    },
+    {
+      "goldenId": "gs-002",
+      "language": "ko",
+      "category": "simple",
+      "question": "VIP 고객 명단을 보여줘",
+      "expected": {
+        "tables": [
+          "customers"
+        ],
+        "columnsMust": [
+          "customers.name",
+          "customers.is_vip"
+        ],
+        "sql": "SELECT name, email FROM customers WHERE is_vip = true"
+      },
+      "actual": {
+        "sql": "SELECT id, name, email, city, is_vip FROM customers WHERE is_vip = true LIMIT 1000",
+        "tables": [
+          "customers"
+        ],
+        "columns": [
+          "customers.id",
+          "customers.name",
+          "customers.email",
+          "customers.city",
+          "customers.is_vip"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": true,
+      "hallucinationFound": false,
+      "pass": true,
+      "durationMs": 41733,
+      "inputTokens": 1071,
+      "outputTokens": 369,
+      "refinerAttempts": 0,
+      "errors": []
+    },
+    {
+      "goldenId": "gs-003",
+      "language": "ko",
+      "category": "simple",
+      "question": "재고가 0인 상품을 알려줘",
+      "expected": {
+        "tables": [
+          "products"
+        ],
+        "columnsMust": [
+          "products.stock"
+        ],
+        "sql": "SELECT name, stock FROM products WHERE stock = 0"
+      },
+      "actual": {
+        "sql": "SELECT id, name, price, stock FROM products WHERE stock = 0 LIMIT 1000",
+        "tables": [
+          "products"
+        ],
+        "columns": [
+          "products.id",
+          "products.name",
+          "products.price",
+          "products.stock"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": true,
+      "hallucinationFound": false,
+      "pass": true,
+      "durationMs": 36797,
+      "inputTokens": 1126,
+      "outputTokens": 253,
+      "refinerAttempts": 0,
+      "errors": []
+    },
+    {
+      "goldenId": "gs-004",
+      "language": "ko",
+      "category": "aggregation",
+      "question": "카테고리별 상품 개수를 알려줘",
+      "expected": {
+        "tables": [
+          "products",
+          "categories"
+        ],
+        "columnsMust": [
+          "categories.name",
+          "products.category_id"
+        ],
+        "sql": "SELECT c.name, COUNT(p.id) AS product_count FROM categories c LEFT JOIN products p ON p.category_id = c.id GROUP BY c.name ORDER BY product_count DESC"
+      },
+      "actual": {
+        "sql": "SELECT c.id AS category_id, c.name AS category_name, COUNT(p.id) AS product_count FROM categories c JOIN products p ON c.id = p.category_id GROUP BY c.id, c.name ORDER BY c.name LIMIT 1000",
+        "tables": [
+          "categories",
+          "products"
+        ],
+        "columns": [
+          "categories.id",
+          "categories.name",
+          "products.id"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": true,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 34824,
+      "inputTokens": 711,
+      "outputTokens": 353,
+      "refinerAttempts": 0,
+      "errors": []
+    },
+    {
+      "goldenId": "gs-005",
+      "language": "ko",
+      "category": "aggregation",
+      "question": "도시별 고객 수를 보여줘",
+      "expected": {
+        "tables": [
+          "customers"
+        ],
+        "columnsMust": [
+          "customers.city"
+        ],
+        "sql": "SELECT city, COUNT(*) AS cnt FROM customers GROUP BY city ORDER BY cnt DESC"
+      },
+      "actual": {
+        "sql": "SELECT city, COUNT(*) AS customer_count FROM customers GROUP BY city LIMIT 1000",
+        "tables": [
+          "customers"
+        ],
+        "columns": [
+          "customers.city"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": true,
+      "hallucinationFound": false,
+      "pass": true,
+      "durationMs": 34161,
+      "inputTokens": 1072,
+      "outputTokens": 268,
+      "refinerAttempts": 0,
+      "errors": []
+    },
+    {
+      "goldenId": "gs-006",
+      "language": "ko",
+      "category": "aggregation",
+      "question": "전체 주문 합계 금액은?",
+      "expected": {
+        "tables": [
+          "orders"
+        ],
+        "columnsMust": [
+          "orders.total"
+        ],
+        "sql": "SELECT SUM(total) AS total_revenue FROM orders WHERE status = 'completed'"
+      },
+      "actual": {
+        "sql": "SELECT SUM(total) AS total_order_amount FROM orders LIMIT 1000",
+        "tables": [
+          "orders"
+        ],
+        "columns": [
+          "orders.total"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": true,
+      "hallucinationFound": false,
+      "pass": true,
+      "durationMs": 28885,
+      "inputTokens": 1073,
+      "outputTokens": 361,
+      "refinerAttempts": 0,
+      "errors": []
+    },
+    {
+      "goldenId": "gs-007",
+      "language": "ko",
+      "category": "join",
+      "question": "지난 30일간 주문이 가장 많은 고객 5명",
+      "expected": {
+        "tables": [
+          "orders",
+          "customers"
+        ],
+        "columnsMust": [
+          "customers.name",
+          "orders.customer_id",
+          "orders.created_at"
+        ],
+        "sql": "SELECT c.name, COUNT(o.id) AS order_count FROM customers c JOIN orders o ON o.customer_id = c.id WHERE o.created_at >= now() - interval '30 days' GROUP BY c.id, c.name ORDER BY order_count DESC LIMIT 5"
+      },
+      "actual": {
+        "sql": "SELECT c.id, c.name, COUNT(o.id) AS order_count FROM customers c JOIN orders o ON c.id = o.customer_id WHERE o.created_at >= (DATE '2026-04-27' - INTERVAL '30 days') GROUP BY c.id, c.name ORDER BY order_count DESC LIMIT 5",
+        "tables": [
+          "customers",
+          "orders"
+        ],
+        "columns": [
+          "customers.id",
+          "customers.name",
+          "orders.id",
+          "orders.created_at",
+          "orders.customer_id"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": true,
+      "pass": false,
+      "durationMs": 69720,
+      "inputTokens": 1182,
+      "outputTokens": 740,
+      "refinerAttempts": 2,
+      "errors": [
+        "UNKNOWN_COLUMN: Column order_count not in any referenced table"
+      ]
+    },
+    {
+      "goldenId": "gs-008",
+      "language": "ko",
+      "category": "join",
+      "question": "VIP 고객의 최근 주문 10건을 보여줘",
+      "expected": {
+        "tables": [
+          "orders",
+          "customers"
+        ],
+        "columnsMust": [
+          "customers.is_vip",
+          "orders.created_at"
+        ],
+        "sql": "SELECT c.name, o.id, o.total, o.created_at FROM orders o JOIN customers c ON c.id = o.customer_id WHERE c.is_vip = true ORDER BY o.created_at DESC LIMIT 10"
+      },
+      "actual": {
+        "sql": "SELECT c.id AS customer_id, c.name AS customer_name, c.city AS customer_city, o.id AS order_id, o.status AS order_status, o.total AS order_total, o.created_at AS order_created_at FROM customers c INNER JOIN orders o ON c.id = o.customer_id WHERE c.is_vip = true ORDER BY o.created_at DESC LIMIT 1000",
+        "tables": [
+          "customers",
+          "orders"
+        ],
+        "columns": [
+          "customers.id",
+          "customers.name",
+          "customers.city",
+          "customers.is_vip",
+          "orders.id",
+          "orders.status",
+          "orders.total",
+          "orders.created_at"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": true,
+      "hallucinationFound": false,
+      "pass": true,
+      "durationMs": 37764,
+      "inputTokens": 1075,
+      "outputTokens": 558,
+      "refinerAttempts": 0,
+      "errors": []
+    },
+    {
+      "goldenId": "gs-009",
+      "language": "ko",
+      "category": "join",
+      "question": "Electronics 카테고리 상품의 평균 평점을 알려줘",
+      "expected": {
+        "tables": [
+          "reviews",
+          "products",
+          "categories"
+        ],
+        "columnsMust": [
+          "reviews.rating",
+          "categories.name"
+        ],
+        "sql": "SELECT AVG(r.rating) AS avg_rating FROM reviews r JOIN products p ON p.id = r.product_id JOIN categories c ON c.id = p.category_id WHERE c.name = 'Electronics'"
+      },
+      "actual": {
+        "sql": "SELECT AVG(r.rating) AS average_rating FROM categories c JOIN products p ON c.id = p.category_id JOIN reviews r ON p.id = r.product_id WHERE c.name = 'Electronics' LIMIT 1000",
+        "tables": [
+          "categories",
+          "products",
+          "reviews"
+        ],
+        "columns": [
+          "categories.name",
+          "products.category_id",
+          "reviews.rating",
+          "reviews.product_id"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": true,
+      "hallucinationFound": false,
+      "pass": true,
+      "durationMs": 48075,
+      "inputTokens": 1127,
+      "outputTokens": 501,
+      "refinerAttempts": 0,
+      "errors": []
+    },
+    {
+      "goldenId": "gs-010",
+      "language": "ko",
+      "category": "complex",
+      "question": "지난 분기 매출 상위 고객 10명과 그 매출액을 알려줘",
+      "expected": {
+        "tables": [
+          "orders",
+          "customers"
+        ],
+        "columnsMust": [
+          "customers.name",
+          "orders.total",
+          "orders.created_at"
+        ],
+        "sql": "SELECT c.name, SUM(o.total) AS revenue FROM customers c JOIN orders o ON o.customer_id = c.id WHERE o.created_at >= date_trunc('quarter', now()) - interval '3 months' AND o.created_at < date_trunc('quarter', now()) AND o.status = 'completed' GROUP BY c.id, c.name ORDER BY revenue DESC LIMIT 10"
+      },
+      "actual": {
+        "sql": "",
+        "tables": [],
+        "columns": []
+      },
+      "tableMatch": false,
+      "columnsMatch": false,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": false,
+      "pass": false,
+      "durationMs": 72682,
+      "inputTokens": 1270,
+      "outputTokens": 1024,
+      "refinerAttempts": 2,
+      "errors": [
+        "EMPTY: SQL is empty"
+      ]
+    },
+    {
+      "goldenId": "gs-011",
+      "language": "ko",
+      "category": "complex",
+      "question": "카테고리별 매출 합계를 매출이 높은 순으로",
+      "expected": {
+        "tables": [
+          "order_items",
+          "products",
+          "categories"
+        ],
+        "columnsMust": [
+          "categories.name",
+          "order_items.unit_price",
+          "order_items.quantity"
+        ],
+        "sql": "SELECT c.name, SUM(oi.unit_price * oi.quantity) AS revenue FROM order_items oi JOIN products p ON p.id = oi.product_id JOIN categories c ON c.id = p.category_id GROUP BY c.id, c.name ORDER BY revenue DESC"
+      },
+      "actual": {
+        "sql": "SELECT c.name AS category_name, SUM(oi.quantity * oi.unit_price) AS total_sales FROM categories c JOIN products p ON c.id = p.category_id JOIN order_items oi ON p.id = oi.product_id JOIN orders o ON oi.order_id = o.id WHERE o.status = 'completed' GROUP BY c.name ORDER BY total_sales DESC LIMIT 1000",
+        "tables": [
+          "categories",
+          "products",
+          "order_items",
+          "orders"
+        ],
+        "columns": [
+          "categories.name",
+          "products.category_id",
+          "order_items.quantity",
+          "order_items.unit_price",
+          "order_items.product_id",
+          "order_items.order_id",
+          "orders.status",
+          "orders.id"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": true,
+      "pass": false,
+      "durationMs": 83451,
+      "inputTokens": 1130,
+      "outputTokens": 582,
+      "refinerAttempts": 2,
+      "errors": [
+        "UNKNOWN_COLUMN: Column total_sales not in any referenced table"
+      ]
+    },
+    {
+      "goldenId": "gs-012",
+      "language": "ko",
+      "category": "cte",
+      "question": "월별 주문 수와 전월 대비 증감을 알려줘",
+      "expected": {
+        "tables": [
+          "orders"
+        ],
+        "columnsMust": [
+          "orders.created_at"
+        ],
+        "sql": "WITH monthly AS (SELECT date_trunc('month', created_at) AS m, COUNT(*) AS cnt FROM orders GROUP BY 1) SELECT m, cnt, cnt - LAG(cnt) OVER (ORDER BY m) AS delta FROM monthly ORDER BY m"
+      },
+      "actual": {
+        "sql": "WITH monthly_orders AS (\n    SELECT \n        DATE_TRUNC('month', created_at) AS month,\n        COUNT(*) AS order_count\n    FROM orders\n    WHERE status = 'completed'\n    GROUP BY DATE_TRUNC('month', created_at)\n)\nSELECT \n    month,\n    order_count,\n    LAG(order_count) OVER (ORDER BY month) AS prev_month_count,\n    CASE \n        WHEN LAG(order_count) OVER (ORDER BY month) IS NULL THEN NULL\n        ELSE ROUND((order_count - LAG(order_count) OVER (ORDER BY month)) * 100.0 / LAG(order_count) OVER (ORDER BY month), 2)\n    END AS growth_rate_pct\nFROM monthly_orders\nORDER BY month\nLIMIT 1000",
+        "tables": [
+          "orders"
+        ],
+        "columns": [
+          "orders.created_at",
+          "orders.status",
+          "orders.id"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": true,
+      "pass": false,
+      "durationMs": 75415,
+      "inputTokens": 1077,
+      "outputTokens": 957,
+      "refinerAttempts": 2,
+      "errors": [
+        "UNKNOWN_TABLE: Table not in catalog: monthly_orders",
+        "UNKNOWN_COLUMN: Column month not in any referenced table",
+        "UNKNOWN_COLUMN: Column order_count not in any referenced table"
+      ]
+    },
+    {
+      "goldenId": "gs-013",
+      "language": "ko",
+      "category": "cte",
+      "question": "각 고객의 첫 구매 일자와 평균 주문 금액",
+      "expected": {
+        "tables": [
+          "orders",
+          "customers"
+        ],
+        "columnsMust": [
+          "customers.id",
+          "orders.created_at",
+          "orders.total"
+        ],
+        "sql": "SELECT c.name, MIN(o.created_at) AS first_order, AVG(o.total) AS avg_total FROM customers c JOIN orders o ON o.customer_id = c.id GROUP BY c.id, c.name"
+      },
+      "actual": {
+        "sql": "SELECT c.name AS customer_name, MIN(o.created_at) AS first_purchase_date, AVG(o.total) AS average_order_amount FROM customers c JOIN orders o ON c.id = o.customer_id GROUP BY c.id, c.name ORDER BY first_purchase_date LIMIT 1000",
+        "tables": [
+          "customers",
+          "orders"
+        ],
+        "columns": [
+          "customers.name",
+          "customers.id",
+          "orders.created_at",
+          "orders.customer_id",
+          "orders.total"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": true,
+      "pass": false,
+      "durationMs": 67351,
+      "inputTokens": 1220,
+      "outputTokens": 731,
+      "refinerAttempts": 2,
+      "errors": [
+        "UNKNOWN_COLUMN: Column first_purchase_date not in any referenced table"
+      ]
+    },
+    {
+      "goldenId": "gs-014",
+      "language": "ko",
+      "category": "ambiguous",
+      "question": "최근 매출은 어때?",
+      "expected": {
+        "tables": [
+          "orders"
+        ],
+        "columnsMust": [
+          "orders.total",
+          "orders.created_at"
+        ],
+        "sql": "SELECT SUM(total) AS revenue FROM orders WHERE created_at >= now() - interval '30 days' AND status = 'completed'"
+      },
+      "actual": {
+        "sql": "SELECT SUM(o.total) AS total_revenue, COUNT(DISTINCT o.customer_id) AS customer_count FROM orders o WHERE o.status = 'completed' AND o.created_at <= '2026-04-27' LIMIT 1000",
+        "tables": [
+          "orders"
+        ],
+        "columns": [
+          "orders.total",
+          "orders.status",
+          "orders.created_at",
+          "orders.customer_id"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": true,
+      "hallucinationFound": false,
+      "pass": true,
+      "durationMs": 43963,
+      "inputTokens": 1071,
+      "outputTokens": 782,
+      "refinerAttempts": 0,
+      "errors": []
+    },
+    {
+      "goldenId": "gs-015",
+      "language": "en",
+      "category": "simple",
+      "question": "How many products are out of stock?",
+      "expected": {
+        "tables": [
+          "products"
+        ],
+        "columnsMust": [
+          "products.stock"
+        ],
+        "sql": "SELECT COUNT(*) FROM products WHERE stock = 0"
+      },
+      "actual": {
+        "sql": "SELECT COUNT(*) AS out_of_stock_count FROM products WHERE stock = 0 LIMIT 1000",
+        "tables": [
+          "products"
+        ],
+        "columns": [
+          "products.stock"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": true,
+      "hallucinationFound": false,
+      "pass": true,
+      "durationMs": 39236,
+      "inputTokens": 1126,
+      "outputTokens": 387,
+      "refinerAttempts": 0,
+      "errors": []
+    },
+    {
+      "goldenId": "gs-016",
+      "language": "en",
+      "category": "aggregation",
+      "question": "Average order value per status",
+      "expected": {
+        "tables": [
+          "orders"
+        ],
+        "columnsMust": [
+          "orders.status",
+          "orders.total"
+        ],
+        "sql": "SELECT status, AVG(total) AS avg_total, COUNT(*) AS cnt FROM orders GROUP BY status"
+      },
+      "actual": {
+        "sql": "SELECT status, AVG(total) AS avg_order_value FROM orders GROUP BY status LIMIT 1000",
+        "tables": [
+          "orders"
+        ],
+        "columns": [
+          "orders.status",
+          "orders.total"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": true,
+      "hallucinationFound": false,
+      "pass": true,
+      "durationMs": 39912,
+      "inputTokens": 1070,
+      "outputTokens": 269,
+      "refinerAttempts": 0,
+      "errors": []
+    },
+    {
+      "goldenId": "gs-017",
+      "language": "en",
+      "category": "join",
+      "question": "Top 5 best-selling products by quantity sold",
+      "expected": {
+        "tables": [
+          "order_items",
+          "products"
+        ],
+        "columnsMust": [
+          "products.name",
+          "order_items.quantity"
+        ],
+        "sql": "SELECT p.name, SUM(oi.quantity) AS total_qty FROM order_items oi JOIN products p ON p.id = oi.product_id GROUP BY p.id, p.name ORDER BY total_qty DESC LIMIT 5"
+      },
+      "actual": {
+        "sql": "SELECT p.id, p.name AS product_name, SUM(oi.quantity) AS total_qty FROM products p JOIN order_items oi ON p.id = oi.product_id GROUP BY p.id, p.name ORDER BY total_qty DESC LIMIT 5",
+        "tables": [
+          "products",
+          "order_items"
+        ],
+        "columns": [
+          "products.id",
+          "products.name",
+          "order_items.quantity"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": false,
+      "hallucinationFound": true,
+      "pass": false,
+      "durationMs": 66088,
+      "inputTokens": 1213,
+      "outputTokens": 847,
+      "refinerAttempts": 2,
+      "errors": [
+        "UNKNOWN_COLUMN: Column total_qty not in any referenced table"
+      ]
+    },
+    {
+      "goldenId": "gs-018",
+      "language": "en",
+      "category": "complex",
+      "question": "Customers in Seoul who placed more than 3 orders this year",
+      "expected": {
+        "tables": [
+          "customers",
+          "orders"
+        ],
+        "columnsMust": [
+          "customers.city",
+          "orders.created_at"
+        ],
+        "sql": "SELECT c.name, COUNT(o.id) AS cnt FROM customers c JOIN orders o ON o.customer_id = c.id WHERE c.city = 'Seoul' AND o.created_at >= date_trunc('year', now()) GROUP BY c.id, c.name HAVING COUNT(o.id) > 3"
+      },
+      "actual": {
+        "sql": "SELECT c.id, c.name, c.email, c.city, COUNT(o.id) AS order_count FROM customers c JOIN orders o ON c.id = o.customer_id WHERE c.city = 'Seoul' AND o.created_at >= '2026-01-01' GROUP BY c.id, c.name, c.email, c.city HAVING COUNT(o.id) > 3 LIMIT 1000",
+        "tables": [
+          "customers",
+          "orders"
+        ],
+        "columns": [
+          "customers.id",
+          "customers.name",
+          "customers.email",
+          "customers.city",
+          "orders.id",
+          "orders.created_at"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": true,
+      "hallucinationFound": false,
+      "pass": true,
+      "durationMs": 41907,
+      "inputTokens": 1077,
+      "outputTokens": 622,
+      "refinerAttempts": 0,
+      "errors": []
+    },
+    {
+      "goldenId": "gs-019",
+      "language": "en",
+      "category": "complex",
+      "question": "Products with average rating above 4 and at least 3 reviews",
+      "expected": {
+        "tables": [
+          "reviews",
+          "products"
+        ],
+        "columnsMust": [
+          "reviews.rating",
+          "products.name"
+        ],
+        "sql": "SELECT p.name, AVG(r.rating) AS avg_rating, COUNT(r.id) AS review_count FROM products p JOIN reviews r ON r.product_id = p.id GROUP BY p.id, p.name HAVING COUNT(r.id) >= 3 AND AVG(r.rating) > 4 ORDER BY avg_rating DESC"
+      },
+      "actual": {
+        "sql": "SELECT p.id, p.name, AVG(r.rating) as avg_rating, COUNT(r.id) as review_count FROM products p JOIN reviews r ON p.id = r.product_id GROUP BY p.id, p.name HAVING AVG(r.rating) > 4 AND COUNT(r.id) >= 3 LIMIT 1000",
+        "tables": [
+          "products",
+          "reviews"
+        ],
+        "columns": [
+          "products.id",
+          "products.name",
+          "reviews.rating",
+          "reviews.id"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": true,
+      "hallucinationFound": false,
+      "pass": true,
+      "durationMs": 31644,
+      "inputTokens": 892,
+      "outputTokens": 520,
+      "refinerAttempts": 0,
+      "errors": []
+    },
+    {
+      "goldenId": "gs-020",
+      "language": "en",
+      "category": "ambiguous",
+      "question": "Show me the orders",
+      "expected": {
+        "tables": [
+          "orders"
+        ],
+        "columnsMust": [
+          "orders.id"
+        ],
+        "sql": "SELECT id, customer_id, status, total, created_at FROM orders ORDER BY created_at DESC LIMIT 100"
+      },
+      "actual": {
+        "sql": "SELECT o.id, o.customer_id, c.name AS customer_name, o.created_at, o.status, o.total FROM orders o LEFT JOIN customers c ON o.customer_id = c.id LIMIT 1000",
+        "tables": [
+          "orders",
+          "customers"
+        ],
+        "columns": [
+          "orders.id",
+          "orders.customer_id",
+          "orders.created_at",
+          "orders.status",
+          "orders.total",
+          "customers.name"
+        ]
+      },
+      "tableMatch": true,
+      "columnsMatch": true,
+      "astMatch": false,
+      "validationOk": true,
+      "hallucinationFound": false,
+      "pass": true,
+      "durationMs": 39914,
+      "inputTokens": 1069,
+      "outputTokens": 572,
+      "refinerAttempts": 0,
+      "errors": []
+    }
+  ],
+  "meta": {
+    "runner": "vibesql-eval-runner",
+    "nodeEnv": "development",
+    "promptVersion": "M1-baseline"
+  }
+}

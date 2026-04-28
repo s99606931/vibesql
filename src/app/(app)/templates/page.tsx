@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/shell/TopBar";
 import { Button } from "@/components/ui-vs/Button";
 import { Card } from "@/components/ui-vs/Card";
 import { Pill } from "@/components/ui-vs/Pill";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Plus, Trash2, ExternalLink, Search, BarChart2,
-  Wrench, FileText, Bug, Star, Tag,
+  Wrench, FileText, Bug, Star, Tag, ChevronDown, ChevronRight, Copy, Check, X,
 } from "lucide-react";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import type { QueryTemplate, TemplateCategory } from "@/app/api/templates/route";
@@ -45,14 +46,16 @@ function SaveModal({
   onSave,
   onClose,
   saving,
+  defaultSql,
 }: {
   onSave: (form: SaveForm) => void;
   onClose: () => void;
   saving: boolean;
+  defaultSql?: string;
 }) {
   const [form, setForm] = useState<SaveForm>({
     name: "", description: "", category: "custom",
-    nlQuery: "", sql: "", dialect: "postgresql", tags: "",
+    nlQuery: "", sql: defaultSql ?? "", dialect: "postgresql", tags: "",
   });
 
   function set<K extends keyof SaveForm>(k: K, v: SaveForm[K]) {
@@ -61,8 +64,12 @@ function SaveModal({
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="템플릿 저장"
       style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.4)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
     >
       <div style={{
         background: "var(--ds-surface)", border: "1px solid var(--ds-border)",
@@ -74,7 +81,7 @@ function SaveModal({
           <h2 style={{ flex: 1, fontSize: "var(--ds-fs-15)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>
             내 템플릿 저장
           </h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", fontSize: 18, lineHeight: 1 }}>×</button>
+          <button type="button" onClick={onClose} aria-label="닫기" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", fontSize: 18, lineHeight: 1, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">×</button>
         </div>
 
         {[
@@ -84,8 +91,9 @@ function SaveModal({
           { label: "태그 (쉼표 구분)", key: "tags" as const, placeholder: "monthly, sales, aggregation" },
         ].map(({ label, key, placeholder }) => (
           <div key={key} style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>{label}</label>
+            <label htmlFor={`tmpl-${key}`} style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>{label}</label>
             <input
+              id={`tmpl-${key}`}
               value={form[key]}
               onChange={(e) => set(key, e.target.value)}
               placeholder={placeholder}
@@ -95,8 +103,9 @@ function SaveModal({
         ))}
 
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-          <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>SQL 쿼리</label>
+          <label htmlFor="tmpl-sql" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>SQL 쿼리</label>
           <textarea
+            id="tmpl-sql"
             value={form.sql}
             onChange={(e) => set("sql", e.target.value)}
             placeholder="SELECT ..."
@@ -107,8 +116,10 @@ function SaveModal({
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--ds-sp-3)" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>카테고리</label>
+            <label htmlFor="tmpl-category" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>카테고리</label>
             <select
+              id="tmpl-category"
+              aria-label="카테고리"
               value={form.category}
               onChange={(e) => set("category", e.target.value as TemplateCategory)}
               style={{ background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", padding: "var(--ds-sp-2)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", width: "100%" }}
@@ -119,8 +130,10 @@ function SaveModal({
             </select>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)" }}>
-            <label style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>방언</label>
+            <label htmlFor="tmpl-dialect" style={{ fontSize: "var(--ds-fs-11)", fontWeight: "var(--ds-fw-medium)", color: "var(--ds-text-mute)" }}>방언</label>
             <select
+              id="tmpl-dialect"
+              aria-label="방언"
               value={form.dialect}
               onChange={(e) => set("dialect", e.target.value)}
               style={{ background: "var(--ds-fill)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", padding: "var(--ds-sp-2)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)", width: "100%" }}
@@ -151,18 +164,21 @@ function TemplateCard({
   template,
   onUse,
   onDelete,
+  onTagClick,
 }: {
   template: QueryTemplate;
   onUse: () => void;
   onDelete?: () => void;
+  onTagClick?: (tag: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
   const CatIcon = CAT_META[template.category].icon;
 
   return (
     <Card style={{ padding: "var(--ds-sp-4)", display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--ds-sp-2)" }}>
-        <CatIcon size={14} style={{ color: "var(--ds-text-faint)", flexShrink: 0, marginTop: 2 }} />
+        <CatIcon aria-hidden="true" size={14} style={{ color: "var(--ds-text-faint)", flexShrink: 0, marginTop: 2 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", flexWrap: "wrap" }}>
             <span style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)" }}>
@@ -178,13 +194,26 @@ function TemplateCard({
           )}
         </div>
         <div style={{ display: "flex", gap: "var(--ds-sp-1)", flexShrink: 0 }}>
-          <Button variant="ghost" size="sm" onClick={onUse} title="워크스페이스에서 열기">
-            <ExternalLink size={13} />
+          <Button
+            variant="ghost"
+            size="sm"
+            title="SQL 복사"
+            icon={copied ? <Check size={13} style={{ color: "var(--ds-success)" }} /> : <Copy size={13} />}
+            onClick={() => {
+              void navigator.clipboard.writeText(template.sql);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            }}
+          >
+            {copied ? "복사됨" : "SQL 복사"}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onUse} aria-label="워크스페이스에서 열기">
+            <ExternalLink aria-hidden="true" size={13} />
             <span style={{ marginLeft: 4 }}>사용</span>
           </Button>
           {!template.isBuiltIn && onDelete && (
-            <Button variant="ghost" size="sm" onClick={onDelete} title="삭제">
-              <Trash2 size={13} style={{ color: "var(--ds-danger)" }} />
+            <Button variant="ghost" size="sm" onClick={onDelete} aria-label="삭제">
+              <Trash2 aria-hidden="true" size={13} style={{ color: "var(--ds-danger)" }} />
             </Button>
           )}
         </div>
@@ -202,36 +231,56 @@ function TemplateCard({
       {/* SQL preview */}
       <div>
         <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={`tmpl-sql-${template.id}`}
           onClick={() => setExpanded((v) => !v)}
           style={{
             background: "none", border: "none", cursor: "pointer",
             fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)",
             padding: 0, marginBottom: expanded ? "var(--ds-sp-1)" : 0,
+            transition: "color var(--ds-dur-fast) var(--ds-ease)",
           }}
         >
-          {expanded ? "▼ SQL 숨기기" : "▶ SQL 보기"}
+          <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+            {expanded ? <ChevronDown aria-hidden="true" size={10} /> : <ChevronRight aria-hidden="true" size={10} />}
+            {expanded ? "SQL 숨기기" : "SQL 보기"}
+          </span>
         </button>
-        {expanded && (
-          <pre style={{
+        <pre
+          id={`tmpl-sql-${template.id}`}
+          hidden={!expanded}
+          style={{
             background: "var(--ds-fill)", borderRadius: "var(--ds-r-6)",
             padding: "var(--ds-sp-2) var(--ds-sp-3)", margin: 0,
             fontSize: "var(--ds-fs-11)", fontFamily: "var(--ds-font-mono)",
             color: "var(--ds-text-mute)", overflowX: "auto", lineHeight: 1.6,
             whiteSpace: "pre-wrap", wordBreak: "break-all",
-          }}>
-            {template.sql}
-          </pre>
-        )}
+          }}
+        >
+          {template.sql}
+        </pre>
       </div>
 
       {/* Tags */}
       {template.tags.length > 0 && (
         <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-1)", flexWrap: "wrap" }}>
-          <Tag size={11} style={{ color: "var(--ds-text-faint)" }} />
+          <Tag aria-hidden="true" size={11} style={{ color: "var(--ds-text-faint)" }} />
           {template.tags.map((tag) => (
-            <span key={tag} style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", fontFamily: "var(--ds-font-mono)" }}>
+            <button
+              key={tag}
+              type="button"
+              aria-label={`${tag} 태그로 필터`}
+              onClick={() => onTagClick?.(tag)}
+              style={{
+                background: "none", border: "none", cursor: onTagClick ? "pointer" : "default",
+                padding: 0, fontSize: "var(--ds-fs-10)", color: "var(--ds-accent)",
+                fontFamily: "var(--ds-font-mono)",
+                transition: onTagClick ? "opacity var(--ds-dur-fast) var(--ds-ease)" : undefined,
+              }}
+            >
               #{tag}
-            </span>
+            </button>
           ))}
           <span style={{ marginLeft: "auto", fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", fontFamily: "var(--ds-font-mono)" }}>
             {template.dialect}
@@ -248,9 +297,19 @@ export default function TemplatesPage() {
   const router = useRouter();
   const qc = useQueryClient();
   const setNlQuery = useWorkspaceStore((s) => s.setNlQuery);
+  const workspaceSql = useWorkspaceStore((s) => s.sql);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<TemplateCategory | "all">("all");
   const [saveModal, setSaveModal] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const queryKey = ["templates", category, search];
 
@@ -309,13 +368,13 @@ export default function TemplatesPage() {
         breadcrumbs={[{ label: "vibeSQL" }, { label: "워크스페이스" }, { label: "템플릿" }]}
         actions={
           <Button size="sm" onClick={() => setSaveModal(true)}>
-            <Plus size={13} />
+            <Plus aria-hidden="true" size={13} />
             <span style={{ marginLeft: 4 }}>템플릿 저장</span>
           </Button>
         }
       />
 
-      <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
         {/* Stats */}
         <div style={{ display: "flex", gap: "var(--ds-sp-3)", marginBottom: "var(--ds-sp-5)" }}>
           {[
@@ -342,25 +401,35 @@ export default function TemplatesPage() {
         {/* Filter bar */}
         <div style={{ display: "flex", gap: "var(--ds-sp-3)", marginBottom: "var(--ds-sp-4)", flexWrap: "wrap" }}>
           {/* Search */}
-          <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-            <Search size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
+          <div role="search" aria-label="템플릿 검색" style={{ position: "relative", flex: 1, minWidth: 200 }}>
+            <Search aria-hidden="true" size={13} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--ds-text-faint)", pointerEvents: "none" }} />
             <input
+              ref={searchRef}
+              type="search"
+              aria-label="템플릿 검색"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="템플릿 검색..."
+              placeholder="템플릿 검색... (⌘F)"
               style={{
-                width: "100%", paddingLeft: 30, paddingRight: "var(--ds-sp-3)",
+                width: "100%", paddingLeft: 30, paddingRight: search ? 28 : "var(--ds-sp-3)",
                 paddingTop: "var(--ds-sp-2)", paddingBottom: "var(--ds-sp-2)",
                 background: "var(--ds-fill)", border: "1px solid var(--ds-border)",
                 borderRadius: "var(--ds-r-6)", color: "var(--ds-text)", fontSize: "var(--ds-fs-13)",
               }}
             />
+            {search && (
+              <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
+                <X aria-hidden="true" size={13} />
+              </button>
+            )}
           </div>
           {/* Category filter */}
-          <div style={{ display: "flex", gap: "var(--ds-sp-1)", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "var(--ds-sp-1)", flexWrap: "wrap", alignItems: "center" }}>
             {CATEGORY_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
+                type="button"
+                aria-pressed={category === opt.value}
                 onClick={() => setCategory(opt.value)}
                 style={{
                   padding: "var(--ds-sp-1) var(--ds-sp-2)",
@@ -371,27 +440,46 @@ export default function TemplatesPage() {
                   color: category === opt.value ? "var(--ds-accent)" : "var(--ds-text-mute)",
                   fontSize: "var(--ds-fs-12)",
                   cursor: "pointer",
+                  transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)",
                 }}
               >
                 {opt.label}
               </button>
             ))}
+            {!isLoading && (
+              <span role="status" aria-live="polite" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", marginLeft: "var(--ds-sp-1)" }}>
+                {(search || category !== "all") ? `${templates.length}/${data?.meta.total ?? templates.length}개` : `${templates.length}개`}
+              </span>
+            )}
           </div>
         </div>
 
         {/* Template list */}
         {isLoading ? (
-          <div style={{ color: "var(--ds-text-faint)", fontSize: "var(--ds-fs-13)", padding: "var(--ds-sp-5) 0" }}>
-            불러오는 중...
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-2)" }}>
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-20 w-full rounded-lg" />
+            ))}
           </div>
         ) : templates.length === 0 ? (
           <div style={{
             border: "1px dashed var(--ds-border)", borderRadius: "var(--ds-r-8)",
             padding: "var(--ds-sp-6)", textAlign: "center",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--ds-sp-3)",
           }}>
-            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)", marginBottom: "var(--ds-sp-3)" }}>
-              {search || category !== "all" ? "검색 결과가 없습니다." : "등록된 템플릿이 없습니다."}
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>
+              {search ? "검색 결과가 없습니다." : category === "custom" ? "아직 저장한 템플릿이 없습니다." : "등록된 템플릿이 없습니다."}
             </div>
+            {search && (
+              <Button variant="ghost" size="sm" onClick={() => setSearch("")}>
+                검색 지우기
+              </Button>
+            )}
+            {category === "custom" && !search && (
+              <Button variant="accent" size="sm" icon={<Plus size={13} />} onClick={() => setSaveModal(true)}>
+                첫 템플릿 저장하기
+              </Button>
+            )}
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }}>
@@ -400,9 +488,8 @@ export default function TemplatesPage() {
                 key={t.id}
                 template={t}
                 onUse={() => handleUse(t)}
-                onDelete={!t.isBuiltIn ? () => {
-                  if (confirm(`"${t.name}" 템플릿을 삭제할까요?`)) deleteMutation.mutate(t.id);
-                } : undefined}
+                onDelete={!t.isBuiltIn ? () => setDeleteConfirmId(t.id) : undefined}
+                onTagClick={(tag) => setSearch((prev) => prev === tag ? "" : tag)}
               />
             ))}
           </div>
@@ -414,7 +501,21 @@ export default function TemplatesPage() {
           onSave={(form) => saveMutation.mutate(form)}
           onClose={() => setSaveModal(false)}
           saving={saveMutation.isPending}
+          defaultSql={workspaceSql || undefined}
         />
+      )}
+
+      {deleteConfirmId && (
+        <div role="dialog" aria-modal="true" aria-label="템플릿 삭제" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setDeleteConfirmId(null)} onKeyDown={(e) => { if (e.key === "Escape") setDeleteConfirmId(null); }}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 280, display: "flex", flexDirection: "column", gap: "var(--ds-sp-4)" }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>템플릿 삭제</h2>
+            <div style={{ fontSize: "var(--ds-fs-13)", color: "var(--ds-text-mute)" }}>이 템플릿을 삭제할까요? 되돌릴 수 없습니다.</div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button autoFocus variant="ghost" size="sm" onClick={() => setDeleteConfirmId(null)}>취소</Button>
+              <Button variant="danger" size="sm" onClick={() => { deleteMutation.mutate(deleteConfirmId); setDeleteConfirmId(null); }}>삭제</Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

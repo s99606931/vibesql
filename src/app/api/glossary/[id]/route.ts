@@ -57,7 +57,7 @@ export async function DELETE(
   const arr = await getTermsArray();
   const idx = arr.findIndex((t) => {
     const _userId = (t as GlossaryTerm & { _userId?: string })._userId;
-    return t.id === id && (_userId === undefined || _userId === userId);
+    return t.id === id && _userId === userId;
   });
   if (idx === -1) {
     return NextResponse.json(
@@ -114,7 +114,7 @@ export async function PATCH(
   const arr = await getTermsArray();
   const term = arr.find((t) => {
     const _userId = (t as GlossaryTerm & { _userId?: string })._userId;
-    return t.id === id && (_userId === undefined || _userId === userId);
+    return t.id === id && _userId === userId;
   });
   if (!term) {
     return NextResponse.json(

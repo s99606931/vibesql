@@ -5,14 +5,14 @@ import { Button } from "@/components/ui-vs/Button";
 import { Pill } from "@/components/ui-vs/Pill";
 import { Card } from "@/components/ui-vs/Card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkspaceStore } from "@/store/useWorkspaceStore";
 import { useRouter } from "next/navigation";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import {
   Plus, ExternalLink, BarChart2, TrendingUp, PieChart,
-  Table2, Search, Play, RefreshCw, AlertCircle,
+  Table2, Search, Play, RefreshCw, AlertCircle, LayoutDashboard, Download, Copy, Check, X,
 } from "lucide-react";
 
 const ResultChart = dynamic(
@@ -68,12 +68,77 @@ const CHART_TYPE_VARIANTS: Record<string, "accent" | "success" | "info" | "defau
   "테이블": "default",
 };
 
+function formatRelativeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  if (diff < 60_000) return "방금 전";
+  const min = Math.floor(diff / 60_000);
+  if (min < 60) return `${min}분 전`;
+  const hr = Math.floor(diff / 3_600_000);
+  if (hr < 24) return `${hr}시간 전`;
+  return `${Math.floor(diff / 86_400_000)}일 전`;
+}
+
+function exportChartsCsv(charts: Array<{ name: string; folder: string; chartType: string; sql: string; dialect?: string; createdAt: string }>) {
+  const headers = ["이름", "폴더", "차트 유형", "방언", "SQL", "생성일"];
+  const esc = (v: string) => (v.includes(",") || v.includes('"') || v.includes("\n") ? `"${v.replace(/"/g, '""')}"` : v);
+  const rows = charts.map((c) => [c.name, c.folder, c.chartType, c.dialect ?? "", c.sql.replace(/\n/g, " "), new Date(c.createdAt).toLocaleString("ko-KR")].map(esc).join(","));
+  const csv = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `charts-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function ChartsPage() {
   const [activeFilter, setActiveFilter] = useState<ChartFilterType>("전체");
   const [search, setSearch] = useState("");
   const [cardStates, setCardStates] = useState<Map<string, CardState>>(new Map());
+  const [addDashModal, setAddDashModal] = useState<{ chartId: string; chartName: string; sql: string } | null>(null);
+  const [selectedDashId, setSelectedDashId] = useState("");
+  const [copiedChartId, setCopiedChartId] = useState<string | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   const { setSql, setStatus, activeConnectionId } = useWorkspaceStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const { data: dashboards = [] } = useQuery<Array<{ id: string; name: string; widgets: unknown[] }>>({
+    queryKey: ["dashboards"],
+    queryFn: async () => {
+      const r = await fetch("/api/dashboards");
+      const j = await r.json() as { data?: Array<{ id: string; name: string; widgets: unknown[] }> };
+      return Array.isArray(j.data) ? j.data : [];
+    },
+    staleTime: 60_000,
+    enabled: !!addDashModal,
+  });
+
+  const addToDashMutation = useMutation({
+    mutationFn: async ({ dashId, sql, label }: { dashId: string; sql: string; label: string }) => {
+      const dash = dashboards.find((d) => d.id === dashId);
+      const widgets = Array.isArray(dash?.widgets) ? dash!.widgets : [];
+      const r = await fetch(`/api/dashboards/${dashId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ widgets: [...widgets, { type: "table", label, sql, createdAt: new Date().toISOString() }] }),
+      });
+      if (!r.ok) throw new Error("추가 실패");
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["dashboards"] });
+      setAddDashModal(null);
+    },
+  });
 
   const { data: savedQueries, isLoading } = useQuery({
     queryKey: ["saved"],
@@ -144,44 +209,96 @@ export default function ChartsPage() {
         title="차트"
         breadcrumbs={[{ label: "vibeSQL" }, { label: "차트" }]}
         actions={
-          <Button variant="accent" size="sm" icon={<Plus size={13} />} onClick={() => router.push("/workspace")}>
-            새 차트
-          </Button>
+          <div style={{ display: "flex", gap: "var(--ds-sp-2)" }}>
+            {visible.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Download size={13} />}
+                onClick={() => exportChartsCsv(visible)}
+              >
+                CSV 내보내기
+              </Button>
+            )}
+            {visible.length > 0 && activeConnectionId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Play size={13} />}
+                onClick={() => visible.forEach((c) => { void runChart(c); })}
+              >
+                모두 실행
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<RefreshCw size={13} />}
+              onClick={() => {
+                setCardStates(new Map());
+                void queryClient.invalidateQueries({ queryKey: ["saved"] });
+              }}
+            >
+              새로고침
+            </Button>
+            <Button variant="accent" size="sm" icon={<Plus size={13} />} onClick={() => router.push("/workspace")}>
+              새 차트
+            </Button>
+          </div>
         }
       />
 
-      <div style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
+      <div aria-busy={isLoading} aria-live="polite" style={{ flex: 1, overflow: "auto", padding: "var(--ds-sp-6)" }}>
 
         {/* Filter + search bar */}
-        <div style={{ display: "flex", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-5)", alignItems: "center", flexWrap: "wrap" }}>
-          {chartTypes.map((f) => (
-            <button
-              key={f}
-              onClick={() => setActiveFilter(f)}
-              style={{
-                padding: "4px 12px",
-                borderRadius: "var(--ds-r-full)",
-                border: "1px solid var(--ds-border)",
-                background: activeFilter === f ? "var(--ds-accent-soft)" : "var(--ds-surface)",
-                color: activeFilter === f ? "var(--ds-accent)" : "var(--ds-text-mute)",
-                fontSize: "var(--ds-fs-12)",
-                cursor: "pointer",
-                fontFamily: "var(--ds-font-sans)",
-              }}
-            >
-              {f}
-            </button>
-          ))}
+        <div role="group" aria-label="차트 유형 필터" style={{ display: "flex", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-5)", alignItems: "center", flexWrap: "wrap" }}>
+          {chartTypes.map((f) => {
+            const count = f === "전체" ? charts.length : charts.filter((c) => c.chartType === f).length;
+            return (
+              <button
+                key={f}
+                type="button"
+                aria-pressed={activeFilter === f}
+                onClick={() => setActiveFilter(f)}
+                style={{
+                  padding: "4px 12px",
+                  borderRadius: "var(--ds-r-full)",
+                  border: "1px solid var(--ds-border)",
+                  background: activeFilter === f ? "var(--ds-accent-soft)" : "var(--ds-surface)",
+                  color: activeFilter === f ? "var(--ds-accent)" : "var(--ds-text-mute)",
+                  fontSize: "var(--ds-fs-12)",
+                  cursor: "pointer",
+                  fontFamily: "var(--ds-font-sans)",
+                  transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease)",
+                }}
+              >
+                {f}{count > 0 && <span style={{ marginLeft: 4, fontSize: "var(--ds-fs-10)", opacity: 0.7 }}>{count}</span>}
+              </button>
+            );
+          })}
           <div style={{ flex: 1 }} />
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", padding: "var(--ds-sp-1) var(--ds-sp-2)", width: 200 }}>
-            <Search size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
+          <div role="search" aria-label="차트 검색" style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-6)", background: "var(--ds-surface)", padding: "var(--ds-sp-1) var(--ds-sp-2)", width: 200 }}>
+            <Search aria-hidden="true" size={13} style={{ color: "var(--ds-text-faint)", flexShrink: 0 }} />
             <input
+              ref={searchRef}
+              type="search"
+              aria-label="차트 검색"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="차트 검색..."
+              placeholder="차트 검색... (⌘F)"
               style={{ border: "none", background: "transparent", color: "var(--ds-text)", fontSize: "var(--ds-fs-12)", outline: "none", fontFamily: "var(--ds-font-sans)", flex: 1 }}
             />
+            {search && (
+              <button type="button" aria-label="검색 지우기" onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ds-text-faint)", display: "flex", alignItems: "center", padding: 2, flexShrink: 0, transition: "color var(--ds-dur-fast) var(--ds-ease)" }} className="hover:text-text">
+                <X aria-hidden="true" size={12} />
+              </button>
+            )}
           </div>
+          {search && !isLoading && (
+            <span role="status" aria-live="polite" style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", whiteSpace: "nowrap" }}>
+              {visible.length}/{charts.length}개
+            </span>
+          )}
         </div>
 
         {/* No active connection warning */}
@@ -200,7 +317,7 @@ export default function ChartsPage() {
               color: "var(--ds-warn)",
             }}
           >
-            <AlertCircle size={14} style={{ flexShrink: 0 }} />
+            <AlertCircle aria-hidden="true" size={14} style={{ flexShrink: 0 }} />
             연결이 없습니다. 워크스페이스에서 DB 연결을 활성화해야 차트를 실행할 수 있습니다.
             <Button variant="ghost" size="sm" onClick={() => router.push("/workspace")} style={{ marginLeft: "auto" }}>
               연결하러 가기
@@ -218,9 +335,21 @@ export default function ChartsPage() {
         {/* Empty state */}
         {!isLoading && visible.length === 0 && (
           <div style={{ textAlign: "center", padding: "var(--ds-sp-6)", color: "var(--ds-text-mute)", fontSize: "var(--ds-fs-13)" }}>
-            {charts.length === 0
-              ? "저장된 쿼리가 없습니다. 워크스페이스에서 쿼리를 저장해보세요."
-              : "검색 결과 없음"}
+            {charts.length === 0 ? (
+              <>
+                <div>저장된 쿼리가 없습니다. 워크스페이스에서 쿼리를 저장해보세요.</div>
+                <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => router.push("/workspace")}>
+                  워크스페이스로 이동
+                </Button>
+              </>
+            ) : (
+              <>
+                <div>검색 결과 없음</div>
+                <Button variant="ghost" size="sm" style={{ marginTop: "var(--ds-sp-2)" }} onClick={() => setSearch("")}>
+                  검색 지우기
+                </Button>
+              </>
+            )}
           </div>
         )}
 
@@ -267,14 +396,14 @@ export default function ChartsPage() {
 
                     {state.status === "loading" && (
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 140, flexDirection: "column", gap: "var(--ds-sp-2)", color: "var(--ds-text-mute)", fontSize: "var(--ds-fs-12)" }}>
-                        <RefreshCw size={20} style={{ animation: "spin 1s linear infinite", color: "var(--ds-accent)" }} />
+                        <RefreshCw aria-hidden="true" size={20} style={{ animation: "spin 1s linear infinite", color: "var(--ds-accent)" }} />
                         실행 중...
                       </div>
                     )}
 
                     {state.status === "error" && (
-                      <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-3)", color: "var(--ds-danger)", fontSize: "var(--ds-fs-12)" }}>
-                        <AlertCircle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+                      <div role="alert" style={{ display: "flex", alignItems: "flex-start", gap: "var(--ds-sp-2)", padding: "var(--ds-sp-3)", color: "var(--ds-danger)", fontSize: "var(--ds-fs-12)" }}>
+                        <AlertCircle aria-hidden="true" size={14} style={{ flexShrink: 0, marginTop: 2 }} />
                         <span>{state.message}</span>
                       </div>
                     )}
@@ -295,12 +424,18 @@ export default function ChartsPage() {
 
                   {/* Title + folder */}
                   <div style={{ marginBottom: "var(--ds-sp-2)" }}>
-                    <div style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div title={chart.name} style={{ fontSize: "var(--ds-fs-13)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {chart.name}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)" }}>
                       <span style={{ fontSize: "var(--ds-fs-11)", color: "var(--ds-text-faint)", fontFamily: "var(--ds-font-mono)" }}>
                         {chart.folder}
+                      </span>
+                      <span
+                        title={new Date(chart.createdAt).toLocaleString("ko-KR")}
+                        style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)", cursor: "default" }}
+                      >
+                        {formatRelativeAgo(chart.createdAt)}
                       </span>
                       {state.status === "ready" && (
                         <span style={{ fontSize: "var(--ds-fs-10)", color: "var(--ds-text-faint)" }}>
@@ -314,7 +449,7 @@ export default function ChartsPage() {
                   <div style={{ display: "flex", alignItems: "center", gap: "var(--ds-sp-2)", marginBottom: "var(--ds-sp-3)" }}>
                     <Pill variant={CHART_TYPE_VARIANTS[chart.chartType] ?? "default"}>
                       <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        {CHART_TYPE_ICONS[chart.chartType]}
+                        <span aria-hidden="true">{CHART_TYPE_ICONS[chart.chartType]}</span>
                         {chart.chartType}
                       </span>
                     </Pill>
@@ -343,6 +478,26 @@ export default function ChartsPage() {
                     >
                       워크스페이스
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={<LayoutDashboard size={11} />}
+                      onClick={() => { setSelectedDashId(""); setAddDashModal({ chartId: chart.id, chartName: chart.name, sql: chart.sql }); }}
+                    >
+                      대시보드
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={copiedChartId === chart.id ? <Check size={11} style={{ color: "var(--ds-success)" }} /> : <Copy size={11} />}
+                      onClick={() => {
+                        void navigator.clipboard.writeText(chart.sql);
+                        setCopiedChartId(chart.id);
+                        setTimeout(() => setCopiedChartId(null), 1500);
+                      }}
+                    >
+                      {copiedChartId === chart.id ? "복사됨" : "SQL"}
+                    </Button>
                   </div>
                 </Card>
               );
@@ -350,6 +505,32 @@ export default function ChartsPage() {
           </div>
         )}
       </div>
+
+      {addDashModal && (
+        <div role="dialog" aria-modal="true" aria-label="대시보드에 추가" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setAddDashModal(null)} onKeyDown={(e) => { if (e.key === "Escape") setAddDashModal(null); }}>
+          <div style={{ background: "var(--ds-surface)", border: "1px solid var(--ds-border)", borderRadius: "var(--ds-r-8)", padding: "var(--ds-sp-5)", minWidth: 300, maxWidth: 380, display: "flex", flexDirection: "column", gap: "var(--ds-sp-3)" }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: "var(--ds-fs-14)", fontWeight: "var(--ds-fw-semibold)", color: "var(--ds-text)", margin: 0 }}>대시보드에 추가</h2>
+            <div style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-text-mute)" }}>"{addDashModal.chartName}"</div>
+            {dashboards.length === 0 ? (
+              <div style={{ fontSize: "var(--ds-fs-12)", color: "var(--ds-text-faint)", textAlign: "center", padding: "var(--ds-sp-4)" }}>대시보드를 먼저 생성하세요.</div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--ds-sp-1)", maxHeight: 160, overflowY: "auto" }}>
+                {dashboards.map((d) => (
+                  <button key={d.id} type="button" aria-pressed={selectedDashId === d.id} onClick={() => setSelectedDashId(d.id)} style={{ padding: "var(--ds-sp-2) var(--ds-sp-3)", borderRadius: "var(--ds-r-6)", border: `1px solid ${selectedDashId === d.id ? "var(--ds-accent)" : "var(--ds-border)"}`, background: selectedDashId === d.id ? "var(--ds-accent-soft)" : "transparent", color: selectedDashId === d.id ? "var(--ds-accent)" : "var(--ds-text)", cursor: "pointer", textAlign: "left", fontSize: "var(--ds-fs-13)", fontFamily: "var(--ds-font-sans)", transition: "background var(--ds-dur-fast) var(--ds-ease), color var(--ds-dur-fast) var(--ds-ease), border-color var(--ds-dur-fast) var(--ds-ease)" }}>
+                    {d.name}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--ds-sp-2)" }}>
+              <Button autoFocus variant="ghost" size="sm" onClick={() => setAddDashModal(null)}>취소</Button>
+              <Button variant="accent" size="sm" disabled={!selectedDashId || addToDashMutation.isPending} onClick={() => addToDashMutation.mutate({ dashId: selectedDashId, sql: addDashModal.sql, label: addDashModal.chartName })}>
+                {addToDashMutation.isPending ? "추가 중..." : "추가"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
